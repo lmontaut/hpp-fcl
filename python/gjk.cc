@@ -38,6 +38,7 @@
 
 #include <hpp/fcl/fwd.hh>
 #include <hpp/fcl/narrowphase/gjk.h>
+#include <hpp/fcl/internal/intersect.h>
 
 #ifdef HPP_FCL_HAS_DOXYGEN_AUTODOC
 #include "doxygen_autodoc/functions.h"
@@ -119,6 +120,8 @@ void exposeGJK() {
         .def(doxygen::visitor::init<GJK, unsigned int, FCL_REAL>())
         .DEF_RW_CLASS_ATTRIB(GJK, distance)
         .DEF_RW_CLASS_ATTRIB(GJK, ray)
+        .DEF_RW_CLASS_ATTRIB(GJK, x0)
+        .DEF_RW_CLASS_ATTRIB(GJK, x1)
         .DEF_RW_CLASS_ATTRIB(GJK, support_hint)
         .DEF_RW_CLASS_ATTRIB(GJK, gjk_variant)
         .DEF_RW_CLASS_ATTRIB(GJK, convergence_criterion)
@@ -128,6 +131,7 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, hasClosestPoints)
         .DEF_CLASS_FUNC(GJK, hasPenetrationInformation)
         .DEF_CLASS_FUNC(GJK, getClosestPoints)
+        .DEF_CLASS_FUNC(GJK, computeClosestPoints)
         .DEF_CLASS_FUNC(GJK, setDistanceEarlyBreak)
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex)
         .DEF_CLASS_FUNC(GJK, getIterations)
@@ -174,5 +178,18 @@ void exposeGJK() {
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1);
+  }
+
+  def("projectLineOrigin", &Project::projectLineOrigin);
+  def("projectTriangleOrigin", &Project::projectTriangleOrigin);
+  def("projectTetrahedraOrigin", &Project::projectTetrahedraOrigin);
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<
+          Project::ProjectResult>()) {
+    class_<Project::ProjectResult>(
+        "ProjectResult", doxygen::class_doc<Project::ProjectResult>(), no_init)
+        .def(doxygen::visitor::init<Project::ProjectResult>())
+        .DEF_RW_CLASS_ATTRIB(Project::ProjectResult, parameterization_eigen)
+        .DEF_CLASS_FUNC(Project::ProjectResult, updateParameterization);
   }
 }

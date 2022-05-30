@@ -60,6 +60,14 @@ class HPP_FCL_DLLAPI Project {
     /// be projected, use 2 or 3 or 4 of the array)
     FCL_REAL parameterization[4];
 
+    Eigen::Vector<double, 4> parameterization_eigen;
+
+    inline void updateParameterization() {
+      for (int i = 0; i < 4; i++) {
+        parameterization_eigen(i) = parameterization[i];
+      }
+    }
+
     /// @brief square distance from the query point to the projected simplex
     FCL_REAL sqr_distance;
 

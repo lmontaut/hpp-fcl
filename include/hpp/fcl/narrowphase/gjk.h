@@ -343,6 +343,10 @@ struct HPP_FCL_DLLAPI GJK {
 
   vertex_id_t nfree;  // public for python exposition
 
+  Vec3f x0;
+  Vec3f x1;
+  inline void computeClosestPoints() { getClosestPoints(*shape, x0, x1); }
+
  private:
   SimplexV store_v[4];
   SimplexV* free_v[4];
