@@ -127,6 +127,10 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, setDistanceEarlyBreak)
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex)
         .DEF_CLASS_FUNC(GJK, setGJKVariant)
+        .DEF_CLASS_FUNC(GJK, setConvergenceCriterion)
+        .DEF_CLASS_FUNC(GJK, getConvergenceCriterion)
+        .DEF_CLASS_FUNC(GJK, setConvergenceCriterionType)
+        .DEF_CLASS_FUNC(GJK, getConvergenceCriterionType)
         .DEF_CLASS_FUNC(GJK, getIterations)
         .def("projectLineOrigin",
              static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
