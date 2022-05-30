@@ -173,6 +173,7 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
 
   const Vec3f* pts = convex->points;
   const ConvexBase::Neighbors* nn = convex->neighbors;
+  size_t num_dotproducts = 0;
 
   if (hint < 0 || hint >= (int)convex->num_points) hint = 0;
   FCL_REAL maxdot = pts[hint].dot(dir);
@@ -190,6 +191,7 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
       if (visited[ip]) continue;
       visited[ip] = true;
       const FCL_REAL dot = pts[ip].dot(dir);
+      num_dotproducts++;
       bool better = false;
       if (dot > maxdot) {
         better = true;
@@ -205,6 +207,7 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
   }
 
   support = pts[hint];
+  data->num_dotproducts = num_dotproducts;
 }
 
 void getShapeSupportLinear(const ConvexBase* convex, const Vec3f& dir,
@@ -523,6 +526,9 @@ void GJK::initialize() {
   gjk_variant = GJKVariant::DefaultGJK;
   convergence_criterion = GJKConvergenceCriterion::VDB;
   convergence_criterion_type = GJKConvergenceCriterionType::Relative;
+  measure_run_time = false;
+  timer.stop();
+  timer_early.stop();
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -621,10 +627,46 @@ bool GJK::getClosestPoints(const MinkowskiDiff& shape, Vec3f& w0, Vec3f& w1) {
   return true;
 }
 
+GJK::Status GJK::computeGJKAverageRunTime(
+    const MinkowskiDiff& shape, const Vec3f& guess,
+    const support_func_guess_t& supportHint) {
+  assert(measure_run_time);
+  std::array<FCL_REAL, 100> times;
+  std::array<FCL_REAL, 100> times_early;
+  for (size_t i = 0; i < 100; i++) {
+    status = evaluate(shape, guess, supportHint);
+    times[i] = gjk_run_time.user;
+    times_early[i] = gjk_run_time_early.user;
+  }
+  // Sort arrays
+  // And compute mean over first 95 elements
+  std::sort(times.begin(), times.end());
+  std::sort(times_early.begin(), times_early.end());
+
+  average_gjk_run_time = 0.;
+  average_gjk_run_time_early = 0.;
+  for (size_t i = 0; i < 90; i++) {
+    average_gjk_run_time += times[i];
+    average_gjk_run_time_early += times_early[i];
+  }
+  average_gjk_run_time /= 90;
+  average_gjk_run_time_early /= 90;
+  return status;
+}
+
 GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
                           const support_func_guess_t& supportHint) {
   FCL_REAL alpha = 0;
   iterations = 0;
+  // Reset metrics
+  bool found_separating_plane = false;
+  iterations_early = 0;
+  num_call_support = 0;
+  num_call_support_early = 0;
+  num_call_projection = 0;
+  num_call_projection_early = 0;
+  cumulative_support_dotprods = 0;
+  cumulative_support_dotprods_early = 0;
   const FCL_REAL inflation = shape_.inflation.sum();
   const FCL_REAL upper_bound = distance_upper_bound + inflation;
 
@@ -655,6 +697,12 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   Vec3f y;
   FCL_REAL momentum;
   bool normalize_support_direction = shape->normalize_support_direction;
+  if (measure_run_time) {
+    timer.stop();
+    timer_early.stop();
+    timer.start();
+    timer_early.start();
+  }
   do {
     vertex_id_t next = (vertex_id_t)(1 - current);
     Simplex& curr_simplex = simplices[current];
@@ -716,6 +764,17 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
     if (omega > upper_bound) {
       distance = omega - inflation;
       break;
+    }
+
+    // Metrics for early stopping
+    if (omega > 0 && !found_separating_plane) {
+      found_separating_plane = true;
+      iterations_early =
+          iterations + 1;  // Take this iteration into consideration
+      num_call_support_early = num_call_support;
+      num_call_projection_early = num_call_projection;
+      cumulative_support_dotprods_early = cumulative_support_dotprods;
+      gjk_run_time_early = timer_early.elapsed();
     }
 
     // Check to remove acceleration
@@ -784,6 +843,14 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
 
   } while (status == Valid);
 
+  gjk_run_time = timer.elapsed();
+  if (!found_separating_plane) {
+    iterations_early = iterations;
+    num_call_support_early = num_call_support;
+    num_call_projection_early = num_call_projection;
+    cumulative_support_dotprods_early = cumulative_support_dotprods;
+    gjk_run_time_early = gjk_run_time;
+  }
   simplex = &simplices[current];
   assert(simplex->rank > 0 && simplex->rank < 5);
   return status;
@@ -862,6 +929,8 @@ inline void GJK::appendVertex(Simplex& simplex, const Vec3f& v,
                               bool isNormalized, support_func_guess_t& hint) {
   simplex.vertex[simplex.rank] = free_v[--nfree];  // set the memory
   getSupport(v, isNormalized, *simplex.vertex[simplex.rank++], hint);
+  num_call_support++;
+  cumulative_support_dotprods += shape->getSupportNumDotProducts();
 }
 
 bool GJK::encloseOrigin() {

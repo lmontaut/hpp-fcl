@@ -42,6 +42,7 @@
 
 #include <hpp/fcl/shape/geometric_shapes.h>
 #include <hpp/fcl/math/transform.h>
+#include <hpp/fcl/timings.h>
 
 namespace hpp {
 namespace fcl {
@@ -64,6 +65,8 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
 
   struct ShapeData {
     std::vector<int8_t> visited;
+    size_t num_dotproducts = 1;  // By default at least one dot-product is
+                                 // computed per support call on a shape
   };
 
   /// @brief Store temporary data for the computation of the support point for
@@ -149,6 +152,23 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
     assert(getSupportFunc != NULL);
     getSupportFunc(*this, d, dIsNormalized, supp0, supp1, hint,
                    const_cast<ShapeData*>(data));
+  }
+
+  /// @brief computes the number of dotproducts after a call to the support
+  /// function.
+  // Needs to be called after a call to the support function.
+  inline size_t getSupportNumDotProducts() const {
+    size_t num_dotproducts = data[0].num_dotproducts + data[1].num_dotproducts;
+    return num_dotproducts;
+  }
+
+  /// @brief Set wether or not to use the normalization heuristic when computing
+  /// a support point. Only effective if acceleration version of GJK is used.
+  /// By default, when MinkowskiDiff::set is called, the normalization heuristic
+  /// is deduced from the shapes. The user can override this behavior with this
+  /// function.
+  inline void setNormalizeSupportDirection(bool normalize) {
+    normalize_support_direction = normalize;
   }
 };
 
@@ -241,6 +261,14 @@ struct HPP_FCL_DLLAPI GJK {
 
   /// @brief apply the support function along a direction, the result is return
   /// in sv
+  /// @brief Measuring execution times
+  // We want to average the compute time over 100 executions of the same
+  // problem. However because of CPU throttling, about 5-10% of the measured
+  // times are off the charts. We thus exclude the worst 10% execution times.
+  Status computeGJKAverageRunTime(
+      const MinkowskiDiff& shape, const Vec3f& guess,
+      const support_func_guess_t& supportHint = support_func_guess_t::Zero());
+
   inline void getSupport(const Vec3f& d, bool dIsNormalized, SimplexV& sv,
                          support_func_guess_t& hint) const {
     shape->support(d, dIsNormalized, sv.w0, sv.w1, hint);
@@ -280,6 +308,28 @@ struct HPP_FCL_DLLAPI GJK {
     distance_upper_bound = dup;
   }
 
+  // Performance metrics get functions
+  void measureRunTime() { measure_run_time = true; }
+  inline size_t getIterationsEarly() { return iterations_early; }
+  inline size_t getNumCallSupport() { return num_call_support; }
+  inline size_t getNumCallSupportEarly() { return num_call_support_early; }
+  inline size_t getNumCallProjection() { return num_call_projection; }
+  inline size_t getNumCallProjectionEarly() {
+    return num_call_projection_early;
+  }
+  inline size_t getCumulativeSupportDotprods() {
+    return cumulative_support_dotprods;
+  }
+  inline size_t getCumulativeSupportDotprodsEarly() {
+    return cumulative_support_dotprods_early;
+  }
+  inline CPUTimes getGJKRunTime() { return gjk_run_time; }
+  inline CPUTimes getGJKRunTimeEarly() { return gjk_run_time_early; }
+  inline FCL_REAL getAverageGJKRunTime() { return average_gjk_run_time; }
+  inline FCL_REAL getAverageGJKRunTimeEarly() {
+    return average_gjk_run_time_early;
+  }
+
   /// @brief Convergence check used to stop GJK when shapes are not in
   /// collision.
   bool checkConvergence(const Vec3f& w, const FCL_REAL& rl, FCL_REAL& alpha,
@@ -304,6 +354,23 @@ struct HPP_FCL_DLLAPI GJK {
   FCL_REAL tolerance;
   FCL_REAL distance_upper_bound;
   size_t iterations;
+  bool measure_run_time;
+  Timer timer;
+  Timer timer_early;
+
+  size_t iterations_early;  // early: metric if we had stopped when separating
+                            // plane is found
+  size_t num_call_support;  // Number of calls to the support function
+  size_t num_call_support_early;
+  size_t num_call_projection;  // Number of calls to simplex projection
+  size_t num_call_projection_early;
+  size_t cumulative_support_dotprods;  // Number of dot-products computed for
+                                       // all support calls
+  size_t cumulative_support_dotprods_early;
+  CPUTimes gjk_run_time;
+  CPUTimes gjk_run_time_early;
+  FCL_REAL average_gjk_run_time;
+  FCL_REAL average_gjk_run_time_early;
 
   /// @brief discard one vertex from the simplex
   inline void removeVertex(Simplex& simplex);
