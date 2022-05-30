@@ -82,6 +82,8 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
   /// The 2 values correspond to the inflation of shape 0 and shape 1/
   /// These inflation values are used for Sphere and Capsule.
   Array2d inflation;
+  int index_support0 = 0;
+  int index_support1 = 0;
 
   /// @brief Number of points in a Convex object from which using a logarithmic
   /// support function is faster than a linear one.
@@ -119,11 +121,26 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
     return getSupport(shapes[0], d, dIsNormalized, hint);
   }
 
+  /// @brief support function for shape0, reference to hint removed
+  inline Vec3f support0(const Vec3f& d, bool dIsNormalized) {
+    Vec3f res;
+    res = getSupport(shapes[0], d, dIsNormalized, index_support0);
+    return res;
+  }
+
   /// @brief support function for shape1
   inline Vec3f support1(const Vec3f& d, bool dIsNormalized, int& hint) const {
     return oR1 *
                getSupport(shapes[1], oR1.transpose() * d, dIsNormalized, hint) +
            ot1;
+  }
+  /// @brief support function for shape1
+  inline Vec3f support1(const Vec3f& d, bool dIsNormalized) {
+    Vec3f res;
+    res = oR1 * getSupport(shapes[1], oR1.transpose() * d, dIsNormalized,
+                           index_support1) +
+          ot1;
+    return res;
   }
 
   /// @brief support function for the pair of shapes
@@ -144,7 +161,10 @@ struct HPP_FCL_DLLAPI GJK {
     Vec3f w0, w1;
     /// @brief support vector (i.e., the furthest point on the shape along the
     /// support direction)
+    int index_w0 = 0;
+    int index_w1 = 0;
     Vec3f w;
+    SimplexV() {}
   };
 
   typedef unsigned char vertex_id_t;
@@ -152,10 +172,24 @@ struct HPP_FCL_DLLAPI GJK {
   struct HPP_FCL_DLLAPI Simplex {
     /// @brief simplex vertex
     SimplexV* vertex[4];
+    SimplexV vertex_mem[4];  // used to allocate memory
     /// @brief size of simplex (number of vertices)
     vertex_id_t rank;
+    Vec3f cp0 = Vec3f::Zero();
+    Vec3f cp1 = Vec3f::Zero();
+    Simplex() {
+      vertex[0] = &vertex_mem[0];
+      vertex[1] = &vertex_mem[1];
+      vertex[2] = &vertex_mem[2];
+      vertex[3] = &vertex_mem[3];
+    }
 
-    Simplex() {}
+    inline SimplexV getVertex(int i) const {
+      SimplexV v = *vertex[i];
+      return v;
+    }
+
+    inline void setVertex(const SimplexV& v, int i) { *vertex[i] = v; }
   };
 
   /// @brief Status of the GJK algorithm:
@@ -257,10 +291,11 @@ struct HPP_FCL_DLLAPI GJK {
   /// @brief Get GJK tolerance.
   inline FCL_REAL getTolerance() { return tolerance; }
 
+  vertex_id_t nfree;  // public for python exposition
+
  private:
   SimplexV store_v[4];
   SimplexV* free_v[4];
-  vertex_id_t nfree;
   vertex_id_t current;
   Simplex* simplex;
   Status status;
@@ -277,6 +312,7 @@ struct HPP_FCL_DLLAPI GJK {
   inline void appendVertex(Simplex& simplex, const Vec3f& v, bool isNormalized,
                            support_func_guess_t& hint);
 
+ public:
   /// @brief Project origin (0) onto line a-b
   /// For a detailed explanation of how to efficiently project onto a simplex,
   /// check out Ericson's book, page 403:

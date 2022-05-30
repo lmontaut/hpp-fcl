@@ -77,9 +77,15 @@ void exposeGJK() {
                  static_cast<void (MinkowskiDiff::*)(
                      const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
                      const Transform3f& tf1)>(&MinkowskiDiff::set)))
-        .DEF_CLASS_FUNC(MinkowskiDiff, support0)
-        .DEF_CLASS_FUNC(MinkowskiDiff, support1)
         .DEF_CLASS_FUNC(MinkowskiDiff, support)
+        .def("support0",
+             static_cast<Vec3f (MinkowskiDiff::*)(const Vec3f&, bool)>(
+                 &MinkowskiDiff::support0))
+        .def("support1",
+             static_cast<Vec3f (MinkowskiDiff::*)(const Vec3f&, bool)>(
+                 &MinkowskiDiff::support1))
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support0)
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support1)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
   }
@@ -117,12 +123,43 @@ void exposeGJK() {
         .DEF_RW_CLASS_ATTRIB(GJK, gjk_variant)
         .DEF_RW_CLASS_ATTRIB(GJK, convergence_criterion)
         .DEF_RW_CLASS_ATTRIB(GJK, convergence_criterion_type)
+        .DEF_RW_CLASS_ATTRIB(GJK, nfree)
         .DEF_CLASS_FUNC(GJK, evaluate)
         .DEF_CLASS_FUNC(GJK, hasClosestPoints)
         .DEF_CLASS_FUNC(GJK, hasPenetrationInformation)
         .DEF_CLASS_FUNC(GJK, getClosestPoints)
         .DEF_CLASS_FUNC(GJK, setDistanceEarlyBreak)
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex)
-        .DEF_CLASS_FUNC(GJK, getIterations);
+        .DEF_CLASS_FUNC(GJK, getIterations)
+        .def("projectLineOrigin",
+             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
+                 &GJK::projectLineOrigin))
+        .def("projectTriangleOrigin",
+             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
+                 &GJK::projectTriangleOrigin))
+        .def("projectTetrahedraOrigin",
+             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
+                 &GJK::projectTetrahedraOrigin));
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJK::Simplex>()) {
+    class_<GJK::Simplex>("Simplex", doxygen::class_doc<GJK::Simplex>(), no_init)
+        .def(doxygen::visitor::init<GJK::Simplex>())
+        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, rank)
+        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, cp0)
+        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, cp1)
+        .DEF_CLASS_FUNC(GJK::Simplex, getVertex)
+        .DEF_CLASS_FUNC(GJK::Simplex, setVertex);
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJK::SimplexV>()) {
+    class_<GJK::SimplexV>("SimplexV", doxygen::class_doc<GJK::SimplexV>(),
+                          no_init)
+        .def(doxygen::visitor::init<GJK::SimplexV>())
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w0)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1);
   }
 }
