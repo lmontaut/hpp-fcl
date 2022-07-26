@@ -282,6 +282,8 @@ struct HPP_FCL_DLLAPI GJK {
   /// next iteration
   inline Simplex* getSimplex() const { return simplex; }
 
+  inline Simplex getSimplexPython() const { return *simplex; }
+
   /// Tells whether the closest points are available.
   bool hasClosestPoints() { return distance < distance_upper_bound; }
 

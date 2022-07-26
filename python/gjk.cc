@@ -147,6 +147,7 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, getGJKRunTimeEarly)
         .DEF_CLASS_FUNC(GJK, computeGJKAverageRunTime)
         .DEF_CLASS_FUNC(GJK, getAverageGJKRunTime)
+        .DEF_CLASS_FUNC(GJK, getSimplexPython)
         .DEF_CLASS_FUNC(GJK, getAverageGJKRunTimeEarly)
         .def("projectLineOrigin",
              static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
