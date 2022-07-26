@@ -231,7 +231,7 @@ void getShapeSupport(const ConvexBase* convex, const Vec3f& dir, Vec3f& support,
                      int& hint, MinkowskiDiff::ShapeData*) {
   // TODO add benchmark to set a proper value for switching between linear and
   // logarithmic.
-  if (convex->num_points > 32) {
+  if (convex->num_points > 0) {
     MinkowskiDiff::ShapeData data;
     getShapeSupportLog(convex, dir, support, hint, &data);
   } else
@@ -929,6 +929,8 @@ inline void GJK::appendVertex(Simplex& simplex, const Vec3f& v,
                               bool isNormalized, support_func_guess_t& hint) {
   simplex.vertex[simplex.rank] = free_v[--nfree];  // set the memory
   getSupport(v, isNormalized, *simplex.vertex[simplex.rank++], hint);
+  simplex.vertex[simplex.rank - 1]->index_w0 = hint[0];
+  simplex.vertex[simplex.rank - 1]->index_w1 = hint[1];
   num_call_support++;
   cumulative_support_dotprods += shape->getSupportNumDotProducts();
 }
