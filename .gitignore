@@ -3,3 +3,6 @@ Xcode/*
 *~
 *.pyc
 
+
+.cache/clangd/index
+compile_commands.json
