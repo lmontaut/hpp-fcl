@@ -273,6 +273,8 @@ struct HPP_FCL_DLLAPI GJK {
                          support_func_guess_t& hint) const {
     shape->support(d, dIsNormalized, sv.w0, sv.w1, hint);
     sv.w = sv.w0 - sv.w1;
+    sv.index_w0 = hint[0];
+    sv.index_w1 = hint[1];
   }
 
   /// @brief whether the simplex enclose the origin

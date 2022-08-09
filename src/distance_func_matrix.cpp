@@ -79,6 +79,7 @@ FCL_REAL ShapeShapeDistance(const CollisionGeometry* o1, const Transform3f& tf1,
 
   initialize(node, *obj1, tf1, *obj2, tf2, nsolver, request, result);
   distance(&node);
+  result.optimal_simplex = nsolver->optimal_simplex;
 
   return result.min_distance;
 }

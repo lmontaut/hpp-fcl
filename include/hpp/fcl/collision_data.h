@@ -47,6 +47,7 @@
 #include <hpp/fcl/config.hh>
 #include <hpp/fcl/data_types.h>
 #include <hpp/fcl/timings.h>
+#include <hpp/fcl/narrowphase/gjk.h>
 
 namespace hpp {
 namespace fcl {
@@ -459,6 +460,9 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// @brief nearest points.
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
+
+  /// @brief optimal simplex found by GJK/EPA
+  details::GJK::Simplex optimal_simplex;
 
   /// Stores the normal, defined as the normalized separation vector:
   /// normal = (p2 - p1) / dist(o1, o2), where p1 = nearest_points[0]
