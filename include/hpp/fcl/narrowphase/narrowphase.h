@@ -319,7 +319,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
             || epa_status == details::EPA::FallBack) {
           Vec3f w0, w1;
           epa.getClosestPoints(shape, w0, w1);
-          assert(epa.depth >= -eps);
+          assert(epa.depth >= -sqrt(gjk.getTolerance()));
           distance = (std::min)(0., -epa.depth);
           normal.noalias() = tf1.getRotation() * epa.normal;
           p1 = tf1.transform(w0);
