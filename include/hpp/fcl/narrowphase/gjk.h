@@ -49,6 +49,9 @@ namespace fcl {
 
 namespace details {
 
+Vec3f getShapeSupportConvexWrapper(const ConvexBase* convex, const Vec3f& dir, int hint);
+Vec3f getShapeSupportEllipsoidWrapper(const Ellipsoid* Ellipsoid, const Vec3f& dir);
+
 /// @brief the support function for shape
 /// \param hint use to initialize the search when shape is a ConvexBase object.
 Vec3f getSupport(const ShapeBase* shape, const Vec3f& dir, bool dirIsNormalized,

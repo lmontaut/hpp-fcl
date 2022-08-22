@@ -89,6 +89,14 @@ inline void getShapeSupport(const Ellipsoid* ellipsoid, const Vec3f& dir,
   support = v / d;
 }
 
+Vec3f getShapeSupportEllipsoidWrapper(const Ellipsoid* ellipsoid, const Vec3f& dir){
+  Vec3f support = Vec3f::Zero();
+  int hint;
+  MinkowskiDiff::ShapeData data;
+  getShapeSupport(ellipsoid, dir, support, hint, &data);
+  return support;
+} 
+
 inline void getShapeSupport(const Capsule* capsule, const Vec3f& dir,
                             Vec3f& support, int&, MinkowskiDiff::ShapeData*) {
   support.head<2>().setZero();
@@ -208,6 +216,13 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
 
   support = pts[hint];
   data->num_dotproducts = num_dotproducts;
+}
+
+Vec3f getShapeSupportConvexWrapper(const ConvexBase* convex, const Vec3f& dir, int hint){
+  Vec3f support = Vec3f::Zero();
+  MinkowskiDiff::ShapeData data;
+  getShapeSupportLog(convex, dir, support, hint, &data);
+  return support;
 }
 
 void getShapeSupportLinear(const ConvexBase* convex, const Vec3f& dir,

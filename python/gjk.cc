@@ -60,6 +60,9 @@ void exposeGJK() {
         .export_values();
   }
 
+  def("getShapeSupportConvex", &details::getShapeSupportConvexWrapper);
+  def("getShapeSupportEllipsoid", &details::getShapeSupportEllipsoidWrapper);
+
   if (!eigenpy::register_symbolic_link_to_registered_type<MinkowskiDiff>()) {
     class_<MinkowskiDiff>("MinkowskiDiff", doxygen::class_doc<MinkowskiDiff>(),
                           no_init)
