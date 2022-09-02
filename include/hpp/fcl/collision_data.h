@@ -422,10 +422,34 @@ struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
 
 struct DistanceResult;
 
+/// @brief Options for the collision detection derivatives
+struct HPP_FCL_DLLAPI DerivativeOptions{
+  /// @brief Noise to apply to the derivation method
+  FCL_REAL noise;
+
+  /// @brief Used in the zero-order method to warm-start GJK+EPA
+  Vec3f warm_start;
+
+  /// @brief Hint used in first-order method to warm-start
+  /// support function computation
+  support_func_guess_t hint;
+
+  DerivativeOptions(FCL_REAL noise_ = 1e-3,
+                    Vec3f warm_start_ = Vec3f(1, 0, 0),
+                    support_func_guess_t hint_ = support_func_guess_t::Zero())
+                    : noise(noise_), warm_start(warm_start_), hint(hint_){}
+};
+
 /// @brief request to the distance computation
 struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
   /// @brief whether to return the nearest points
   bool enable_nearest_points;
+
+  /// @brief Type of derivation used
+  DerivativeType derivative_type;
+
+  /// @brief Options to use for computing derivatives
+  DerivativeOptions derivative_options;
 
   /// @brief error threshold for approximate distance
   FCL_REAL rel_err;  // relative error, between 0 and 1
@@ -460,6 +484,12 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// @brief nearest points.
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
+
+  /// @brief derivative of separation vector and nearest_points
+  /// w.r.t relative configuration of shapes
+  Matrix36f dw_dq;
+  Matrix36f dw1_dq;
+  Matrix36f dw2_dq;
 
   /// @brief optimal simplex found by GJK/EPA
   details::GJK::Simplex optimal_simplex;

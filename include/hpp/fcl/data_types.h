@@ -69,6 +69,7 @@ typedef Eigen::Matrix<FCL_REAL, 3, 3> Matrix3f;
 typedef Eigen::Matrix<FCL_REAL, Eigen::Dynamic, 3> Matrixx3f;
 typedef Eigen::Matrix<Eigen::DenseIndex, Eigen::Dynamic, 3> Matrixx3i;
 typedef Eigen::Matrix<FCL_REAL, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
+typedef Eigen::Matrix<FCL_REAL, 3, 6> Matrix36f;
 typedef Eigen::Vector2i support_func_guess_t;
 
 /// @brief Initial guess to use for the GJK algorithm
@@ -91,6 +92,12 @@ enum GJKConvergenceCriterion { VDB, DualityGap, Hybrid };
 /// @brief Wether the convergence criterion is scaled on the norm of the
 /// solution or not
 enum GJKConvergenceCriterionType { Relative, Absolute };
+
+/// @brief Type of derivative.
+/// ZeroOrder: naive RS Gaussian on configuration space
+/// FirstOrderRS: implicit + RS Gaussian
+/// FirstOrderGumbel: implicit + RS Gumbel
+enum DerivativeType { ZeroOrder, FirstOrderRS, FirstOrderGumbel };
 
 /// @brief Triangle with 3 indices for points
 class HPP_FCL_DLLAPI Triangle {
