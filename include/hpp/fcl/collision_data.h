@@ -488,12 +488,15 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
 
+  /// @brief Separation vector, expressed in frame of SHAPE 1.
+  Vec3f w;
+  /// @brief Witness points, expressed in the frame of their respective shapes.
+  Vec3f w1, w2;
+
   /// @brief derivative of separation vector and nearest_points
   /// w.r.t relative configuration of shapes.
   /// All these derivatives are expressed in the frame of SHAPE 1.
-  Matrix36f dw_dq;
-  Matrix36f dw1_dq;
-  Matrix36f dw2_dq;
+  Matrix36f dw_dq, dw1_dq, dw2_dq;
 
   /// @brief optimal simplex found by GJK/EPA
   details::GJK::Simplex optimal_simplex;
