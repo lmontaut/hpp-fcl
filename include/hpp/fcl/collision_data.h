@@ -427,6 +427,9 @@ struct HPP_FCL_DLLAPI DerivativeOptions{
   /// @brief Noise to apply to the derivation method
   FCL_REAL noise;
 
+  /// @brief Number of samples for zero and first order methods
+  int num_samples;
+
   /// @brief Used in the zero-order method to warm-start GJK+EPA
   Vec3f warm_start;
 
@@ -486,7 +489,8 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   std::array<Vec3f, 2> nearest_points;
 
   /// @brief derivative of separation vector and nearest_points
-  /// w.r.t relative configuration of shapes
+  /// w.r.t relative configuration of shapes.
+  /// All these derivatives are expressed in the frame of SHAPE 1.
   Matrix36f dw_dq;
   Matrix36f dw1_dq;
   Matrix36f dw2_dq;
