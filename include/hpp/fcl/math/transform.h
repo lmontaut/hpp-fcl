@@ -154,6 +154,12 @@ class HPP_FCL_DLLAPI Transform3f {
     return R * v + T;
   }
 
+  /// @brief applies the inverse transform to a given vector
+  template <typename Derived>
+  inline Vec3f transformInverse(const Eigen::MatrixBase<Derived>& v) const {
+    return R.transpose() * v - R.transpose() * T;
+  }
+
   /// @brief inverse transform
   inline Transform3f& inverseInPlace() {
     R.transposeInPlace();
