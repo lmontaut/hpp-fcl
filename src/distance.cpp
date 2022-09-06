@@ -113,7 +113,7 @@ FCL_REAL distance(const CollisionGeometry* o1, const Transform3f& tf1,
   }
 
   result.w1 = tf1.transformInverse(result.nearest_points[0]);
-  result.w2 = tf1.transformInverse(result.nearest_points[1]);
+  result.w2 = tf2.transformInverse(result.nearest_points[1]);
   result.w = tf1.getRotation().transpose() * (result.nearest_points[0] - result.nearest_points[1]);
   return res;
 }

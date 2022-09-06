@@ -438,9 +438,10 @@ struct HPP_FCL_DLLAPI DerivativeOptions{
   support_func_guess_t hint;
 
   DerivativeOptions(FCL_REAL noise_ = 1e-3,
+                    int num_samples_ = 10,
                     Vec3f warm_start_ = Vec3f(1, 0, 0),
                     support_func_guess_t hint_ = support_func_guess_t::Zero())
-                    : noise(noise_), warm_start(warm_start_), hint(hint_){}
+                    : noise(noise_), num_samples(num_samples_), warm_start(warm_start_), hint(hint_){}
 };
 
 /// @brief request to the distance computation
@@ -493,10 +494,14 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// @brief Witness points, expressed in the frame of their respective shapes.
   Vec3f w1, w2;
 
-  /// @brief derivative of separation vector and nearest_points
-  /// w.r.t relative configuration of shapes.
-  /// All these derivatives are expressed in the frame of SHAPE 1.
-  Matrix36f dw_dq, dw1_dq, dw2_dq;
+  /// @brief derivative of separation vector w.r.t relative configuration
+  /// of shapes.
+  /// Expressed in frame of SHAPE 1.
+  Matrix36f dw_dq;
+  /// @brief derivative of witness points w.r.t relative configuration
+  /// of shapes.
+  /// Expressed in the frame of their shapes.
+  Matrix36f dw1_dq, dw2_dq;
 
   /// @brief optimal simplex found by GJK/EPA
   details::GJK::Simplex optimal_simplex;

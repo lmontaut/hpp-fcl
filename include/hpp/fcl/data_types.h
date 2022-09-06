@@ -97,7 +97,7 @@ enum GJKConvergenceCriterionType { Relative, Absolute };
 /// ZeroOrder: naive RS Gaussian on configuration space
 /// FirstOrderRS: implicit + RS Gaussian
 /// FirstOrderGumbel: implicit + RS Gumbel
-enum DerivativeType { FiniteDifference, ZeroOrder, FirstOrderRS, FirstOrderGumbel };
+enum DerivativeType { FiniteDifference, ZeroOrderRS, FirstOrderRS, FirstOrderGumbel };
 
 /// @brief Triangle with 3 indices for points
 class HPP_FCL_DLLAPI Triangle {

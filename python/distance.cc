@@ -67,6 +67,8 @@ void exposeDistanceAPI() {
              arg("abs_err")),
             "Constructor"))
         .DEF_RW_CLASS_ATTRIB(DistanceRequest, enable_nearest_points)
+        .DEF_RW_CLASS_ATTRIB(DistanceRequest, derivative_type)
+        .DEF_RW_CLASS_ATTRIB(DistanceRequest, derivative_options)
         .DEF_RW_CLASS_ATTRIB(DistanceRequest, rel_err)
         .DEF_RW_CLASS_ATTRIB(DistanceRequest, abs_err);
   }
@@ -94,9 +96,34 @@ void exposeDistanceAPI() {
         .DEF_RO_CLASS_ATTRIB(DistanceResult, o2)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b1)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b2)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, w)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, w1)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, w2)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw_dq)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw1_dq)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw2_dq)
 
         .def("clear", &DistanceResult::clear,
              doxygen::member_func_doc(&DistanceResult::clear));
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<DerivativeType>()) {
+    enum_<DerivativeType>("DerivativeType")
+        .value("FiniteDifference", DerivativeType::FiniteDifference)
+        .value("ZeroOrderRS", DerivativeType::ZeroOrderRS)
+        .value("FirstOrderRS", DerivativeType::FirstOrderRS)
+        .value("FirstOrderGumbel", DerivativeType::FirstOrderGumbel)
+        .export_values();
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<DerivativeOptions>()) {
+    class_<DerivativeOptions>(
+        "DerivativeOptions", doxygen::class_doc<DerivativeOptions>(), no_init)
+        .def(dv::init<DerivativeOptions, FCL_REAL, int, Vec3f, support_func_guess_t>())
+        .DEF_RW_CLASS_ATTRIB(DerivativeOptions, noise)
+        .DEF_RW_CLASS_ATTRIB(DerivativeOptions, num_samples)
+        .DEF_RW_CLASS_ATTRIB(DerivativeOptions, warm_start)
+        .DEF_RW_CLASS_ATTRIB(DerivativeOptions, hint);
   }
 
   if (!eigenpy::register_symbolic_link_to_registered_type<
