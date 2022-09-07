@@ -91,9 +91,9 @@ void exposeDistanceAPI() {
         .def("getNearestPoint2", &DistanceRequestWrapper::getNearestPoint2,
              doxygen::class_attrib_doc<DistanceResult>("nearest_points"))
         .DEF_RO_CLASS_ATTRIB(DistanceResult, nearest_points)
-        .DEF_RO_CLASS_ATTRIB(DistanceResult, optimal_simplex)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, o1)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, o2)
+        .DEF_RO_CLASS_ATTRIB(DistanceResult, optimal_simplex)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b1)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b2)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, w)
@@ -119,10 +119,11 @@ void exposeDistanceAPI() {
   if (!eigenpy::register_symbolic_link_to_registered_type<DerivativeOptions>()) {
     class_<DerivativeOptions>(
         "DerivativeOptions", doxygen::class_doc<DerivativeOptions>(), no_init)
-        .def(dv::init<DerivativeOptions, FCL_REAL, int, Vec3f, support_func_guess_t>())
+        .def(dv::init<DerivativeOptions, FCL_REAL, int, Vec3f, support_func_guess_t, bool>())
         .DEF_RW_CLASS_ATTRIB(DerivativeOptions, noise)
         .DEF_RW_CLASS_ATTRIB(DerivativeOptions, num_samples)
         .DEF_RW_CLASS_ATTRIB(DerivativeOptions, warm_start)
+        .DEF_RW_CLASS_ATTRIB(DerivativeOptions, use_analytic_hessians)
         .DEF_RW_CLASS_ATTRIB(DerivativeOptions, hint);
   }
 

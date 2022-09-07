@@ -181,6 +181,7 @@ void exposeGJK() {
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1);
   }
 

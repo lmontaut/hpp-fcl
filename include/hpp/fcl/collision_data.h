@@ -165,10 +165,10 @@ struct HPP_FCL_DLLAPI QueryRequest {
   size_t gjk_max_iterations;
 
   /// @brief the gjk initial guess set by user
-  Vec3f cached_gjk_guess;
+  mutable Vec3f cached_gjk_guess;
 
   /// @brief the support function initial guess set by user
-  support_func_guess_t cached_support_func_guess;
+  mutable support_func_guess_t cached_support_func_guess;
 
   /// @brief enable timings when performing collision/distance request
   bool enable_timings;
@@ -437,11 +437,16 @@ struct HPP_FCL_DLLAPI DerivativeOptions{
   /// support function computation
   support_func_guess_t hint;
 
+  /// @brief Use support function hessiant if available
+  bool use_analytic_hessians;
+
   DerivativeOptions(FCL_REAL noise_ = 1e-3,
                     int num_samples_ = 10,
                     Vec3f warm_start_ = Vec3f(1, 0, 0),
-                    support_func_guess_t hint_ = support_func_guess_t::Zero())
-                    : noise(noise_), num_samples(num_samples_), warm_start(warm_start_), hint(hint_){}
+                    support_func_guess_t hint_ = support_func_guess_t::Zero(),
+                    bool use_analytic_hessians_ = true)
+                    : noise(noise_), num_samples(num_samples_),
+                    warm_start(warm_start_), hint(hint_), use_analytic_hessians(use_analytic_hessians_){}
 };
 
 /// @brief request to the distance computation
@@ -488,6 +493,11 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// @brief nearest points.
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
+
+  /// @brief nearest points neigbhors.
+  /// See CollisionResult::nearest_points.
+  std::array<std::vector<Vec3f>, 2> nearest_points_neigbhors;
+  std::array<std::vector<int8_t>, 2> visited;
 
   /// @brief Separation vector, expressed in frame of SHAPE 1.
   Vec3f w;
@@ -593,12 +603,21 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   void clear() {
     const Vec3f nan(
         Vec3f::Constant(std::numeric_limits<FCL_REAL>::quiet_NaN()));
+    const Matrix36f nan36(
+        Matrix36f::Constant(std::numeric_limits<FCL_REAL>::quiet_NaN()));
     min_distance = (std::numeric_limits<FCL_REAL>::max)();
     o1 = NULL;
     o2 = NULL;
     b1 = NONE;
     b2 = NONE;
     nearest_points[0] = nearest_points[1] = normal = nan;
+    w = w1 = w2 = nan;
+    dw_dq = dw1_dq = dw2_dq = nan36;
+    optimal_simplex.rank = 0;
+    nearest_points_neigbhors[0].clear();
+    visited[0].clear();
+    nearest_points_neigbhors[1].clear();
+    visited[1].clear();
     timings.clear();
   }
 

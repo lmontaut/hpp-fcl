@@ -44,6 +44,7 @@
 #include <hpp/fcl/shape/geometric_shapes.h>
 #include <hpp/fcl/math/transform.h>
 #include <hpp/fcl/timings.h>
+#include <array>
 
 namespace hpp {
 namespace fcl {
@@ -187,6 +188,7 @@ struct HPP_FCL_DLLAPI GJK {
     /// support direction)
     int index_w0 = 0;
     int index_w1 = 0;
+    std::array<int, 2> index_w;
     Vec3f w;
     SimplexV() {}
   };
@@ -279,6 +281,8 @@ struct HPP_FCL_DLLAPI GJK {
     sv.w = sv.w0 - sv.w1;
     sv.index_w0 = hint[0];
     sv.index_w1 = hint[1];
+    sv.index_w[0] = hint[0];
+    sv.index_w[1] = hint[1];
   }
 
   /// @brief whether the simplex enclose the origin
