@@ -464,14 +464,18 @@ struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
   FCL_REAL rel_err;  // relative error, between 0 and 1
   FCL_REAL abs_err;  // absolute error
 
+  /// @brief Maximum search level for neighbors in Gumbel distance derivative
+  int max_neighbors_search_level;
+
   /// \param enable_nearest_points_ enables the nearest points computation.
   /// \param rel_err_
   /// \param abs_err_
   DistanceRequest(bool enable_nearest_points_ = false, FCL_REAL rel_err_ = 0.0,
-                  FCL_REAL abs_err_ = 0.0)
+                  FCL_REAL abs_err_ = 0.0, int max_neighbors_search_level_ = 1)
       : enable_nearest_points(enable_nearest_points_),
         rel_err(rel_err_),
-        abs_err(abs_err_) {}
+        abs_err(abs_err_),
+        max_neighbors_search_level(max_neighbors_search_level_) {}
 
   bool isSatisfied(const DistanceResult& result) const;
 
@@ -494,15 +498,18 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
 
-  /// @brief nearest points neigbhors.
+  /// @brief nearest points neighbors.
   /// See CollisionResult::nearest_points.
-  std::array<std::vector<Vec3f>, 2> nearest_points_neigbhors;
+  std::array<std::vector<Vec3f>, 2> nearest_points_neighbors;
   std::array<std::vector<int8_t>, 2> visited;
 
   /// @brief Separation vector, expressed in frame of SHAPE 1.
   Vec3f w;
   /// @brief Witness points, expressed in the frame of their respective shapes.
   Vec3f w1, w2;
+
+  /// @brief Softmax weights of the Gumbel distance derivative
+  std::array<Eigen::VectorXd, 2> softmax_weights;
 
   /// @brief derivative of separation vector w.r.t relative configuration
   /// of shapes.
@@ -514,7 +521,10 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   Matrix36f dw1_dq, dw2_dq;
 
   /// @brief optimal simplex found by GJK/EPA
-  details::GJK::Simplex optimal_simplex;
+  details::GJK::SimplexSupport simplex_support;
+
+  /// @brief Time to compute distance derivatives
+  FCL_REAL time_distance_derivatives;
 
   /// Stores the normal, defined as the normalized separation vector:
   /// normal = (p2 - p1) / dist(o1, o2), where p1 = nearest_points[0]
@@ -613,10 +623,10 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
     nearest_points[0] = nearest_points[1] = normal = nan;
     w = w1 = w2 = nan;
     dw_dq = dw1_dq = dw2_dq = nan36;
-    optimal_simplex.rank = 0;
-    nearest_points_neigbhors[0].clear();
+    simplex_support.clear();
+    nearest_points_neighbors[0].clear();
     visited[0].clear();
-    nearest_points_neigbhors[1].clear();
+    nearest_points_neighbors[1].clear();
     visited[1].clear();
     timings.clear();
   }

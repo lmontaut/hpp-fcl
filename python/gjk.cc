@@ -101,6 +101,14 @@ void exposeGJK() {
         .export_values();
   }
 
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJKInitialGuess>()) {
+    enum_<GJKInitialGuess>("GJKInitialGuess")
+        .value("CachedGuess", GJKInitialGuess::CachedGuess)
+        .value("BoundingVolumeGuess", GJKInitialGuess::BoundingVolumeGuess)
+        .value("DefaultGuess", GJKInitialGuess::DefaultGuess)
+        .export_values();
+  }
+
   if (!eigenpy::register_symbolic_link_to_registered_type<
           GJKConvergenceCriterion>()) {
     enum_<GJKConvergenceCriterion>("GJKConvergenceCriterion")
@@ -181,7 +189,6 @@ void exposeGJK() {
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1);
   }
 

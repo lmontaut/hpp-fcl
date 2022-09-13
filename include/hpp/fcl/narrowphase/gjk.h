@@ -188,8 +188,10 @@ struct HPP_FCL_DLLAPI GJK {
     /// support direction)
     int index_w0 = 0;
     int index_w1 = 0;
-    std::array<int, 2> index_w;
+    // std::array<int, 2> index_w = {};
+    // int index_w[2] = {};
     Vec3f w;
+    // SimplexV(): index_w({0, 0}) {}
     SimplexV() {}
   };
 
@@ -210,12 +212,45 @@ struct HPP_FCL_DLLAPI GJK {
       vertex[3] = &vertex_mem[3];
     }
 
+    // Simplex(const Simplex& copy){
+    //   for (int i=0; i < 4; ++i) {
+    //     vertex_mem[i] = copy.vertex_mem[i];
+    //   }
+    //   vertex[0] = &vertex_mem[0];
+    //   vertex[1] = &vertex_mem[1];
+    //   vertex[2] = &vertex_mem[2];
+    //   vertex[3] = &vertex_mem[3];
+    // }
+
     inline SimplexV getVertex(int i) const {
       SimplexV v = *vertex[i];
       return v;
     }
 
     inline void setVertex(const SimplexV& v, int i) { *vertex[i] = v; }
+  };
+
+  struct HPP_FCL_DLLAPI SimplexSupport {
+    std::array<std::array<int, 4>, 2> index_w;
+    int rank;
+
+    void update(const Simplex& simplex){
+      rank = simplex.rank;
+      for (std::size_t i = 0; i < 4; ++i) {
+          index_w[0][i] = simplex.vertex[i]->index_w0;
+          index_w[1][i] = simplex.vertex[i]->index_w1;
+      }
+    }
+
+    void clear(){
+      rank = -1;
+      for (std::size_t i = 0; i < 4; ++i) {
+          index_w[0][i] = 0;
+          index_w[1][i] = 0;
+      }
+    }
+
+    SimplexSupport(): rank(-1) {}
   };
 
   /// @brief Status of the GJK algorithm:
@@ -281,8 +316,8 @@ struct HPP_FCL_DLLAPI GJK {
     sv.w = sv.w0 - sv.w1;
     sv.index_w0 = hint[0];
     sv.index_w1 = hint[1];
-    sv.index_w[0] = hint[0];
-    sv.index_w[1] = hint[1];
+    // sv.index_w[0] = hint[0];
+    // sv.index_w[1] = hint[1];
   }
 
   /// @brief whether the simplex enclose the origin

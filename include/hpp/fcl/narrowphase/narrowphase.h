@@ -266,7 +266,8 @@ struct HPP_FCL_DLLAPI GJKSolver {
     initialize_gjk(gjk, shape, s1, s2, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
-    optimal_simplex = gjk.getSimplexPython();
+    // optimal_simplex = gjk.getSimplexPython();
+    simplex_support.update(*(gjk.getSimplex()));
     if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
         enable_cached_guess) {
       cached_guess = gjk.getGuessFromSimplex();
@@ -311,8 +312,9 @@ struct HPP_FCL_DLLAPI GJKSolver {
         details::EPA epa(epa_max_face_num, epa_max_vertex_num,
                          epa_max_iterations, epa_tolerance);
         details::EPA::Status epa_status = epa.evaluate(gjk, -guess);
-        optimal_simplex = epa.result;
-        assert(optimal_simplex.rank <= 3);
+        // optimal_simplex = epa.result;
+        simplex_support.update(epa.result);
+        // assert(optimal_simplex.rank <= 3);
         if (epa_status & details::EPA::Valid ||
             epa_status == details::EPA::OutOfFaces        // Warnings
             || epa_status == details::EPA::OutOfVertices  // Warnings
@@ -490,7 +492,9 @@ struct HPP_FCL_DLLAPI GJKSolver {
   mutable Vec3f cached_guess;
 
   /// @brief optimal simplex found by GJK/EPA
-  mutable details::GJK::Simplex optimal_simplex;
+  // mutable details::GJK::Simplex optimal_simplex;
+
+  mutable details::GJK::SimplexSupport simplex_support;
 
   /// @brief which warm start to use for GJK
   mutable GJKInitialGuess gjk_initial_guess;

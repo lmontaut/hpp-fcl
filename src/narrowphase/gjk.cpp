@@ -947,8 +947,8 @@ inline void GJK::appendVertex(Simplex& simplex, const Vec3f& v,
   getSupport(v, isNormalized, *simplex.vertex[simplex.rank++], hint);
   simplex.vertex[simplex.rank - 1]->index_w0 = hint[0];
   simplex.vertex[simplex.rank - 1]->index_w1 = hint[1];
-  simplex.vertex[simplex.rank - 1]->index_w[0] = hint[0];
-  simplex.vertex[simplex.rank - 1]->index_w[1] = hint[1];
+  // simplex.vertex[simplex.rank - 1]->index_w[0] = hint[0];
+  // simplex.vertex[simplex.rank - 1]->index_w[1] = hint[1];
   num_call_support++;
   cumulative_support_dotprods += shape->getSupportNumDotProducts();
 }
