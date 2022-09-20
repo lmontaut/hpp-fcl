@@ -511,6 +511,10 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// @brief Softmax weights of the Gumbel distance derivative
   std::array<Eigen::VectorXd, 2> softmax_weights;
 
+  Vec3f dir1, dir2;
+  Matrix3f ds1_ddir1, ds2_ddir2, dr_dp;
+  Matrix36f dr_dq, dr_dq_a, dr_dq_b, dRp_dq;
+
   /// @brief derivative of separation vector w.r.t relative configuration
   /// of shapes.
   /// Expressed in frame of SHAPE 1.
