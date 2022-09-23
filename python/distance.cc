@@ -150,6 +150,8 @@ void exposeDistanceAPI() {
         .DEF_RO_CLASS_ATTRIB(DistanceResult, softmax_weights)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, simplex_support)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, time_distance_derivatives)
+        .DEF_RO_CLASS_ATTRIB(DistanceResult, ds1_ddir1)
+        .DEF_RO_CLASS_ATTRIB(DistanceResult, ds2_ddir2)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b1)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b2)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, w)
