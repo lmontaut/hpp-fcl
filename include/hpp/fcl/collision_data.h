@@ -519,10 +519,13 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// of shapes.
   /// Expressed in frame of SHAPE 1.
   Matrix36f dw_dq;
+  Matrix36f dw_dq1, dw_dq2;
   /// @brief derivative of witness points w.r.t relative configuration
   /// of shapes.
   /// Expressed in the frame of their shapes.
   Matrix36f dw1_dq, dw2_dq;
+  Matrix36f dw1_dq1, dw1_dq2;
+  Matrix36f dw2_dq1, dw2_dq2;
 
   /// @brief optimal simplex found by GJK/EPA
   details::GJK::SimplexSupport simplex_support;

@@ -160,6 +160,12 @@ void exposeDistanceAPI() {
         .DEF_RW_CLASS_ATTRIB(DistanceResult, dw_dq)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, dw1_dq)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, dw2_dq)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw_dq1)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw_dq2)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw1_dq1)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw1_dq2)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw2_dq1)
+        .DEF_RW_CLASS_ATTRIB(DistanceResult, dw2_dq2)
 
         .def("clear", &DistanceResult::clear,
              doxygen::member_func_doc(&DistanceResult::clear));
