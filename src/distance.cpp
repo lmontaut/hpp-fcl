@@ -111,10 +111,6 @@ FCL_REAL distance(const CollisionGeometry* o1, const Transform3f& tf1,
     result.cached_gjk_guess = solver.cached_guess;
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }
-
-  result.w1 = tf1.transformInverse(result.nearest_points[0]);
-  result.w2 = tf2.transformInverse(result.nearest_points[1]);
-  result.w = tf1.getRotation().transpose() * (result.nearest_points[0] - result.nearest_points[1]);
   result.simplex_support = solver.simplex_support;
   return res;
 }

@@ -422,60 +422,23 @@ struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
 
 struct DistanceResult;
 
-/// @brief Options for the collision detection derivatives
-struct HPP_FCL_DLLAPI DerivativeOptions{
-  /// @brief Noise to apply to the derivation method
-  FCL_REAL noise;
-
-  /// @brief Number of samples for zero and first order methods
-  int num_samples;
-
-  /// @brief Used in the zero-order method to warm-start GJK+EPA
-  Vec3f warm_start;
-
-  /// @brief Hint used in first-order method to warm-start
-  /// support function computation
-  support_func_guess_t hint;
-
-  /// @brief Use support function hessiant if available
-  bool use_analytic_hessians;
-
-  DerivativeOptions(FCL_REAL noise_ = 1e-3,
-                    int num_samples_ = 10,
-                    Vec3f warm_start_ = Vec3f(1, 0, 0),
-                    support_func_guess_t hint_ = support_func_guess_t::Zero(),
-                    bool use_analytic_hessians_ = true)
-                    : noise(noise_), num_samples(num_samples_),
-                    warm_start(warm_start_), hint(hint_), use_analytic_hessians(use_analytic_hessians_){}
-};
-
 /// @brief request to the distance computation
 struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
   /// @brief whether to return the nearest points
   bool enable_nearest_points;
 
-  /// @brief Type of derivation used
-  DerivativeType derivative_type;
-
-  /// @brief Options to use for computing derivatives
-  DerivativeOptions derivative_options;
-
   /// @brief error threshold for approximate distance
   FCL_REAL rel_err;  // relative error, between 0 and 1
   FCL_REAL abs_err;  // absolute error
-
-  /// @brief Maximum search level for neighbors in Gumbel distance derivative
-  int max_neighbors_search_level;
 
   /// \param enable_nearest_points_ enables the nearest points computation.
   /// \param rel_err_
   /// \param abs_err_
   DistanceRequest(bool enable_nearest_points_ = false, FCL_REAL rel_err_ = 0.0,
-                  FCL_REAL abs_err_ = 0.0, int max_neighbors_search_level_ = 1)
+                  FCL_REAL abs_err_ = 0.0)
       : enable_nearest_points(enable_nearest_points_),
         rel_err(rel_err_),
-        abs_err(abs_err_),
-        max_neighbors_search_level(max_neighbors_search_level_) {}
+        abs_err(abs_err_) {}
 
   bool isSatisfied(const DistanceResult& result) const;
 
@@ -498,40 +461,8 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
 
-  /// @brief nearest points neighbors.
-  /// See CollisionResult::nearest_points.
-  std::array<std::vector<Vec3f>, 2> nearest_points_neighbors;
-  std::array<std::vector<int8_t>, 2> visited;
-
-  /// @brief Separation vector, expressed in frame of SHAPE 1.
-  Vec3f w;
-  /// @brief Witness points, expressed in the frame of their respective shapes.
-  Vec3f w1, w2;
-
-  /// @brief Softmax weights of the Gumbel distance derivative
-  std::array<Eigen::VectorXd, 2> softmax_weights;
-
-  Vec3f dir1, dir2;
-  Matrix3f ds1_ddir1, ds2_ddir2, dr_dp;
-  Matrix36f dr_dq, dr_dq_a, dr_dq_b, dRp_dq;
-
-  /// @brief derivative of separation vector w.r.t relative configuration
-  /// of shapes.
-  /// Expressed in frame of SHAPE 1.
-  Matrix36f dw_dq;
-  Matrix36f dw_dq1, dw_dq2;
-  /// @brief derivative of witness points w.r.t relative configuration
-  /// of shapes.
-  /// Expressed in the frame of their shapes.
-  Matrix36f dw1_dq, dw2_dq;
-  Matrix36f dw1_dq1, dw1_dq2;
-  Matrix36f dw2_dq1, dw2_dq2;
-
   /// @brief optimal simplex found by GJK/EPA
   details::GJK::SimplexSupport simplex_support;
-
-  /// @brief Time to compute distance derivatives
-  FCL_REAL time_distance_derivatives;
 
   /// Stores the normal, defined as the normalized separation vector:
   /// normal = (p2 - p1) / dist(o1, o2), where p1 = nearest_points[0]
@@ -620,22 +551,13 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   void clear() {
     const Vec3f nan(
         Vec3f::Constant(std::numeric_limits<FCL_REAL>::quiet_NaN()));
-    const Matrix36f nan36(
-        Matrix36f::Constant(std::numeric_limits<FCL_REAL>::quiet_NaN()));
     min_distance = (std::numeric_limits<FCL_REAL>::max)();
     o1 = NULL;
     o2 = NULL;
     b1 = NONE;
     b2 = NONE;
     nearest_points[0] = nearest_points[1] = normal = nan;
-    w = w1 = w2 = nan;
-    dw_dq = dw1_dq = dw2_dq = nan36;
     simplex_support.clear();
-    nearest_points_neighbors[0].clear();
-    visited[0].clear();
-    nearest_points_neighbors[1].clear();
-    visited[1].clear();
-    timings.clear();
   }
 
   /// @brief whether two DistanceResult are the same or not
