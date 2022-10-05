@@ -112,6 +112,9 @@ FCL_REAL distance(const CollisionGeometry* o1, const Transform3f& tf1,
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }
 
+  result.gjk_numit = solver.gjk_numit;
+  result.epa_numit = solver.epa_numit;
+
   return res;
 }
 

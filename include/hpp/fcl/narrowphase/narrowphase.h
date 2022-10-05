@@ -272,6 +272,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
     initialize_gjk(gjk, shape, s1, s2, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
+    gjk_numit = gjk.getIterations();
     if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
         enable_cached_guess) {
       cached_guess = gjk.getGuessFromSimplex();
@@ -483,6 +484,11 @@ struct HPP_FCL_DLLAPI GJKSolver {
 
   /// @brief maximum number of iterations used for GJK iterations
   mutable size_t gjk_max_iterations;
+
+  /// @brief maximum number of iterations used for GJK iterations
+  mutable size_t gjk_numit = 0;
+  /// @brief maximum number of iterations used for EPA iterations
+  mutable size_t epa_numit = 0;
 
   /// @brief Whether smart guess can be provided
   /// @Deprecated Use gjk_initial_guess instead

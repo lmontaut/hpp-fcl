@@ -385,6 +385,7 @@ struct HPP_FCL_DLLAPI EPA {
   SimplexF* fc_store;
   size_t nextsv;
   SimplexList hull, stock;
+  size_t iterations;
 
   EPA(unsigned int max_face_num_, unsigned int max_vertex_num_,
       unsigned int max_iterations_, FCL_REAL tolerance_)
@@ -411,6 +412,7 @@ struct HPP_FCL_DLLAPI EPA {
   /// @return true on success
   bool getClosestPoints(const MinkowskiDiff& shape, Vec3f& w0, Vec3f& w1);
 
+  inline size_t getIterations() { return iterations; }
  private:
   bool getEdgeDist(SimplexF* face, SimplexV* a, SimplexV* b, FCL_REAL& dist);
 

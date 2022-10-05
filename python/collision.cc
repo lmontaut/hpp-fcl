@@ -186,6 +186,8 @@ void exposeCollisionAPI() {
                         no_init)
         .DEF_RW_CLASS_ATTRIB(QueryResult, cached_gjk_guess)
         .DEF_RW_CLASS_ATTRIB(QueryResult, cached_support_func_guess)
+        .DEF_RW_CLASS_ATTRIB(QueryResult, gjk_numit)
+        .DEF_RW_CLASS_ATTRIB(QueryResult, epa_numit)
         .DEF_RW_CLASS_ATTRIB(QueryResult, timings);
   }
 

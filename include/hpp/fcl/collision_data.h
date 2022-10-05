@@ -222,6 +222,11 @@ struct HPP_FCL_DLLAPI QueryResult {
   /// @brief stores the last support function vertex index, when relevant.
   support_func_guess_t cached_support_func_guess;
 
+  /// @brief stores the number of iterations done by GJK
+  size_t gjk_numit = 0;
+  /// @brief stores the number of iterations done by EPA
+  size_t epa_numit = 0;
+
   /// @brief timings for the given request
   CPUTimes timings;
 
