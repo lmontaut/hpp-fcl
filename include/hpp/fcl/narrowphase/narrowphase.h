@@ -272,6 +272,10 @@ struct HPP_FCL_DLLAPI GJKSolver {
     initialize_gjk(gjk, shape, s1, s2, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
+    for (size_t i = 0; i < gjk.supports[0].size(); i++) {
+      supports_gjk[0].push_back(gjk.supports[0][i]);
+      supports_gjk[1].push_back(gjk.supports[1][i]);
+    }
     gjk_numit = gjk.getIterations();
     if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
         enable_cached_guess) {
@@ -317,6 +321,11 @@ struct HPP_FCL_DLLAPI GJKSolver {
         details::EPA epa(epa_max_face_num, epa_max_vertex_num,
                          epa_max_iterations, epa_tolerance);
         details::EPA::Status epa_status = epa.evaluate(gjk, -guess);
+        for (size_t i = 0; i < epa.supports[0].size(); i++) {
+          supports_epa[0].push_back(epa.supports[0][i]);
+          supports_epa[1].push_back(epa.supports[1][i]);
+        }
+        epa_numit = epa.getIterations();
         if (epa_status & details::EPA::Valid ||
             epa_status == details::EPA::OutOfFaces        // Warnings
             || epa_status == details::EPA::OutOfVertices  // Warnings
@@ -512,6 +521,11 @@ struct HPP_FCL_DLLAPI GJKSolver {
 
   /// @brief smart guess for the support function
   mutable support_func_guess_t support_func_cached_guess;
+
+  /// @brief Supports obtained while running GJK
+  mutable std::array<std::vector<Vec3f>, 2> supports_gjk;
+  /// @brief Supports obtained while running EPA
+  mutable std::array<std::vector<Vec3f>, 2> supports_epa;
 
   /// @brief Distance above which the GJK solver stoppes its computations and
   /// processes to an early stopping.

@@ -524,6 +524,8 @@ void GJK::initialize() {
   gjk_variant = GJKVariant::DefaultGJK;
   convergence_criterion = GJKConvergenceCriterion::VDB;
   convergence_criterion_type = GJKConvergenceCriterionType::Relative;
+  supports[0].clear();
+  supports[1].clear();
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -712,6 +714,10 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
 
     appendVertex(curr_simplex, -dir, false,
                  support_hint);  // see below, ray points away from origin
+    Vec3f w0 = curr_simplex.vertex[curr_simplex.rank-1]->w0;
+    Vec3f w1 = curr_simplex.vertex[curr_simplex.rank-1]->w1;
+    supports[0].push_back(w0);
+    supports[1].push_back(w1);
 
     // check removed (by ?): when the new support point is close to previous
     // support points, stop (as the new simplex is degenerated)
@@ -1451,6 +1457,8 @@ void EPA::initialize() {
   nextsv = 0;
   for (size_t i = 0; i < max_face_num; ++i)
     stock.append(&fc_store[max_face_num - i - 1]);
+  supports[0].clear();
+  supports[1].clear();
   iterations = 0;
 }
 
@@ -1591,6 +1599,10 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
         // At the moment, SimplexF.n is always normalized. This could be revised
         // in the future...
         gjk.getSupport(best->n, true, *w, hint);
+        Vec3f w0 = w->w0;
+        Vec3f w1 = w->w1;
+        supports[0].push_back(w0);
+        supports[1].push_back(w1);
         FCL_REAL wdist = best->n.dot(w->w) - best->d;
         if (wdist <= tolerance) {
           status = AccuracyReached;

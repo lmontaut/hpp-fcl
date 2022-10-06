@@ -465,6 +465,11 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
   /// See CollisionResult::nearest_points.
   std::array<Vec3f, 2> nearest_points;
 
+  /// @brief List of supports computed when running GJK
+  std::array<std::vector<Vec3f>, 2> supports_gjk;
+  /// @brief List of supports computed when running EPA
+  std::array<std::vector<Vec3f>, 2> supports_epa;
+
   /// Stores the normal, defined as the normalized separation vector:
   /// normal = (p2 - p1) / dist(o1, o2), where p1 = nearest_points[0]
   /// belongs to o1 and p2 = nearest_points[1] belongs to o2 and dist(o1, o2) is
@@ -559,6 +564,10 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
     b2 = NONE;
     nearest_points[0] = nearest_points[1] = normal = nan;
     timings.clear();
+    supports_gjk[0].clear();
+    supports_gjk[1].clear();
+    supports_epa[0].clear();
+    supports_epa[1].clear();
   }
 
   /// @brief whether two DistanceResult are the same or not

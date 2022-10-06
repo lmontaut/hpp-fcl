@@ -39,6 +39,7 @@
 #ifndef HPP_FCL_GJK_H
 #define HPP_FCL_GJK_H
 
+#include <array>
 #include <vector>
 
 #include <hpp/fcl/shape/geometric_shapes.h>
@@ -186,6 +187,7 @@ struct HPP_FCL_DLLAPI GJK {
   /// GJK::distance_upper_bound.
   FCL_REAL distance;
   Simplex simplices[2];
+  mutable std::array<std::vector<Vec3f>, 2> supports;
 
   /// \param max_iterations_ number of iteration before GJK returns failure.
   /// \param tolerance_ precision of the algorithm.
@@ -385,6 +387,7 @@ struct HPP_FCL_DLLAPI EPA {
   SimplexF* fc_store;
   size_t nextsv;
   SimplexList hull, stock;
+  std::array<std::vector<Vec3f>, 2> supports;
   size_t iterations;
 
   EPA(unsigned int max_face_num_, unsigned int max_vertex_num_,
@@ -413,6 +416,7 @@ struct HPP_FCL_DLLAPI EPA {
   bool getClosestPoints(const MinkowskiDiff& shape, Vec3f& w0, Vec3f& w1);
 
   inline size_t getIterations() { return iterations; }
+
  private:
   bool getEdgeDist(SimplexF* face, SimplexV* a, SimplexV* b, FCL_REAL& dist);
 
