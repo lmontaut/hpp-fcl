@@ -88,6 +88,12 @@ void exposeGJK() {
     enum_<GJKVariant>("GJKVariant")
         .value("DefaultGJK", GJKVariant::DefaultGJK)
         .value("NesterovAcceleration", GJKVariant::NesterovAcceleration)
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJKInitialGuess>()) {
+    enum_<GJKInitialGuess>("GJKInitialGuess")
+        .value("DefaultGuess", GJKInitialGuess::DefaultGuess)
+        .value("CachedGuess", GJKInitialGuess::CachedGuess)
+        .value("BoundingVolumeGuess", GJKInitialGuess::BoundingVolumeGuess)
         .export_values();
   }
 
