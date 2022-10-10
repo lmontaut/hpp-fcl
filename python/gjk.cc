@@ -86,7 +86,6 @@ void exposeGJK() {
                  &MinkowskiDiff::support1))
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support0)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support1)
-        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation);
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
   }
