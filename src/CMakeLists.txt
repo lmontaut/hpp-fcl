@@ -78,6 +78,9 @@ set(${LIBRARY_NAME}_SOURCES
   distance/sphere_cylinder.cpp
   distance/sphere_halfspace.cpp
   distance/sphere_plane.cpp
+  distance/sphere_capsule.cpp
+  distance/ellipsoid_halfspace.cpp
+  distance/ellipsoid_plane.cpp
   distance/convex_halfspace.cpp
   distance/triangle_halfspace.cpp
   intersect.cpp
@@ -165,26 +168,24 @@ FOREACH(header ${${PROJECT_NAME}_HEADERS})
   LIST(APPEND PROJECT_HEADERS_FULL_PATH ${PROJECT_SOURCE_DIR}/${header})
 ENDFOREACH()
 LIST(APPEND PROJECT_HEADERS_FULL_PATH ${PROJECT_BINARY_DIR}/include/hpp/fcl/config.hh)
+LIST(APPEND PROJECT_HEADERS_FULL_PATH ${PROJECT_BINARY_DIR}/include/hpp/fcl/deprecated.hh)
+LIST(APPEND PROJECT_HEADERS_FULL_PATH ${PROJECT_BINARY_DIR}/include/hpp/fcl/warning.hh)
 add_library(${LIBRARY_NAME}
   SHARED
   ${PROJECT_HEADERS_FULL_PATH}
   ${${LIBRARY_NAME}_SOURCES}
   )
 
+set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "\$ORIGIN")
+
 # IDE sources and headers sorting
 ADD_SOURCE_GROUP(${LIBRARY_NAME}_SOURCES)
 ADD_HEADER_GROUP(PROJECT_HEADERS_FULL_PATH)
 
-TARGET_INCLUDE_DIRECTORIES(${LIBRARY_NAME}
-  SYSTEM PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  )
-
-TARGET_LINK_LIBRARIES(${LIBRARY_NAME}
-  PRIVATE
-  ${assimp_LIBRARIES}
-  # assimp::assimp # Not working
-  )
+MODERNIZE_TARGET_LINK_LIBRARIES(${LIBRARY_NAME} SCOPE PRIVATE
+  TARGETS assimp::assimp
+  LIBRARIES ${assimp_LIBRARIES}
+  INCLUDE_DIRS ${assimp_INCLUDE_DIR})
 
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME}
   PUBLIC
@@ -211,14 +212,9 @@ if(HPP_FCL_HAS_QHULL)
   endif()
 endif()
 
-target_include_directories(${LIBRARY_NAME}
-  SYSTEM PUBLIC
-  ${EIGEN3_INCLUDE_DIR}
-  )
-target_include_directories(${LIBRARY_NAME}
-  SYSTEM PRIVATE
-  ${assimp_INCLUDE_DIR}
-  )
+MODERNIZE_TARGET_LINK_LIBRARIES(${PROJECT_NAME} SCOPE PUBLIC
+  TARGETS Eigen3::Eigen
+  INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 
 target_include_directories(${LIBRARY_NAME}
   PUBLIC
@@ -226,8 +222,10 @@ target_include_directories(${LIBRARY_NAME}
   )
 
 IF(octomap_FOUND)
-  target_include_directories(${LIBRARY_NAME} SYSTEM PUBLIC ${OCTOMAP_INCLUDE_DIRS})
-  target_link_libraries(${LIBRARY_NAME} PUBLIC ${OCTOMAP_LIBRARIES})
+  MODERNIZE_TARGET_LINK_LIBRARIES(${PROJECT_NAME} SCOPE PUBLIC
+    TARGETS octomap
+    LIBRARIES ${OCTOMAP_LIBRARIES}
+    INCLUDE_DIRS ${OCTOMAP_INCLUDE_DIRS})
   target_compile_definitions (${LIBRARY_NAME} PUBLIC
     -DHPP_FCL_HAS_OCTOMAP
     -DHPP_FCL_HAVE_OCTOMAP

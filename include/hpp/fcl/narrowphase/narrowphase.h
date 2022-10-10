@@ -5,7 +5,7 @@
  *  Copyright (c) 2014-2015, Open Source Robotics Foundation
  *  Copyright (c) 2018-2019, Centre National de la Recherche Scientifique
  *  All rights reserved.
- *  Copyright (c) 2021, INRIA
+ *  Copyright (c) 2021-2022, INRIA
  *  All rights reserved.
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -41,8 +41,10 @@
 #define HPP_FCL_NARROWPHASE_H
 
 #include <limits>
+#include <iostream>
 
 #include <hpp/fcl/narrowphase/gjk.h>
+#include <hpp/fcl/collision_data.h>
 
 namespace hpp {
 namespace fcl {
@@ -50,36 +52,76 @@ namespace fcl {
 /// @brief collision and distance solver based on GJK algorithm implemented in
 /// fcl (rewritten the code from the GJK in bullet)
 struct HPP_FCL_DLLAPI GJKSolver {
+  typedef Eigen::Array<FCL_REAL, 1, 2> Array2d;
+
+  /// @brief initialize GJK
+  template <typename S1, typename S2>
+  void initialize_gjk(details::GJK& gjk, const details::MinkowskiDiff& shape,
+                      const S1& s1, const S2& s2, Vec3f& guess,
+                      support_func_guess_t& support_hint) const {
+    switch (gjk_initial_guess) {
+      case GJKInitialGuess::DefaultGuess:
+        guess = Vec3f(1, 0, 0);
+        support_hint.setZero();
+        break;
+      case GJKInitialGuess::CachedGuess:
+        guess = cached_guess;
+        support_hint = support_func_cached_guess;
+        break;
+      case GJKInitialGuess::BoundingVolumeGuess:
+        if (s1.aabb_local.volume() < 0 || s2.aabb_local.volume() < 0) {
+          HPP_FCL_THROW_PRETTY(
+              "computeLocalAABB must have been called on the shapes before "
+              "using "
+              "GJKInitialGuess::BoundingVolumeGuess.",
+              std::logic_error);
+        }
+        guess.noalias() = s1.aabb_local.center() -
+                          (shape.oR1 * s2.aabb_local.center() + shape.ot1);
+        support_hint.setZero();
+        break;
+      default:
+        HPP_FCL_THROW_PRETTY("Wrong initial guess for GJK.", std::logic_error);
+    }
+    // TODO: use gjk_initial_guess instead
+    HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+    HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+    if (enable_cached_guess) {
+      guess = cached_guess;
+      support_hint = support_func_cached_guess;
+    }
+    HPP_FCL_COMPILER_DIAGNOSTIC_POP
+
+    gjk.setDistanceEarlyBreak(distance_upper_bound);
+
+    gjk.gjk_variant = gjk_variant;
+    gjk.convergence_criterion = gjk_convergence_criterion;
+    gjk.convergence_criterion_type = gjk_convergence_criterion_type;
+  }
+
   /// @brief intersection checking between two shapes
   template <typename S1, typename S2>
   bool shapeIntersect(const S1& s1, const Transform3f& tf1, const S2& s2,
                       const Transform3f& tf2, FCL_REAL& distance_lower_bound,
                       bool enable_penetration, Vec3f* contact_points,
                       Vec3f* normal) const {
-    Vec3f guess(1, 0, 0);
-    support_func_guess_t support_hint;
-    if (enable_cached_guess) {
-      guess = cached_guess;
-      support_hint = support_func_cached_guess;
-    } else
-      support_hint.setZero();
-
     details::MinkowskiDiff shape;
     shape.set(&s1, &s2, tf1, tf2);
 
+    Vec3f guess;
+    support_func_guess_t support_hint;
     details::GJK gjk((unsigned int)gjk_max_iterations, gjk_tolerance);
-
-    gjk.setDistanceEarlyBreak(distance_upper_bound);
-
-    gjk.setGJKVariant(gjk_variant);
-    gjk.setConvergenceCriterion(convergence_criterion);
-    gjk.setConvergenceCriterionType(convergence_criterion_type);
+    initialize_gjk(gjk, shape, s1, s2, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
-    if (enable_cached_guess) {
+    HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+    HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+    if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+        enable_cached_guess) {
       cached_guess = gjk.getGuessFromSimplex();
       support_func_cached_guess = gjk.support_hint;
     }
+    HPP_FCL_COMPILER_DIAGNOSTIC_POP
 
     Vec3f w0, w1;
     switch (gjk_status) {
@@ -90,7 +132,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
           gjk.getClosestPoints(shape, w0, w1);
           distance_lower_bound = gjk.distance;
           if (normal)
-            (*normal).noalias() = tf1.getRotation() * (w0 - w1).normalized();
+            (*normal).noalias() = tf1.getRotation() * (w1 - w0).normalized();
           if (contact_points) *contact_points = tf1.transform((w0 + w1) / 2);
           return true;
         } else {
@@ -107,6 +149,12 @@ struct HPP_FCL_DLLAPI GJKSolver {
             if (contact_points)
               *contact_points =
                   tf1.transform(w0 - epa.normal * (epa.depth * 0.5));
+            return true;
+          } else if (epa_status == details::EPA::FallBack) {
+            epa.getClosestPoints(shape, w0, w1);
+            distance_lower_bound = -epa.depth;  // Should be zero
+            if (normal) (*normal).noalias() = tf1.getRotation() * epa.normal;
+            if (contact_points) *contact_points = tf1.transform(w0);
             return true;
           }
           distance_lower_bound = -(std::numeric_limits<FCL_REAL>::max)();
@@ -138,26 +186,24 @@ struct HPP_FCL_DLLAPI GJKSolver {
     TriangleP tri(tf_1M2.transform(P1), tf_1M2.transform(P2),
                   tf_1M2.transform(P3));
 
-    Vec3f guess(1, 0, 0);
-    support_func_guess_t support_hint;
-    if (enable_cached_guess) {
-      guess = cached_guess;
-      support_hint = support_func_cached_guess;
-    } else
-      support_hint.setZero();
-
     details::MinkowskiDiff shape;
     shape.set(&s, &tri);
 
+    Vec3f guess;
+    support_func_guess_t support_hint;
     details::GJK gjk((unsigned int)gjk_max_iterations, gjk_tolerance);
-
-    gjk.setDistanceEarlyBreak(distance_upper_bound);
+    initialize_gjk(gjk, shape, s, tri, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
-    if (enable_cached_guess) {
+
+    HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+    HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+    if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+        enable_cached_guess) {
       cached_guess = gjk.getGuessFromSimplex();
       support_func_cached_guess = gjk.support_hint;
     }
+    HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
 
     Vec3f w0, w1;
     switch (gjk_status) {
@@ -166,7 +212,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
         if (gjk.hasPenetrationInformation(shape)) {
           gjk.getClosestPoints(shape, w0, w1);
           distance = gjk.distance;
-          normal = tf1.getRotation() * (w0 - w1).normalized();
+          normal.noalias() = tf1.getRotation() * (w1 - w0).normalized();
           p1 = p2 = tf1.transform((w0 + w1) / 2);
         } else {
           details::EPA epa(epa_max_face_num, epa_max_vertex_num,
@@ -217,27 +263,22 @@ struct HPP_FCL_DLLAPI GJKSolver {
 #ifndef NDEBUG
     FCL_REAL eps(sqrt(std::numeric_limits<FCL_REAL>::epsilon()));
 #endif
-    Vec3f guess(1, 0, 0);
-    support_func_guess_t support_hint;
-    if (enable_cached_guess) {
-      guess = cached_guess;
-      support_hint = support_func_cached_guess;
-    } else
-      support_hint.setZero();
-
     details::MinkowskiDiff shape;
     shape.set(&s1, &s2, tf1, tf2);
 
+    Vec3f guess;
+    support_func_guess_t support_hint;
     details::GJK gjk((unsigned int)gjk_max_iterations, gjk_tolerance);
-
-    gjk.setDistanceEarlyBreak(distance_upper_bound);
-
-    gjk.setGJKVariant(gjk_variant);
-    gjk.setConvergenceCriterion(convergence_criterion);
-    gjk.setConvergenceCriterionType(convergence_criterion_type);
+    initialize_gjk(gjk, shape, s1, s2, guess, support_hint);
 
     details::GJK::Status gjk_status = gjk.evaluate(shape, guess, support_hint);
-    if (enable_cached_guess) {
+    for (size_t i = 0; i < gjk.supports[0].size(); i++) {
+      supports_gjk[0].push_back(gjk.supports[0][i]);
+      supports_gjk[1].push_back(gjk.supports[1][i]);
+    }
+    gjk_numit = gjk.getIterations();
+    if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+        enable_cached_guess) {
       cached_guess = gjk.getGuessFromSimplex();
       support_func_cached_guess = gjk.support_hint;
     }
@@ -259,7 +300,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
       // assert (distance == (w0 - w1).norm());
       distance = gjk.distance;
 
-      normal.noalias() = tf1.getRotation() * gjk.ray;
+      normal.noalias() = -tf1.getRotation() * gjk.ray;
       normal.normalize();
       p1 = tf1.transform(p1);
       p2 = tf1.transform(p2);
@@ -272,7 +313,7 @@ struct HPP_FCL_DLLAPI GJKSolver {
         // Return contact points in case of collision
         // p1 = tf1.transform (p1);
         // p2 = tf1.transform (p2);
-        normal.noalias() = tf1.getRotation() * (p1 - p2);
+        normal.noalias() = tf1.getRotation() * (p2 - p1);
         normal.normalize();
         p1 = tf1.transform(p1);
         p2 = tf1.transform(p2);
@@ -280,10 +321,15 @@ struct HPP_FCL_DLLAPI GJKSolver {
         details::EPA epa(epa_max_face_num, epa_max_vertex_num,
                          epa_max_iterations, epa_tolerance);
         details::EPA::Status epa_status = epa.evaluate(gjk, -guess);
+        for (size_t i = 0; i < epa.supports[0].size(); i++) {
+          supports_epa[0].push_back(epa.supports[0][i]);
+          supports_epa[1].push_back(epa.supports[1][i]);
+        }
+        epa_numit = epa.getIterations();
         if (epa_status & details::EPA::Valid ||
             epa_status == details::EPA::OutOfFaces        // Warnings
             || epa_status == details::EPA::OutOfVertices  // Warnings
-        ) {
+            || epa_status == details::EPA::FallBack) {
           Vec3f w0, w1;
           epa.getClosestPoints(shape, w0, w1);
           assert(epa.depth >= -eps);
@@ -302,7 +348,9 @@ struct HPP_FCL_DLLAPI GJKSolver {
     }
   }
 
-  /// @brief default setting for GJK algorithm
+  HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+  HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+  /// @brief Default constructor for GJK algorithm
   GJKSolver() {
     gjk_max_iterations = 128;
     gjk_tolerance = 1e-6;
@@ -310,49 +358,121 @@ struct HPP_FCL_DLLAPI GJKSolver {
     epa_max_vertex_num = 64;
     epa_max_iterations = 255;
     epa_tolerance = 1e-6;
-    enable_cached_guess = false;
+    enable_cached_guess = false;  // TODO: use gjk_initial_guess instead
     cached_guess = Vec3f(1, 0, 0);
     support_func_cached_guess = support_func_guess_t::Zero();
     distance_upper_bound = (std::numeric_limits<FCL_REAL>::max)();
+    gjk_initial_guess = GJKInitialGuess::DefaultGuess;
     gjk_variant = GJKVariant::DefaultGJK;
-    convergence_criterion = GJKConvergenceCriterion::VDB;
-    convergence_criterion_type = GJKConvergenceCriterionType::Relative;
+    gjk_convergence_criterion = GJKConvergenceCriterion::VDB;
+    gjk_convergence_criterion_type = GJKConvergenceCriterionType::Relative;
   }
 
-  void enableCachedGuess(bool if_enable) const {
-    enable_cached_guess = if_enable;
+  /// @brief Constructor from a DistanceRequest
+  ///
+  /// \param[in] request DistanceRequest input
+  ///
+  GJKSolver(const DistanceRequest& request) {
+    cached_guess = Vec3f(1, 0, 0);
+    support_func_cached_guess = support_func_guess_t::Zero();
+    distance_upper_bound = (std::numeric_limits<FCL_REAL>::max)();
+
+    // EPS settings
+    epa_max_face_num = 128;
+    epa_max_vertex_num = 64;
+    epa_max_iterations = 255;
+    epa_tolerance = 1e-6;
+
+    set(request);
   }
 
-  void setCachedGuess(const Vec3f& guess) const { cached_guess = guess; }
-
-  Vec3f getCachedGuess() const { return cached_guess; }
-
-  void setGJKVariant(const GJKVariant& variant) const { gjk_variant = variant; }
-
-  void setGJKConvergenceCriterion(
-      const GJKConvergenceCriterion& criterion) const {
-    convergence_criterion = criterion;
+  /// @brief setter from a DistanceRequest
+  ///
+  /// \param[in] request DistanceRequest input
+  ///
+  void set(const DistanceRequest& request) {
+    gjk_initial_guess = request.gjk_initial_guess;
+    // TODO: use gjk_initial_guess instead
+    enable_cached_guess = request.enable_cached_gjk_guess;
+    gjk_variant = request.gjk_variant;
+    gjk_convergence_criterion = request.gjk_convergence_criterion;
+    gjk_convergence_criterion_type = request.gjk_convergence_criterion_type;
+    gjk_tolerance = request.gjk_tolerance;
+    gjk_max_iterations = request.gjk_max_iterations;
+    if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+        enable_cached_guess) {
+      cached_guess = request.cached_gjk_guess;
+      support_func_cached_guess = request.cached_support_func_guess;
+    }
   }
 
-  void setGJKConvergenceCriterionType(
-      const GJKConvergenceCriterionType& criterion_type) const {
-    convergence_criterion_type = criterion_type;
+  /// @brief Constructor from a CollisionRequest
+  ///
+  /// \param[in] request CollisionRequest input
+  ///
+  GJKSolver(const CollisionRequest& request) {
+    cached_guess = Vec3f(1, 0, 0);
+    support_func_cached_guess = support_func_guess_t::Zero();
+    distance_upper_bound = (std::numeric_limits<FCL_REAL>::max)();
+
+    // EPS settings
+    epa_max_face_num = 128;
+    epa_max_vertex_num = 64;
+    epa_max_iterations = 255;
+    epa_tolerance = 1e-6;
+
+    set(request);
   }
 
+  /// @brief setter from a CollisionRequest
+  ///
+  /// \param[in] request CollisionRequest input
+  ///
+  void set(const CollisionRequest& request) {
+    gjk_initial_guess = request.gjk_initial_guess;
+    // TODO: use gjk_initial_guess instead
+    enable_cached_guess = request.enable_cached_gjk_guess;
+    gjk_variant = request.gjk_variant;
+    gjk_convergence_criterion = request.gjk_convergence_criterion;
+    gjk_convergence_criterion_type = request.gjk_convergence_criterion_type;
+    gjk_tolerance = request.gjk_tolerance;
+    gjk_max_iterations = request.gjk_max_iterations;
+    if (gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+        enable_cached_guess) {
+      cached_guess = request.cached_gjk_guess;
+      support_func_cached_guess = request.cached_support_func_guess;
+    }
+
+    // The distance upper bound should be at least greater to the requested
+    // security margin. Otherwise, we will likely miss some collisions.
+    distance_upper_bound = (std::max)(
+        0., (std::max)(request.distance_upper_bound, request.security_margin));
+  }
+
+  /// @brief Copy constructor
+  GJKSolver(const GJKSolver& other) = default;
+
+  HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+  HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
   bool operator==(const GJKSolver& other) const {
     return epa_max_face_num == other.epa_max_face_num &&
            epa_max_vertex_num == other.epa_max_vertex_num &&
            epa_max_iterations == other.epa_max_iterations &&
            epa_tolerance == other.epa_tolerance &&
            gjk_max_iterations == other.gjk_max_iterations &&
-           enable_cached_guess == other.enable_cached_guess &&
+           enable_cached_guess ==
+               other.enable_cached_guess &&  // TODO: use gjk_initial_guess
+                                             // instead
            cached_guess == other.cached_guess &&
            support_func_cached_guess == other.support_func_cached_guess &&
            distance_upper_bound == other.distance_upper_bound &&
+           gjk_initial_guess == other.gjk_initial_guess &&
            gjk_variant == other.gjk_variant &&
-           convergence_criterion == other.convergence_criterion &&
-           convergence_criterion_type == other.convergence_criterion_type;
+           gjk_convergence_criterion == other.gjk_convergence_criterion &&
+           gjk_convergence_criterion_type ==
+               other.gjk_convergence_criterion_type;
   }
+  HPP_FCL_COMPILER_DIAGNOSTIC_POP
 
   bool operator!=(const GJKSolver& other) const { return !(*this == other); }
 
@@ -369,28 +489,43 @@ struct HPP_FCL_DLLAPI GJKSolver {
   FCL_REAL epa_tolerance;
 
   /// @brief the threshold used in GJK to stop iteration
-  FCL_REAL gjk_tolerance;
+  mutable FCL_REAL gjk_tolerance;
 
   /// @brief maximum number of iterations used for GJK iterations
-  FCL_REAL gjk_max_iterations;
+  mutable size_t gjk_max_iterations;
+
+  /// @brief maximum number of iterations used for GJK iterations
+  mutable size_t gjk_numit = 0;
+  /// @brief maximum number of iterations used for EPA iterations
+  mutable size_t epa_numit = 0;
 
   /// @brief Whether smart guess can be provided
+  /// @Deprecated Use gjk_initial_guess instead
+  HPP_FCL_DEPRECATED_MESSAGE("Use gjk_initial_guess instead")
   mutable bool enable_cached_guess;
 
   /// @brief smart guess
   mutable Vec3f cached_guess;
 
+  /// @brief which warm start to use for GJK
+  mutable GJKInitialGuess gjk_initial_guess;
+
   /// @brief Variant to use for the GJK algorithm
   mutable GJKVariant gjk_variant;
 
   /// @brief Criterion used to stop GJK
-  mutable GJKConvergenceCriterion convergence_criterion;
+  mutable GJKConvergenceCriterion gjk_convergence_criterion;
 
   /// @brief Relative or absolute
-  mutable GJKConvergenceCriterionType convergence_criterion_type;
+  mutable GJKConvergenceCriterionType gjk_convergence_criterion_type;
 
   /// @brief smart guess for the support function
   mutable support_func_guess_t support_func_cached_guess;
+
+  /// @brief Supports obtained while running GJK
+  mutable std::array<std::vector<Vec3f>, 2> supports_gjk;
+  /// @brief Supports obtained while running EPA
+  mutable std::array<std::vector<Vec3f>, 2> supports_epa;
 
   /// @brief Distance above which the GJK solver stoppes its computations and
   /// processes to an early stopping.

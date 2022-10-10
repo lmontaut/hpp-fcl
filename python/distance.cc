@@ -58,6 +58,40 @@ struct DistanceRequestWrapper {
   }
 };
 
+struct DistanceResultWrapper {
+  static size_t getNumSupportsGJK(const DistanceResult& res) {
+    if (res.supports_gjk[0].size() != res.supports_gjk[1].size()) {
+      throw std::logic_error("Must have same number of supports on both shapes.");
+    }
+    return res.supports_gjk[0].size();
+  }
+  static Vec3f getSupportGJK(const DistanceResult& res, size_t i, size_t j) {
+    if (i < 0 || i > 1) {
+      throw std::logic_error("Index i must be 0 or 1.");
+    }
+    if (j >= res.supports_gjk[0].size()) {
+      throw std::logic_error("Index j must be smaller than number of supports.");
+    }
+    return res.supports_gjk[i][j];
+  }
+
+  static size_t getNumSupportsEPA(const DistanceResult& res) {
+    if (res.supports_epa[0].size() != res.supports_epa[1].size()) {
+      throw std::logic_error("Must have same number of supports on both shapes.");
+    }
+    return res.supports_epa[0].size();
+  }
+  static Vec3f getSupportEPA(const DistanceResult& res, size_t i, size_t j) {
+    if (i < 0 || i > 1) {
+      throw std::logic_error("Index i must be 0 or 1.");
+    }
+    if (j >= res.supports_epa[0].size()) {
+      throw std::logic_error("Index j must be smaller than number of supports.");
+    }
+    return res.supports_epa[i][j];
+  }
+};
+
 void exposeDistanceAPI() {
   if (!eigenpy::register_symbolic_link_to_registered_type<DistanceRequest>()) {
     class_<DistanceRequest, bases<QueryRequest> >(
@@ -88,6 +122,11 @@ void exposeDistanceAPI() {
              doxygen::class_attrib_doc<DistanceResult>("nearest_points"))
         .def("getNearestPoint2", &DistanceRequestWrapper::getNearestPoint2,
              doxygen::class_attrib_doc<DistanceResult>("nearest_points"))
+        .def("getNumSupportsGJK", &DistanceResultWrapper::getNumSupportsGJK)
+        .def("getSupportGJK", &DistanceResultWrapper::getSupportGJK)
+        .def("getNumSupportsEPA", &DistanceResultWrapper::getNumSupportsEPA)
+        .def("getSupportEPA", &DistanceResultWrapper::getSupportEPA)
+        .DEF_RO_CLASS_ATTRIB(DistanceResult, nearest_points)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, o1)
         .DEF_RO_CLASS_ATTRIB(DistanceResult, o2)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, b1)

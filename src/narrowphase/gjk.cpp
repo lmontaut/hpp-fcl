@@ -3,6 +3,7 @@
  *
  *  Copyright (c) 2011-2014, Willow Garage, Inc.
  *  Copyright (c) 2014-2015, Open Source Robotics Foundation
+ *  Copyright (c) 2021-2022, INRIA
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,58 +39,12 @@
 #include <hpp/fcl/narrowphase/gjk.h>
 #include <hpp/fcl/internal/intersect.h>
 #include <hpp/fcl/internal/tools.h>
+#include <hpp/fcl/shape/geometric_shapes_traits.h>
 
 namespace hpp {
 namespace fcl {
 
 namespace details {
-
-struct HPP_FCL_LOCAL shape_traits_base {
-  enum { NeedNormalizedDir = true, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <typename Shape>
-struct HPP_FCL_LOCAL shape_traits : shape_traits_base {};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<TriangleP> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Box> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Sphere> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Ellipsoid> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Capsule> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Cone> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<Cylinder> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = false };
-};
-
-template <>
-struct HPP_FCL_LOCAL shape_traits<ConvexBase> : shape_traits_base {
-  enum { NeedNormalizedDir = false, NeedNesterovNormalizeHeuristic = true };
-};
 
 void getShapeSupport(const TriangleP* triangle, const Vec3f& dir,
                      Vec3f& support, int&, MinkowskiDiff::ShapeData*) {
@@ -541,9 +496,9 @@ void MinkowskiDiff::set(const ShapeBase* shape0, const ShapeBase* shape1,
   getNormalizeSupportDirectionFromShapes(shape0, shape1,
                                          normalize_support_direction);
 
-  oR1 = tf0.getRotation().transpose() * tf1.getRotation();
-  ot1 = tf0.getRotation().transpose() *
-        (tf1.getTranslation() - tf0.getTranslation());
+  oR1.noalias() = tf0.getRotation().transpose() * tf1.getRotation();
+  ot1.noalias() = tf0.getRotation().transpose() *
+                  (tf1.getTranslation() - tf0.getTranslation());
 
   bool identity = (oR1.isIdentity() && ot1.isZero());
 
@@ -575,6 +530,8 @@ void GJK::initialize() {
   measure_run_time = false;
   timer.stop();
   timer_early.stop();
+  supports[0].clear();
+  supports[1].clear();
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -794,12 +751,21 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         }
         break;
 
+      case PolyakAcceleration:
+        momentum = 1 / (FCL_REAL(iterations) + 1);
+        dir = momentum * dir + (1 - momentum) * ray;
+        break;
+
       default:
         throw std::logic_error("Invalid momentum variant.");
     }
 
     appendVertex(curr_simplex, -dir, false,
                  support_hint);  // see below, ray points away from origin
+    Vec3f w0 = curr_simplex.vertex[curr_simplex.rank-1]->w0;
+    Vec3f w1 = curr_simplex.vertex[curr_simplex.rank-1]->w1;
+    supports[0].push_back(w0);
+    supports[1].push_back(w1);
 
     // check removed (by ?): when the new support point is close to previous
     // support points, stop (as the new simplex is degenerated)
@@ -828,8 +794,8 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       FCL_REAL frank_wolfe_duality_gap = 2 * ray.dot(ray - w);
       if (frank_wolfe_duality_gap - tolerance <= 0) {
         removeVertex(simplices[current]);
-        current_gjk_variant = DefaultGJK;
-        continue;  // continue to next iteration
+        current_gjk_variant = DefaultGJK;  // move back to classic GJK
+        continue;                          // continue to next iteration
       }
     }
 
@@ -842,7 +808,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
     if (iterations > 0 && cv_check_passed) {
       if (iterations > 0) removeVertex(simplices[current]);
       if (current_gjk_variant != DefaultGJK) {
-        current_gjk_variant = DefaultGJK;
+        current_gjk_variant = DefaultGJK;  // move back to classic GJK
         continue;
       }
       distance = rl - inflation;
@@ -1184,6 +1150,9 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
   const Vec3f a_cross_b = A.cross(B);
   const Vec3f a_cross_c = A.cross(C);
 
+  const FCL_REAL dummy_precision = Eigen::NumTraits<FCL_REAL>::epsilon();
+  HPP_FCL_UNUSED_VARIABLE(dummy_precision);
+
 #define REGION_INSIDE()               \
   ray.setZero();                      \
   next.vertex[0] = current.vertex[d]; \
@@ -1199,7 +1168,7 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
           0) {             // if (ADB ^ AB).AO >= 0 / a10.a3.a9
         if (da_aa <= 0) {  // if AD.AO >= 0 / a10.a3.a9.a12
           assert(da * da_ba + dd * ba_aa - db * da_aa <=
-                 0);  // (ADB ^ AD).AO >= 0 / a10.a3.a9.a12.a8
+                 dummy_precision);  // (ADB ^ AD).AO >= 0 / a10.a3.a9.a12.a8
           if (ba * ba_ca + bb * ca_aa - bc * ba_aa <=
               0) {  // if (ABC ^ AB).AO >= 0 / a10.a3.a9.a12.a8.a4
             // Region ABC
@@ -1373,7 +1342,8 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
             }       // end of (ACD ^ AD).AO >= 0
           } else {  // not (ACD ^ AC).AO >= 0 / !a10.a11.a2.a12.!a6
             assert(!(da * ca_da + dc * da_aa - dd * ca_aa <=
-                     0));  // Not (ACD ^ AD).AO >= 0 / !a10.a11.a2.a12.!a6.!a7
+                     dummy_precision));  // Not (ACD ^ AD).AO >= 0 /
+                                         // !a10.a11.a2.a12.!a6.!a7
             if (ca * ba_ca + cb * ca_aa - cc * ba_aa <=
                 0) {  // if (ABC ^ AC).AO >= 0 / !a10.a11.a2.a12.!a6.!a7.a5
               // Region AC
@@ -1392,9 +1362,9 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
               0) {  // if (ABC ^ AC).AO >= 0 / !a10.a11.a2.!a12.a5
             if (ca * ca_da + cc * da_aa - cd * ca_aa <=
                 0) {  // if (ACD ^ AC).AO >= 0 / !a10.a11.a2.!a12.a5.a6
-              assert(
-                  !(da * ca_da + dc * da_aa - dd * ca_aa <=
-                    0));  // Not (ACD ^ AD).AO >= 0 / !a10.a11.a2.!a12.a5.a6.!a7
+              assert(!(da * ca_da + dc * da_aa - dd * ca_aa <=
+                       -dummy_precision));  // Not (ACD ^ AD).AO >= 0 /
+                                            // !a10.a11.a2.!a12.a5.a6.!a7
               // Region ACD
               originToTriangle(current, a, c, d, (C - A).cross(D - A),
                                -D.dot(a_cross_c), next, ray);
@@ -1409,15 +1379,16 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
             if (C.dot(a_cross_b) <=
                 0) {  // if ABC.AO >= 0 / !a10.a11.a2.!a12.!a5.a1
               assert(ba * ba_ca + bb * ca_aa - bc * ba_aa <=
-                     0);  // (ABC ^ AB).AO >= 0 / !a10.a11.a2.!a12.!a5.a1.a4
+                     dummy_precision);  // (ABC ^ AB).AO >= 0 /
+                                        // !a10.a11.a2.!a12.!a5.a1.a4
               // Region ABC
               originToTriangle(current, a, b, c, (B - A).cross(C - A),
                                -C.dot(a_cross_b), next, ray);
               free_v[nfree++] = current.vertex[d];
             } else {  // not ABC.AO >= 0 / !a10.a11.a2.!a12.!a5.!a1
-              assert(!(
-                  da * ca_da + dc * da_aa - dd * ca_aa <=
-                  0));  // Not (ACD ^ AD).AO >= 0 / !a10.a11.a2.!a12.!a5.!a1.!a7
+              assert(!(da * ca_da + dc * da_aa - dd * ca_aa <=
+                       -dummy_precision));  // Not (ACD ^ AD).AO >= 0 /
+                                            // !a10.a11.a2.!a12.!a5.!a1.!a7
               // Region ACD
               originToTriangle(current, a, c, d, (C - A).cross(D - A),
                                -D.dot(a_cross_c), next, ray);
@@ -1435,7 +1406,8 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
             free_v[nfree++] = current.vertex[d];
           } else {  // not (ABC ^ AC).AO >= 0 / !a10.a11.!a2.a1.!a5
             assert(ba * ba_ca + bb * ca_aa - bc * ba_aa <=
-                   0);  // (ABC ^ AB).AO >= 0 / !a10.a11.!a2.a1.!a5.a4
+                   dummy_precision);  // (ABC ^ AB).AO >= 0 /
+                                      // !a10.a11.!a2.a1.!a5.a4
             // Region ABC
             originToTriangle(current, a, b, c, (B - A).cross(C - A),
                              -C.dot(a_cross_b), next, ray);
@@ -1468,9 +1440,9 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
               0) {  // if (ACD ^ AD).AO >= 0 / !a10.!a11.a12.a3.a7
             if (da * da_ba + dd * ba_aa - db * da_aa <=
                 0) {  // if (ADB ^ AD).AO >= 0 / !a10.!a11.a12.a3.a7.a8
-              assert(
-                  !(ba * da_ba + bd * ba_aa - bb * da_aa <=
-                    0));  // Not (ADB ^ AB).AO >= 0 / !a10.!a11.a12.a3.a7.a8.!a9
+              assert(!(ba * da_ba + bd * ba_aa - bb * da_aa <=
+                       -dummy_precision));  // Not (ADB ^ AB).AO >= 0 /
+                                            // !a10.!a11.a12.a3.a7.a8.!a9
               // Region ADB
               originToTriangle(current, a, d, b, (D - A).cross(B - A),
                                D.dot(a_cross_b), next, ray);
@@ -1485,7 +1457,8 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
             if (D.dot(a_cross_c) <=
                 0) {  // if ACD.AO >= 0 / !a10.!a11.a12.a3.!a7.a2
               assert(ca * ca_da + cc * da_aa - cd * ca_aa <=
-                     0);  // (ACD ^ AC).AO >= 0 / !a10.!a11.a12.a3.!a7.a2.a6
+                     dummy_precision);  // (ACD ^ AC).AO >= 0 /
+                                        // !a10.!a11.a12.a3.!a7.a2.a6
               // Region ACD
               originToTriangle(current, a, c, d, (C - A).cross(D - A),
                                -D.dot(a_cross_c), next, ray);
@@ -1494,8 +1467,8 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
               if (C.dot(a_cross_b) <=
                   0) {  // if ABC.AO >= 0 / !a10.!a11.a12.a3.!a7.!a2.a1
                 assert(!(ba * ba_ca + bb * ca_aa - bc * ba_aa <=
-                         0));  // Not (ABC ^ AB).AO >= 0 /
-                               // !a10.!a11.a12.a3.!a7.!a2.a1.!a4
+                         -dummy_precision));  // Not (ABC ^ AB).AO >= 0 /
+                                              // !a10.!a11.a12.a3.!a7.!a2.a1.!a4
                 // Region ADB
                 originToTriangle(current, a, d, b, (D - A).cross(B - A),
                                  D.dot(a_cross_b), next, ray);
@@ -1518,7 +1491,8 @@ bool GJK::projectTetrahedraOrigin(const Simplex& current, Simplex& next) {
               free_v[nfree++] = current.vertex[c];
             } else {  // not (ACD ^ AD).AO >= 0 / !a10.!a11.a12.!a3.a2.!a7
               assert(ca * ca_da + cc * da_aa - cd * ca_aa <=
-                     0);  // (ACD ^ AC).AO >= 0 / !a10.!a11.a12.!a3.a2.!a7.a6
+                     dummy_precision);  // (ACD ^ AC).AO >= 0 /
+                                        // !a10.!a11.a12.!a3.a2.!a7.a6
               // Region ACD
               originToTriangle(current, a, c, d, (C - A).cross(D - A),
                                -D.dot(a_cross_c), next, ray);
@@ -1552,6 +1526,9 @@ void EPA::initialize() {
   nextsv = 0;
   for (size_t i = 0; i < max_face_num; ++i)
     stock.append(&fc_store[max_face_num - i - 1]);
+  supports[0].clear();
+  supports[1].clear();
+  iterations = 0;
 }
 
 bool EPA::getEdgeDist(SimplexF* face, SimplexV* a, SimplexV* b,
@@ -1667,7 +1644,7 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
                                     // minimum distance to origin) to split
       SimplexF outer = *best;
       size_t pass = 0;
-      size_t iterations = 0;
+      iterations = 0;
 
       // set the face connectivity
       bind(tetrahedron[0], 0, tetrahedron[1], 0);
@@ -1691,6 +1668,10 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
         // At the moment, SimplexF.n is always normalized. This could be revised
         // in the future...
         gjk.getSupport(best->n, true, *w, hint);
+        Vec3f w0 = w->w0;
+        Vec3f w1 = w->w1;
+        supports[0].push_back(w0);
+        supports[1].push_back(w1);
         FCL_REAL wdist = best->n.dot(w->w) - best->d;
         if (wdist <= tolerance) {
           status = AccuracyReached;
@@ -1722,7 +1703,13 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
     }
   }
 
+  // FallBack when the simplex given by GJK is of rank 1.
+  // Since the simplex only contains support points which convex
+  // combination describe the origin, the point in the simplex is actually
+  // the origin.
   status = FallBack;
+  // TODO: define a better normal
+  assert(simplex.rank == 1 && simplex.vertex[0]->w.isZero(gjk.getTolerance()));
   normal = -guess;
   FCL_REAL nl = normal.norm();
   if (nl > 0)

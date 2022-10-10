@@ -77,10 +77,6 @@ FCL_REAL ShapeShapeDistance(const CollisionGeometry* o1, const Transform3f& tf1,
   const T_SH1* obj1 = static_cast<const T_SH1*>(o1);
   const T_SH2* obj2 = static_cast<const T_SH2*>(o2);
 
-  nsolver->setGJKVariant(request.gjk_variant);
-  nsolver->setGJKConvergenceCriterion(request.convergence_criterion);
-  nsolver->setGJKConvergenceCriterionType(request.convergence_criterion_type);
-
   initialize(node, *obj1, tf1, *obj2, tf2, nsolver, request, result);
   distance(&node);
 
@@ -326,8 +322,10 @@ DistanceFunctionMatrix::DistanceFunctionMatrix() {
       &ShapeShapeDistance<Ellipsoid, Cylinder>;
   distance_matrix[GEOM_ELLIPSOID][GEOM_CONVEX] =
       &ShapeShapeDistance<Ellipsoid, ConvexBase>;
-  // TODO Louis: Ellipsoid - Plane
-  // TODO Louis: Ellipsoid - Halfspace
+  distance_matrix[GEOM_ELLIPSOID][GEOM_PLANE] =
+      &ShapeShapeDistance<Ellipsoid, Plane>;
+  distance_matrix[GEOM_ELLIPSOID][GEOM_HALFSPACE] =
+      &ShapeShapeDistance<Ellipsoid, Halfspace>;
   distance_matrix[GEOM_ELLIPSOID][GEOM_ELLIPSOID] =
       &ShapeShapeDistance<Ellipsoid, Ellipsoid>;
 
@@ -410,7 +408,8 @@ DistanceFunctionMatrix::DistanceFunctionMatrix() {
   distance_matrix[GEOM_PLANE][GEOM_PLANE] = &ShapeShapeDistance<Plane, Plane>;
   distance_matrix[GEOM_PLANE][GEOM_HALFSPACE] =
       &ShapeShapeDistance<Plane, Halfspace>;
-  // TODO Louis: Ellipsoid - Plane
+  distance_matrix[GEOM_PLANE][GEOM_ELLIPSOID] =
+      &ShapeShapeDistance<Plane, Ellipsoid>;
 
   distance_matrix[GEOM_HALFSPACE][GEOM_BOX] =
       &ShapeShapeDistance<Halfspace, Box>;
@@ -428,7 +427,8 @@ DistanceFunctionMatrix::DistanceFunctionMatrix() {
       &ShapeShapeDistance<Halfspace, Plane>;
   distance_matrix[GEOM_HALFSPACE][GEOM_HALFSPACE] =
       &ShapeShapeDistance<Halfspace, Halfspace>;
-  // TODO Louis: Ellipsoid - Halfspace
+  distance_matrix[GEOM_HALFSPACE][GEOM_ELLIPSOID] =
+      &ShapeShapeDistance<Halfspace, Ellipsoid>;
 
   /* AABB distance not implemented */
   /*

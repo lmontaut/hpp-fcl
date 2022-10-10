@@ -60,15 +60,7 @@ FCL_REAL distance(const CollisionObject* o1, const CollisionObject* o2,
 FCL_REAL distance(const CollisionGeometry* o1, const Transform3f& tf1,
                   const CollisionGeometry* o2, const Transform3f& tf2,
                   const DistanceRequest& request, DistanceResult& result) {
-  GJKSolver solver;
-  solver.enable_cached_guess = request.enable_cached_gjk_guess;
-  solver.setGJKVariant(request.gjk_variant);
-  solver.setGJKConvergenceCriterion(request.convergence_criterion);
-  solver.setGJKConvergenceCriterionType(request.convergence_criterion_type);
-  if (solver.enable_cached_guess) {
-    solver.cached_guess = request.cached_gjk_guess;
-    solver.support_func_cached_guess = request.cached_support_func_guess;
-  }
+  GJKSolver solver(request);
 
   const DistanceFunctionMatrix& looktable = getDistanceFunctionLookTable();
 
@@ -114,10 +106,26 @@ FCL_REAL distance(const CollisionGeometry* o1, const Transform3f& tf1,
           o1, tf1, o2, tf2, &solver, request, result);
     }
   }
-  if (solver.enable_cached_guess) {
+  if (solver.gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+      solver.enable_cached_guess) {
     result.cached_gjk_guess = solver.cached_guess;
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }
+
+  result.supports_gjk[0].clear();
+  result.supports_gjk[1].clear();
+  for (size_t i = 0; i < solver.supports_gjk[0].size(); i++) {
+    result.supports_gjk[0].push_back(solver.supports_gjk[0][i]);
+    result.supports_gjk[1].push_back(solver.supports_gjk[1][i]);
+  }
+  result.supports_epa[0].clear();
+  result.supports_epa[1].clear();
+  for (size_t i = 0; i < solver.supports_epa[0].size(); i++) {
+    result.supports_epa[0].push_back(solver.supports_epa[0][i]);
+    result.supports_epa[1].push_back(solver.supports_epa[1][i]);
+  }
+  result.gjk_numit = solver.gjk_numit;
+  result.epa_numit = solver.epa_numit;
 
   return res;
 }
@@ -172,12 +180,7 @@ FCL_REAL ComputeDistance::operator()(const Transform3f& tf1,
                                      const Transform3f& tf2,
                                      const DistanceRequest& request,
                                      DistanceResult& result) const {
-  bool cached = request.enable_cached_gjk_guess;
-  solver.enable_cached_guess = cached;
-  if (cached) {
-    solver.cached_guess = request.cached_gjk_guess;
-    solver.support_func_cached_guess = request.cached_support_func_guess;
-  }
+  solver.set(request);
 
   FCL_REAL res;
   if (request.enable_timings) {
@@ -187,7 +190,8 @@ FCL_REAL ComputeDistance::operator()(const Transform3f& tf1,
   } else
     res = run(tf1, tf2, request, result);
 
-  if (cached) {
+  if (solver.gjk_initial_guess == GJKInitialGuess::CachedGuess ||
+      solver.enable_cached_guess) {
     result.cached_gjk_guess = solver.cached_guess;
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }

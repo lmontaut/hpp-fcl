@@ -1,8 +1,7 @@
 /*
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2011-2014, Willow Garage, Inc.
- *  Copyright (c) 2014-2016, Open Source Robotics Foundation
+ *  Copyright (c) 2021-2022, INRIA
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,63 +32,54 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** @author Jia Pan */
+/** \author Louis Montaut */
 
-#ifndef HPP_FCL_BROADPHASE_SPARSEHASHTABLE_H
-#define HPP_FCL_BROADPHASE_SPARSEHASHTABLE_H
+#include <cmath>
+#include <limits>
+#include <hpp/fcl/math/transform.h>
+#include <hpp/fcl/shape/geometric_shapes.h>
 
-#include <set>
-#include <vector>
-#include <list>
-#include <unordered_map>
+#include <hpp/fcl/internal/shape_shape_func.h>
+#include "../narrowphase/details.h"
 
 namespace hpp {
 namespace fcl {
+struct GJKSolver;
 
-namespace detail {
+template <>
+FCL_REAL ShapeShapeDistance<Ellipsoid, Plane>(
+    const CollisionGeometry* o1, const Transform3f& tf1,
+    const CollisionGeometry* o2, const Transform3f& tf2, const GJKSolver*,
+    const DistanceRequest&, DistanceResult& result) {
+  const Ellipsoid& s1 = static_cast<const Ellipsoid&>(*o1);
+  const Plane& s2 = static_cast<const Plane&>(*o2);
+  details::ellipsoidPlaneIntersect(s1, tf1, s2, tf2, result.min_distance,
+                                   result.nearest_points[0],
+                                   result.nearest_points[1], result.normal);
+  result.o1 = o1;
+  result.o2 = o2;
+  result.b1 = -1;
+  result.b2 = -1;
+  return result.min_distance;
+}
 
-template <typename U, typename V>
-class unordered_map_hash_table : public std::unordered_map<U, V> {
-  typedef std::unordered_map<U, V> Base;
-
- public:
-  unordered_map_hash_table() : Base(){};
-};
-
-/// @brief A hash table implemented using unordered_map
-template <typename Key, typename Data, typename HashFnc,
-          template <typename, typename> class TableT = unordered_map_hash_table>
-class SparseHashTable {
- protected:
-  HashFnc h_;
-  typedef std::list<Data> Bin;
-  typedef TableT<size_t, Bin> Table;
-
-  Table table_;
-
- public:
-  SparseHashTable(const HashFnc& h);
-
-  /// @brief Init the hash table. The bucket size is dynamically decided.
-  void init(size_t);
-
-  /// @brief insert one key-value pair into the hash table
-  void insert(Key key, Data value);
-
-  /// @brief find the elements whose key is the same as the query
-  std::vector<Data> query(Key key) const;
-
-  /// @brief remove one key-value pair from the hash table
-  void remove(Key key, Data value);
-
-  /// @brief clear the hash table
-  void clear();
-};
-
-}  // namespace detail
+template <>
+FCL_REAL ShapeShapeDistance<Plane, Ellipsoid>(
+    const CollisionGeometry* o1, const Transform3f& tf1,
+    const CollisionGeometry* o2, const Transform3f& tf2, const GJKSolver*,
+    const DistanceRequest&, DistanceResult& result) {
+  const Plane& s1 = static_cast<const Plane&>(*o1);
+  const Ellipsoid& s2 = static_cast<const Ellipsoid&>(*o2);
+  details::ellipsoidPlaneIntersect(s2, tf2, s1, tf1, result.min_distance,
+                                   result.nearest_points[1],
+                                   result.nearest_points[0], result.normal);
+  result.o1 = o1;
+  result.o2 = o2;
+  result.b1 = -1;
+  result.b2 = -1;
+  result.normal = -result.normal;
+  return result.min_distance;
+}
 }  // namespace fcl
+
 }  // namespace hpp
-
-#include "hpp/fcl/broadphase/detail/sparse_hash_table-inl.h"
-
-#endif

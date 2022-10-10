@@ -71,8 +71,16 @@ typedef Eigen::Matrix<Eigen::DenseIndex, Eigen::Dynamic, 3> Matrixx3i;
 typedef Eigen::Matrix<FCL_REAL, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Vector2i support_func_guess_t;
 
+/// @brief Initial guess to use for the GJK algorithm
+/// DefaultGuess: Vec3f(1, 0, 0)
+/// CachedGuess: previous vector found by GJK or guess cached by the user
+/// BoundingVolumeGuess: guess using the centers of the shapes' AABB
+/// WARNING: to use BoundingVolumeGuess, computeLocalAABB must have been called
+/// on the two shapes.
+enum GJKInitialGuess { DefaultGuess, CachedGuess, BoundingVolumeGuess };
+
 /// @brief Variant to use for the GJK algorithm
-enum GJKVariant { DefaultGJK, NesterovAcceleration };
+enum GJKVariant { DefaultGJK, NesterovAcceleration, PolyakAcceleration };
 
 /// @brief Which convergence criterion is used to stop the algorithm (when the
 /// shapes are not in collision). (default) VDB: Van den Bergen (A Fast and

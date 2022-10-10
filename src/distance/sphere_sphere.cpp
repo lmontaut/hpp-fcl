@@ -38,6 +38,7 @@
 #include <hpp/fcl/math/transform.h>
 #include <hpp/fcl/shape/geometric_shapes.h>
 #include <hpp/fcl/internal/shape_shape_func.h>
+#include <hpp/fcl/internal/traversal_node_base.h>
 
 // Note that partial specialization of template functions is not allowed.
 // Therefore, two implementations with the default narrow phase solvers are
@@ -73,27 +74,14 @@ FCL_REAL ShapeShapeDistance<Sphere, Sphere>(
   FCL_REAL dist = c1c2.norm();
   Vec3f unit(0, 0, 0);
   if (dist > epsilon) unit = c1c2 / dist;
-  FCL_REAL penetrationDepth;
-  penetrationDepth = r1 + r2 - dist;
-  bool collision = (penetrationDepth >= 0);
-  result.min_distance = -penetrationDepth;
-  if (collision) {
-    // Take contact point at the middle of intersection between each sphere
-    // and segment [c1 c2].
-    FCL_REAL abscissa = .5 * r1 + .5 * (dist - r2);
-    Vec3f contact = center1 + abscissa * unit;
-    result.nearest_points[0] = result.nearest_points[1] = contact;
-    return result.min_distance;
-  } else {
-    FCL_REAL abs1(r1), abs2(dist - r2);
-    result.nearest_points[0] = center1 + abs1 * unit;
-    result.nearest_points[1] = center1 + abs2 * unit;
-  }
+  result.min_distance = dist - (r1 + r2);
+  result.normal = unit;
+  result.nearest_points[0] = center1 + r1 * unit;
+  result.nearest_points[1] = center2 - r2 * unit;
   return result.min_distance;
 }
 
-template <>
-std::size_t ShapeShapeCollide<Sphere, Sphere>(
+std::size_t ShapeShapeCollider<Sphere, Sphere>::run(
     const CollisionGeometry* o1, const Transform3f& tf1,
     const CollisionGeometry* o2, const Transform3f& tf2, const GJKSolver*,
     const CollisionRequest& request, CollisionResult& result) {
@@ -101,27 +89,26 @@ std::size_t ShapeShapeCollide<Sphere, Sphere>(
   const Sphere* s1 = static_cast<const Sphere*>(o1);
   const Sphere* s2 = static_cast<const Sphere*>(o2);
 
-  // We assume that capsules are centered at the origin.
+  // We assume that spheres are centered at the origin.
   const fcl::Vec3f& center1 = tf1.getTranslation();
   const fcl::Vec3f& center2 = tf2.getTranslation();
   FCL_REAL r1 = s1->radius;
   FCL_REAL r2 = s2->radius;
-  FCL_REAL margin(request.security_margin);
+  FCL_REAL margin = request.security_margin;
 
   Vec3f c1c2 = center2 - center1;
   FCL_REAL dist = c1c2.norm();
   Vec3f unit(0, 0, 0);
   if (dist > epsilon) unit = c1c2 / dist;
   // Unlike in distance computation, we consider the security margin.
-  FCL_REAL penetrationDepth = r1 + r2 + margin - dist;
-  result.updateDistanceLowerBound(-penetrationDepth + margin);
-  bool collision = (penetrationDepth >= 0);
-  if (collision) {
-    // Take contact point at the middle of intersection between each sphere
-    // and segment [c1 c2].
-    FCL_REAL abscissa = .5 * r1 + .5 * (dist - r2);
-    Vec3f contactPoint = center1 + abscissa * unit;
-    Contact contact(o1, o2, -1, -1, contactPoint, unit, penetrationDepth);
+  FCL_REAL distToCollision = dist - (r1 + r2 + margin);
+
+  internal::updateDistanceLowerBoundFromLeaf(request, result, distToCollision,
+                                             center1 + unit * r1,
+                                             center2 - unit * r2);
+  if (distToCollision <= request.collision_distance_threshold) {
+    Contact contact(o1, o2, -1, -1, center1 + unit * r1, center2 - unit * r2,
+                    unit, distToCollision + margin);
     result.addContact(contact);
     return 1;
   }

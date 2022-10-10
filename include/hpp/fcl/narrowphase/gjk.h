@@ -3,6 +3,7 @@
  *
  *  Copyright (c) 2011-2014, Willow Garage, Inc.
  *  Copyright (c) 2014-2015, Open Source Robotics Foundation
+ *  Copyright (c) 2021-2022, INRIA
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,7 @@
 #ifndef HPP_FCL_GJK_H
 #define HPP_FCL_GJK_H
 
+#include <array>
 #include <vector>
 
 #include <hpp/fcl/shape/geometric_shapes.h>
@@ -58,6 +60,8 @@ Vec3f getSupport(const ShapeBase* shape, const Vec3f& dir, bool dirIsNormalized,
 ///
 /// @note The Minkowski difference is expressed in the frame of the first shape.
 struct HPP_FCL_DLLAPI MinkowskiDiff {
+  typedef Eigen::Array<FCL_REAL, 1, 2> Array2d;
+
   /// @brief points to two shapes
   const ShapeBase* shapes[2];
 
@@ -80,8 +84,9 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
   Vec3f ot1;
 
   /// @brief The radius of the sphere swepted volume.
-  /// The 2 values correspond to the inflation of shape 0 and shape 1.
-  Eigen::Array<FCL_REAL, 1, 2> inflation;
+  /// The 2 values correspond to the inflation of shape 0 and shape 1/
+  /// These inflation values are used for Sphere and Capsule.
+  Array2d inflation;
   int index_support0 = 0;
   int index_support1 = 0;
 
@@ -150,22 +155,12 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
     getSupportFunc(*this, d, dIsNormalized, supp0, supp1, hint,
                    const_cast<ShapeData*>(data));
   }
-
   /// @brief computes the number of dotproducts after a call to the support
   /// function.
   // Needs to be called after a call to the support function.
   inline size_t getSupportNumDotProducts() const {
     size_t num_dotproducts = data[0].num_dotproducts + data[1].num_dotproducts;
     return num_dotproducts;
-  }
-
-  /// @brief Set wether or not to use the normalization heuristic when computing
-  /// a support point. Only effective if acceleration version of GJK is used.
-  /// By default, when MinkowskiDiff::set is called, the normalization heuristic
-  /// is deduced from the shapes. The user can override this behavior with this
-  /// function.
-  inline void setNormalizeSupportDirection(bool normalize) {
-    normalize_support_direction = normalize;
   }
 };
 
@@ -217,6 +212,9 @@ struct HPP_FCL_DLLAPI GJK {
 
   MinkowskiDiff const* shape;
   Vec3f ray;
+  GJKVariant gjk_variant;
+  GJKConvergenceCriterion convergence_criterion;
+  GJKConvergenceCriterionType convergence_criterion_type;
   support_func_guess_t support_hint;
   /// The distance computed by GJK. The possible values are
   /// - \f$ d = - R - 1 \f$ when a collision is detected and GJK
@@ -233,6 +231,7 @@ struct HPP_FCL_DLLAPI GJK {
   /// GJK::distance_upper_bound.
   FCL_REAL distance;
   Simplex simplices[2];
+  mutable std::array<std::vector<Vec3f>, 2> supports;
 
   /// \param max_iterations_ number of iteration before GJK returns failure.
   /// \param tolerance_ precision of the algorithm.
@@ -266,7 +265,7 @@ struct HPP_FCL_DLLAPI GJK {
   inline void getSupport(const Vec3f& d, bool dIsNormalized, SimplexV& sv,
                          support_func_guess_t& hint) const {
     shape->support(d, dIsNormalized, sv.w0, sv.w1, hint);
-    sv.w.noalias() = sv.w0 - sv.w1;
+    sv.w = sv.w0 - sv.w1;
   }
 
   /// @brief whether the simplex enclose the origin
@@ -302,10 +301,6 @@ struct HPP_FCL_DLLAPI GJK {
     distance_upper_bound = dup;
   }
 
-  /// @brief Set which GJK version to use. Default is Vanilla.
-  inline void setGJKVariant(GJKVariant variant) { gjk_variant = variant; }
-  inline GJKVariant getGJKVariant() { return gjk_variant; }
-
   // Performance metrics get functions
   void measureRunTime() { measure_run_time = true; }
   inline size_t getIterationsEarly() { return iterations_early; }
@@ -333,22 +328,6 @@ struct HPP_FCL_DLLAPI GJK {
   bool checkConvergence(const Vec3f& w, const FCL_REAL& rl, FCL_REAL& alpha,
                         const FCL_REAL& omega);
 
-  inline void setConvergenceCriterion(
-      const GJKConvergenceCriterion& criterion) {
-    convergence_criterion = criterion;
-  }
-  inline GJKConvergenceCriterion getConvergenceCriterion() {
-    return convergence_criterion;
-  }
-
-  inline void setConvergenceCriterionType(
-      const GJKConvergenceCriterionType& criterion_type) {
-    convergence_criterion_type = criterion_type;
-  }
-  inline GJKConvergenceCriterionType getConvergenceCriterionType() {
-    return convergence_criterion_type;
-  }
-
   /// @brief Get GJK number of iterations.
   inline size_t getIterations() { return iterations; }
 
@@ -357,6 +336,8 @@ struct HPP_FCL_DLLAPI GJK {
   Vec3f x0;
   Vec3f x1;
   inline void computeClosestPoints() { getClosestPoints(*shape, x0, x1); }
+  /// @brief Get GJK tolerance.
+  inline FCL_REAL getTolerance() { return tolerance; }
 
  private:
   SimplexV store_v[4];
@@ -372,10 +353,7 @@ struct HPP_FCL_DLLAPI GJK {
   Timer timer;
   Timer timer_early;
 
-  GJKVariant gjk_variant;
   size_t iterations;
-  GJKConvergenceCriterion convergence_criterion;
-  GJKConvergenceCriterionType convergence_criterion_type;
   bool normalize_support_direction;
   size_t iterations_early;  // early: metric if we had stopped when separating
                             // plane is found
@@ -506,6 +484,8 @@ struct HPP_FCL_DLLAPI EPA {
   SimplexF* fc_store;
   size_t nextsv;
   SimplexList hull, stock;
+  std::array<std::vector<Vec3f>, 2> supports;
+  size_t iterations;
 
   EPA(unsigned int max_face_num_, unsigned int max_vertex_num_,
       unsigned int max_iterations_, FCL_REAL tolerance_)
@@ -531,6 +511,8 @@ struct HPP_FCL_DLLAPI EPA {
   /// Get the closest points on each object.
   /// @return true on success
   bool getClosestPoints(const MinkowskiDiff& shape, Vec3f& w0, Vec3f& w1);
+
+  inline size_t getIterations() { return iterations; }
 
  private:
   bool getEdgeDist(SimplexF* face, SimplexV* a, SimplexV* b, FCL_REAL& dist);

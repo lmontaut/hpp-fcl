@@ -343,14 +343,23 @@ struct HPP_FCL_LOCAL obbDisjoint_check_Ai_cross_Bi {
 // This function tests whether bounding boxes should be broken down.
 //
 bool obbDisjointAndLowerBoundDistance(const Matrix3f& B, const Vec3f& T,
-                                      const Vec3f& a, const Vec3f& b,
+                                      const Vec3f& a_, const Vec3f& b_,
                                       const CollisionRequest& request,
                                       FCL_REAL& squaredLowerBoundDistance) {
-  const FCL_REAL breakDistance(request.break_distance +
-                               request.security_margin);
-  const FCL_REAL breakDistance2 = breakDistance * breakDistance;
+  assert(request.security_margin >
+             -2 * (std::min)(a_.minCoeff(), b_.minCoeff()) -
+                 10 * Eigen::NumTraits<FCL_REAL>::epsilon() &&
+         "A negative security margin could not be lower than the OBB extent.");
+  //  const FCL_REAL breakDistance(request.break_distance +
+  //                               request.security_margin);
+  const FCL_REAL breakDistance2 =
+      request.break_distance * request.break_distance;
 
   Matrix3f Bf(B.cwiseAbs());
+  const Vec3f a(
+      (a_ + Vec3f::Constant(request.security_margin / 2)).array().max(0));
+  const Vec3f b(
+      (b_ + Vec3f::Constant(request.security_margin / 2)).array().max(0));
 
   // Corner of b axis aligned bounding box the closest to the origin
   squaredLowerBoundDistance = internal::obbDisjoint_check_A_axis(T, a, b, Bf);
@@ -455,18 +464,18 @@ FCL_REAL OBB::distance(const OBB& /*other*/, Vec3f* /*P*/, Vec3f* /*Q*/) const {
 
 bool overlap(const Matrix3f& R0, const Vec3f& T0, const OBB& b1,
              const OBB& b2) {
-  Vec3f Ttemp(R0 * b2.To + T0 - b1.To);
+  Vec3f Ttemp(R0.transpose() * (b2.To - T0) - b1.To);
   Vec3f T(b1.axes.transpose() * Ttemp);
-  Matrix3f R(b1.axes.transpose() * R0 * b2.axes);
+  Matrix3f R(b1.axes.transpose() * R0.transpose() * b2.axes);
 
   return !obbDisjoint(R, T, b1.extent, b2.extent);
 }
 
 bool overlap(const Matrix3f& R0, const Vec3f& T0, const OBB& b1, const OBB& b2,
              const CollisionRequest& request, FCL_REAL& sqrDistLowerBound) {
-  Vec3f Ttemp(R0 * b2.To + T0 - b1.To);
+  Vec3f Ttemp(R0.transpose() * (b2.To - T0) - b1.To);
   Vec3f T(b1.axes.transpose() * Ttemp);
-  Matrix3f R(b1.axes.transpose() * R0 * b2.axes);
+  Matrix3f R(b1.axes.transpose() * R0.transpose() * b2.axes);
 
   return !obbDisjointAndLowerBoundDistance(R, T, b1.extent, b2.extent, request,
                                            sqrDistLowerBound);

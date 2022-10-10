@@ -39,6 +39,7 @@
 #define HPP_FCL_COLLISION_DATA_H
 
 #include <vector>
+#include <array>
 #include <set>
 #include <limits>
 
@@ -70,8 +71,13 @@ struct HPP_FCL_DLLAPI Contact {
   /// if object 2 is octree, it is the id of the cell
   int b2;
 
-  /// @brief contact normal, pointing from o1 to o2
+  /// @brief contact normal, pointing from o1 to o2.
+  /// See DistanceResult::normal for a complete definition of the normal.
   Vec3f normal;
+
+  /// @brief nearest points associated to this contact.
+  /// See \ref CollisionResult::nearest_points.
+  std::array<Vec3f, 2> nearest_points;
 
   /// @brief contact position, in world space
   Vec3f pos;
@@ -97,7 +103,24 @@ struct HPP_FCL_DLLAPI Contact {
         b2(b2_),
         normal(normal_),
         pos(pos_),
-        penetration_depth(depth_) {}
+        penetration_depth(depth_) {
+    nearest_points[0] = pos - 0.5 * depth_ * normal_;
+    nearest_points[1] = pos + 0.5 * depth_ * normal_;
+  }
+
+  Contact(const CollisionGeometry* o1_, const CollisionGeometry* o2_, int b1_,
+          int b2_, const Vec3f& p1, const Vec3f& p2, const Vec3f& normal_,
+          FCL_REAL depth_)
+      : o1(o1_),
+        o2(o2_),
+        b1(b1_),
+        b2(b2_),
+        normal(normal_),
+        penetration_depth(depth_) {
+    nearest_points[0] = p1;
+    nearest_points[1] = p2;
+    pos = (p1 + p2) / 2;
+  }
 
   bool operator<(const Contact& other) const {
     if (b1 == other.b1) return b2 < other.b2;
@@ -117,17 +140,28 @@ struct QueryResult;
 
 /// @brief base class for all query requests
 struct HPP_FCL_DLLAPI QueryRequest {
+  // @brief Initial guess to use for the GJK algorithm
+  GJKInitialGuess gjk_initial_guess;
+
   /// @brief whether enable gjk initial guess
+  /// @Deprecated Use gjk_initial_guess instead
+  HPP_FCL_DEPRECATED_MESSAGE("Use gjk_initial_guess instead")
   bool enable_cached_gjk_guess;
 
   /// @brief whether to enable the Nesterov accleration of GJK
   GJKVariant gjk_variant;
 
   /// @brief convergence criterion used to stop GJK
-  GJKConvergenceCriterion convergence_criterion;
+  GJKConvergenceCriterion gjk_convergence_criterion;
 
   /// @brief convergence criterion used to stop GJK
-  GJKConvergenceCriterionType convergence_criterion_type;
+  GJKConvergenceCriterionType gjk_convergence_criterion_type;
+
+  /// @brief tolerance for the GJK algorithm
+  FCL_REAL gjk_tolerance;
+
+  /// @brief maximum iteration for the GJK algorithm
+  size_t gjk_max_iterations;
 
   /// @brief the gjk initial guess set by user
   Vec3f cached_gjk_guess;
@@ -138,23 +172,45 @@ struct HPP_FCL_DLLAPI QueryRequest {
   /// @brief enable timings when performing collision/distance request
   bool enable_timings;
 
+  /// @brief threshold below which a collision is considered.
+  FCL_REAL collision_distance_threshold;
+
+  HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+  HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+  /// @brief Default constructor.
   QueryRequest()
-      : enable_cached_gjk_guess(false),
+      : gjk_initial_guess(GJKInitialGuess::DefaultGuess),
+        enable_cached_gjk_guess(false),
         gjk_variant(GJKVariant::DefaultGJK),
-        convergence_criterion(GJKConvergenceCriterion::VDB),
-        convergence_criterion_type(GJKConvergenceCriterionType::Relative),
+        gjk_convergence_criterion(GJKConvergenceCriterion::VDB),
+        gjk_convergence_criterion_type(GJKConvergenceCriterionType::Relative),
+        gjk_tolerance(1e-6),
+        gjk_max_iterations(128),
         cached_gjk_guess(1, 0, 0),
         cached_support_func_guess(support_func_guess_t::Zero()),
-        enable_timings(false) {}
+        enable_timings(false),
+        collision_distance_threshold(
+            Eigen::NumTraits<FCL_REAL>::dummy_precision()) {}
+
+  /// @brief Copy  constructor.
+  QueryRequest(const QueryRequest& other) = default;
+
+  /// @brief Copy  assignment operator.
+  QueryRequest& operator=(const QueryRequest& other) = default;
+  HPP_FCL_COMPILER_DIAGNOSTIC_POP
 
   void updateGuess(const QueryResult& result);
 
   /// @brief whether two QueryRequest are the same or not
   inline bool operator==(const QueryRequest& other) const {
-    return enable_cached_gjk_guess == other.enable_cached_gjk_guess &&
+    HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+    HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
+    return gjk_initial_guess == other.gjk_initial_guess &&
+           enable_cached_gjk_guess == other.enable_cached_gjk_guess &&
            cached_gjk_guess == other.cached_gjk_guess &&
            cached_support_func_guess == other.cached_support_func_guess &&
            enable_timings == other.enable_timings;
+    HPP_FCL_COMPILER_DIAGNOSTIC_POP
   }
 };
 
@@ -166,6 +222,11 @@ struct HPP_FCL_DLLAPI QueryResult {
   /// @brief stores the last support function vertex index, when relevant.
   support_func_guess_t cached_support_func_guess;
 
+  /// @brief stores the number of iterations done by GJK
+  size_t gjk_numit = 0;
+  /// @brief stores the number of iterations done by EPA
+  size_t epa_numit = 0;
+
   /// @brief timings for the given request
   CPUTimes timings;
 
@@ -175,10 +236,18 @@ struct HPP_FCL_DLLAPI QueryResult {
 };
 
 inline void QueryRequest::updateGuess(const QueryResult& result) {
+  if (gjk_initial_guess == GJKInitialGuess::CachedGuess) {
+    cached_gjk_guess = result.cached_gjk_guess;
+    cached_support_func_guess = result.cached_support_func_guess;
+  }
+  // TODO: use gjk_initial_guess instead
+  HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
+  HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
   if (enable_cached_gjk_guess) {
     cached_gjk_guess = result.cached_gjk_guess;
     cached_support_func_guess = result.cached_support_func_guess;
   }
+  HPP_FCL_COMPILER_DIAGNOSTIC_POP
 }
 
 struct CollisionResult;
@@ -192,11 +261,13 @@ enum CollisionRequestFlag {
 
 /// @brief request to the collision algorithm
 struct HPP_FCL_DLLAPI CollisionRequest : QueryRequest {
-  /// @brief The maximum number of contacts will return
+  /// @brief The maximum number of contacts that can be returned
   size_t num_max_contacts;
 
   /// @brief whether the contact information (normal, penetration depth and
   /// contact position) will return
+  /// @note Only effective if the collision pair involves an Octree.
+  /// Otherwise, it is always true.
   bool enable_contact;
 
   /// Whether a lower bound on distance is returned when objects are disjoint
@@ -266,9 +337,22 @@ struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
  public:
   /// Lower bound on distance between objects if they are disjoint.
   /// See \ref hpp_fcl_collision_and_distance_lower_bound_computation
-  /// @note computed only on request (or if it does not add any computational
-  /// overhead).
+  /// @note Always computed. If \ref CollisionRequest::distance_upper_bound is
+  /// set to infinity, distance_lower_bound is the actual distance between the
+  /// shapes.
   FCL_REAL distance_lower_bound;
+
+  /// @brief nearest points
+  /// available only when distance_lower_bound is inferior to
+  /// CollisionRequest::break_distance.
+  /// @note Also referred as "witness points" in other collision libraries.
+  /// The points p1 = nearest_points[0] and p2 = nearest_points[1] verify the
+  /// property that dist(o1, o2) * (p1 - p2) is the separation vector between o1
+  /// and o2, with dist(o1, o2) being the **signed** distance separating o1 from
+  /// o2. See \ref DistanceResult::normal for the definition of the separation
+  /// vector. If o1 and o2 have multiple contacts, the nearest_points are
+  /// associated with the contact which has the greatest penetration depth.
+  Vec3f nearest_points[2];
 
  public:
   CollisionResult()
@@ -305,6 +389,18 @@ struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
       return contacts[i];
     else
       return contacts.back();
+  }
+
+  /// @brief set the i-th contact calculated
+  void setContact(size_t i, const Contact& c) {
+    if (contacts.size() == 0)
+      throw std::invalid_argument(
+          "The number of contacts is zero. No Contact can be returned.");
+
+    if (i < contacts.size())
+      contacts[i] = c;
+    else
+      contacts.back() = c;
   }
 
   /// @brief get all the contacts
@@ -361,14 +457,29 @@ struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
 /// @brief distance result
 struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
  public:
-  /// @brief minimum distance between two objects. if two objects are in
+  /// @brief minimum distance between two objects. If two objects are in
   /// collision, min_distance <= 0.
   FCL_REAL min_distance;
 
-  /// @brief nearest points
-  Vec3f nearest_points[2];
+  /// @brief nearest points.
+  /// See CollisionResult::nearest_points.
+  std::array<Vec3f, 2> nearest_points;
 
-  /// In case both objects are in collision, store the normal
+  /// @brief List of supports computed when running GJK
+  std::array<std::vector<Vec3f>, 2> supports_gjk;
+  /// @brief List of supports computed when running EPA
+  std::array<std::vector<Vec3f>, 2> supports_epa;
+
+  /// Stores the normal, defined as the normalized separation vector:
+  /// normal = (p2 - p1) / dist(o1, o2), where p1 = nearest_points[0]
+  /// belongs to o1 and p2 = nearest_points[1] belongs to o2 and dist(o1, o2) is
+  /// the **signed** distance between o1 and o2. The normal always points from
+  /// o1 to o2.
+  /// @note The separation vector is the smallest vector such that if o1 is
+  /// translated by it, o1 and o2 are in touching contact (they share at least
+  /// one contact point but have a zero intersection volume). If the shapes
+  /// overlap, dist(o1, o2) = -((p2-p1).norm()). Otherwise, dist(o1, o2) =
+  /// (p2-p1).norm().
   Vec3f normal;
 
   /// @brief collision object 1
@@ -453,6 +564,10 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
     b2 = NONE;
     nearest_points[0] = nearest_points[1] = normal = nan;
     timings.clear();
+    supports_gjk[0].clear();
+    supports_gjk[1].clear();
+    supports_epa[0].clear();
+    supports_epa[1].clear();
   }
 
   /// @brief whether two DistanceResult are the same or not
@@ -475,6 +590,28 @@ struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
     return is_same;
   }
 };
+
+namespace internal {
+inline void updateDistanceLowerBoundFromBV(const CollisionRequest& /*req*/,
+                                           CollisionResult& res,
+                                           const FCL_REAL& sqrDistLowerBound) {
+  // BV cannot find negative distance.
+  if (res.distance_lower_bound <= 0) return;
+  FCL_REAL new_dlb = std::sqrt(sqrDistLowerBound);  // - req.security_margin;
+  if (new_dlb < res.distance_lower_bound) res.distance_lower_bound = new_dlb;
+}
+
+inline void updateDistanceLowerBoundFromLeaf(const CollisionRequest&,
+                                             CollisionResult& res,
+                                             const FCL_REAL& distance,
+                                             const Vec3f& p0, const Vec3f& p1) {
+  if (distance < res.distance_lower_bound) {
+    res.distance_lower_bound = distance;
+    res.nearest_points[0] = p0;
+    res.nearest_points[1] = p1;
+  }
+}
+}  // namespace internal
 
 inline CollisionRequestFlag operator~(CollisionRequestFlag a) {
   return static_cast<CollisionRequestFlag>(~static_cast<int>(a));

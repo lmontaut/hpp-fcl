@@ -38,6 +38,7 @@
 #include <hpp/fcl/collision.h>
 
 #include "fcl.hh"
+#include "deprecation.hh"
 
 #ifdef HPP_FCL_HAS_DOXYGEN_AUTODOC
 #include "doxygen_autodoc/functions.h"
@@ -49,6 +50,7 @@
 
 using namespace boost::python;
 using namespace hpp::fcl;
+using namespace hpp::fcl::python;
 
 namespace dv = doxygen::visitor;
 
@@ -56,6 +58,15 @@ template <int index>
 const CollisionGeometry* geto(const Contact& c) {
   return index == 1 ? c.o1 : c.o2;
 }
+
+struct ContactWrapper {
+  static Vec3f getNearestPoint1(const Contact& contact) {
+    return contact.nearest_points[0];
+  }
+  static Vec3f getNearestPoint2(const Contact& contact) {
+    return contact.nearest_points[1];
+  }
+};
 
 void exposeCollisionAPI() {
   if (!eigenpy::register_symbolic_link_to_registered_type<
@@ -81,7 +92,32 @@ void exposeCollisionAPI() {
   if (!eigenpy::register_symbolic_link_to_registered_type<QueryRequest>()) {
     class_<QueryRequest>("QueryRequest", doxygen::class_doc<QueryRequest>(),
                          no_init)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_tolerance)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_max_iterations)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_variant)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_convergence_criterion)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_convergence_criterion_type)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_initial_guess)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, enable_cached_gjk_guess)
+        .add_property(
+            "enable_cached_gjk_guess",
+            bp::make_function(
+                +[](QueryRequest& self) -> bool {
+                  return self.enable_cached_gjk_guess;
+                },
+                deprecated_warning_policy<>(
+                    "enable_cached_gjk_guess has been marked as deprecated and "
+                    "will be removed in a future release.\n"
+                    "Please use gjk_initial_guess instead.")),
+            bp::make_function(
+                +[](QueryRequest& self, const bool value) -> void {
+                  self.enable_cached_gjk_guess = value;
+                },
+                deprecated_warning_policy<>(
+                    "enable_cached_gjk_guess has been marked as deprecated and "
+                    "will be removed in a future release.\n"
+                    "Please use gjk_initial_guess instead.")),
+            doxygen::class_attrib_doc<QueryRequest>("enable_cached_gjk_guess"))
         .DEF_RW_CLASS_ATTRIB(QueryRequest, cached_gjk_guess)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, cached_support_func_guess)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, enable_timings)
@@ -125,9 +161,14 @@ void exposeCollisionAPI() {
             make_function(&geto<2>,
                           return_value_policy<reference_existing_object>()),
             doxygen::class_attrib_doc<Contact>("o2"))
+        .def("getNearestPoint1", &ContactWrapper::getNearestPoint1,
+             doxygen::class_attrib_doc<Contact>("nearest_points"))
+        .def("getNearestPoint2", &ContactWrapper::getNearestPoint2,
+             doxygen::class_attrib_doc<Contact>("nearest_points"))
         .DEF_RW_CLASS_ATTRIB(Contact, b1)
         .DEF_RW_CLASS_ATTRIB(Contact, b2)
         .DEF_RW_CLASS_ATTRIB(Contact, normal)
+        .DEF_RW_CLASS_ATTRIB(Contact, nearest_points)
         .DEF_RW_CLASS_ATTRIB(Contact, pos)
         .DEF_RW_CLASS_ATTRIB(Contact, penetration_depth)
         .def(self == self)
@@ -145,6 +186,8 @@ void exposeCollisionAPI() {
                         no_init)
         .DEF_RW_CLASS_ATTRIB(QueryResult, cached_gjk_guess)
         .DEF_RW_CLASS_ATTRIB(QueryResult, cached_support_func_guess)
+        .DEF_RW_CLASS_ATTRIB(QueryResult, gjk_numit)
+        .DEF_RW_CLASS_ATTRIB(QueryResult, epa_numit)
         .DEF_RW_CLASS_ATTRIB(QueryResult, timings);
   }
 

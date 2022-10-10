@@ -21,6 +21,28 @@ using orgQhull::QhullVertexSet;
 namespace hpp {
 namespace fcl {
 
+// Reorders `tri` such that the dot product between the normal of triangle and
+// the vector `triangle barycentre - convex_tri.center` is positive.
+void reorderTriangle(const Convex<Triangle>* convex_tri, Triangle& tri) {
+  Vec3f p0, p1, p2;
+  p0 = convex_tri->points[tri[0]];
+  p1 = convex_tri->points[tri[1]];
+  p2 = convex_tri->points[tri[2]];
+
+  Vec3f barycentre_tri, center_barycenter;
+  barycentre_tri = (p0 + p1 + p2) / 3;
+  center_barycenter = barycentre_tri - convex_tri->center;
+
+  Vec3f edge_tri1, edge_tri2, n_tri;
+  edge_tri1 = p1 - p0;
+  edge_tri2 = p2 - p1;
+  n_tri = edge_tri1.cross(edge_tri2);
+
+  if (center_barycenter.dot(n_tri) < 0) {
+    tri.set(tri[1], tri[0], tri[2]);
+  }
+}
+
 ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
                                    bool keepTriangles,
                                    const char* qhullCommand) {
@@ -35,7 +57,7 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
   Qhull qh;
   const char* command =
       qhullCommand ? qhullCommand : (keepTriangles ? "Qt" : "");
-  qh.runQhull("", 3, num_points, pts[0].data(), command);
+  qh.runQhull("", 3, static_cast<int>(num_points), pts[0].data(), command);
 
   if (qh.qhullStatus() != qh_ERRnone) {
     if (qh.hasQhullMessage()) std::cerr << qh.qhullMessage() << std::endl;
@@ -49,14 +71,14 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
   std::vector<int> pts_to_vertices(num_points, -1);
 
   // Initialize the vertices
-  int nvertex = qh.vertexCount();
+  int nvertex = (qh.vertexCount());
   Vec3f* vertices = new Vec3f[nvertex];
   QhullVertexList vertexList(qh.vertexList());
   int i_vertex = 0;
   for (QhullVertexList::const_iterator v = vertexList.begin();
        v != vertexList.end(); ++v) {
     QhullPoint pt((*v).point());
-    pts_to_vertices[pt.id()] = i_vertex;
+    pts_to_vertices[(size_t)pt.id()] = (int)i_vertex;
     vertices[i_vertex] = Vec3f(pt[0], pt[1], pt[2]);
     ++i_vertex;
   }
@@ -68,14 +90,15 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
     convex = convex_tri = new Convex<Triangle>();
   else
     convex = new ConvexBase;
-  convex->initialize(true, vertices, nvertex);
+  convex->initialize(true, vertices, static_cast<unsigned int>(nvertex));
 
   // Build the neighbors
   convex->neighbors = new Neighbors[nvertex];
-  std::vector<std::set<index_type> > nneighbors(nvertex);
+  std::vector<std::set<index_type> > nneighbors(static_cast<size_t>(nvertex));
   if (keepTriangles) {
-    convex_tri->num_polygons = qh.facetCount();
+    convex_tri->num_polygons = static_cast<unsigned int>(qh.facetCount());
     convex_tri->polygons = new Triangle[convex_tri->num_polygons];
+    convex_tri->computeCenter();
   }
 
   unsigned int c_nneighbors = 0;
@@ -87,15 +110,22 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
     if (facet.isSimplicial()) {
       // In 3D, simplicial faces have 3 vertices. We mark them as neighbors.
       QhullVertexSet f_vertices(facet.vertices());
-      int n = f_vertices.count();
+      size_t n = static_cast<size_t>(f_vertices.count());
       assert(n == 3);
-      Triangle tri(pts_to_vertices[f_vertices[0].point().id()],
-                   pts_to_vertices[f_vertices[1].point().id()],
-                   pts_to_vertices[f_vertices[2].point().id()]);
-      if (keepTriangles) convex_tri->polygons[i_polygon++] = tri;
-      for (size_type j = 0; j < n; ++j) {
-        size_type i = (j == 0) ? n - 1 : j - 1;
-        size_type k = (j == n - 1) ? 0 : j + 1;
+      Triangle tri(
+          static_cast<size_t>(
+              pts_to_vertices[static_cast<size_t>(f_vertices[0].point().id())]),
+          static_cast<size_t>(
+              pts_to_vertices[static_cast<size_t>(f_vertices[1].point().id())]),
+          static_cast<size_t>(pts_to_vertices[static_cast<size_t>(
+              f_vertices[2].point().id())]));
+      if (keepTriangles) {
+        reorderTriangle(convex_tri, tri);
+        convex_tri->polygons[i_polygon++] = tri;
+      }
+      for (size_t j = 0; j < n; ++j) {
+        size_t i = (j == 0) ? n - 1 : j - 1;
+        size_t k = (j == n - 1) ? 0 : j + 1;
         // Update neighbors of pj;
         if (nneighbors[tri[j]].insert(tri[i]).second) c_nneighbors++;
         if (nneighbors[tri[j]].insert(tri[k]).second) c_nneighbors++;
@@ -112,11 +142,19 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
       QhullRidgeSet f_ridges(facet.ridges());
       for (size_type j = 0; j < f_ridges.count(); ++j) {
         assert(f_ridges[j].vertices().count() == 2);
-        index_type pi = pts_to_vertices[f_ridges[j].vertices()[0].point().id()],
-                   pj = pts_to_vertices[f_ridges[j].vertices()[1].point().id()];
+        int pi = pts_to_vertices[static_cast<size_t>(
+                f_ridges[j].vertices()[0].point().id())],
+            pj = pts_to_vertices[static_cast<size_t>(
+                f_ridges[j].vertices()[1].point().id())];
         // Update neighbors of pi and pj;
-        if (nneighbors[pj].insert(pi).second) c_nneighbors++;
-        if (nneighbors[pi].insert(pj).second) c_nneighbors++;
+        if (nneighbors[static_cast<size_t>(pj)]
+                .insert(static_cast<size_t>(pi))
+                .second)
+          c_nneighbors++;
+        if (nneighbors[static_cast<size_t>(pi)]
+                .insert(static_cast<size_t>(pj))
+                .second)
+          c_nneighbors++;
       }
     }
   }
@@ -125,7 +163,7 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
   // Fill the neighbor attribute of the returned object.
   convex->nneighbors_ = new unsigned int[c_nneighbors];
   unsigned int* p_nneighbors = convex->nneighbors_;
-  for (int i = 0; i < nvertex; ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(nvertex); ++i) {
     Neighbors& n = convex->neighbors[i];
     if (nneighbors[i].size() >= (std::numeric_limits<unsigned char>::max)())
       throw std::logic_error("Too many neighbors.");

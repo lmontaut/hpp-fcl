@@ -84,16 +84,26 @@ void exposeGJK() {
         .def("support1",
              static_cast<Vec3f (MinkowskiDiff::*)(const Vec3f&, bool)>(
                  &MinkowskiDiff::support1))
-        .DEF_CLASS_FUNC(MinkowskiDiff, setNormalizeSupportDirection)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support0)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support1)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation);
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
   }
 
   if (!eigenpy::register_symbolic_link_to_registered_type<GJKVariant>()) {
     enum_<GJKVariant>("GJKVariant")
         .value("DefaultGJK", GJKVariant::DefaultGJK)
         .value("NesterovAcceleration", GJKVariant::NesterovAcceleration)
+        .value("PolyakAcceleration", GJKVariant::PolyakAcceleration)
+        .export_values();
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJKInitialGuess>()) {
+    enum_<GJKInitialGuess>("GJKInitialGuess")
+        .value("DefaultGuess", GJKInitialGuess::DefaultGuess)
+        .value("CachedGuess", GJKInitialGuess::CachedGuess)
+        .value("BoundingVolumeGuess", GJKInitialGuess::BoundingVolumeGuess)
         .export_values();
   }
 
@@ -123,6 +133,9 @@ void exposeGJK() {
         .DEF_RW_CLASS_ATTRIB(GJK, x1)
         .DEF_RW_CLASS_ATTRIB(GJK, support_hint)
         .DEF_RW_CLASS_ATTRIB(GJK, nfree)
+        .DEF_RW_CLASS_ATTRIB(GJK, gjk_variant)
+        .DEF_RW_CLASS_ATTRIB(GJK, convergence_criterion)
+        .DEF_RW_CLASS_ATTRIB(GJK, convergence_criterion_type)
         .DEF_CLASS_FUNC(GJK, evaluate)
         .DEF_CLASS_FUNC(GJK, hasClosestPoints)
         .DEF_CLASS_FUNC(GJK, hasPenetrationInformation)
@@ -130,11 +143,6 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, computeClosestPoints)
         .DEF_CLASS_FUNC(GJK, setDistanceEarlyBreak)
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex)
-        .DEF_CLASS_FUNC(GJK, setGJKVariant)
-        .DEF_CLASS_FUNC(GJK, setConvergenceCriterion)
-        .DEF_CLASS_FUNC(GJK, getConvergenceCriterion)
-        .DEF_CLASS_FUNC(GJK, setConvergenceCriterionType)
-        .DEF_CLASS_FUNC(GJK, getConvergenceCriterionType)
         .DEF_CLASS_FUNC(GJK, getIterations)
         .DEF_CLASS_FUNC(GJK, getIterationsEarly)
         .DEF_CLASS_FUNC(GJK, getNumCallSupport)
