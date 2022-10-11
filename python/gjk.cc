@@ -60,36 +60,6 @@ void exposeGJK() {
         .export_values();
   }
 
-  if (!eigenpy::register_symbolic_link_to_registered_type<MinkowskiDiff>()) {
-    class_<MinkowskiDiff>("MinkowskiDiff", doxygen::class_doc<MinkowskiDiff>(),
-                          no_init)
-        .def(doxygen::visitor::init<MinkowskiDiff>())
-        .def("set",
-             static_cast<void (MinkowskiDiff::*)(
-                 const ShapeBase*, const ShapeBase*)>(&MinkowskiDiff::set),
-             doxygen::member_func_doc(
-                 static_cast<void (MinkowskiDiff::*)(
-                     const ShapeBase*, const ShapeBase*)>(&MinkowskiDiff::set)))
-        .def("set",
-             static_cast<void (MinkowskiDiff::*)(
-                 const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
-                 const Transform3f& tf1)>(&MinkowskiDiff::set),
-             doxygen::member_func_doc(
-                 static_cast<void (MinkowskiDiff::*)(
-                     const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
-                     const Transform3f& tf1)>(&MinkowskiDiff::set)))
-        .def("support0",
-             static_cast<Vec3f (MinkowskiDiff::*)(const Vec3f&, bool)>(
-                 &MinkowskiDiff::support0))
-        .def("support1",
-             static_cast<Vec3f (MinkowskiDiff::*)(const Vec3f&, bool)>(
-                 &MinkowskiDiff::support1))
-        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support0)
-        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, index_support1)
-        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
-        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
-  }
-
   if (!eigenpy::register_symbolic_link_to_registered_type<GJKVariant>()) {
     enum_<GJKVariant>("GJKVariant")
         .value("DefaultGJK", GJKVariant::DefaultGJK)
@@ -121,6 +91,28 @@ void exposeGJK() {
         .value("Absolute", GJKConvergenceCriterionType::Absolute)
         .value("Relative", GJKConvergenceCriterionType::Relative)
         .export_values();
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<MinkowskiDiff>()) {
+    class_<MinkowskiDiff>("MinkowskiDiff", doxygen::class_doc<MinkowskiDiff>(),
+                          no_init)
+        .def(doxygen::visitor::init<MinkowskiDiff>())
+        .def("set",
+             static_cast<void (MinkowskiDiff::*)(
+                 const ShapeBase*, const ShapeBase*)>(&MinkowskiDiff::set),
+             doxygen::member_func_doc(
+                 static_cast<void (MinkowskiDiff::*)(
+                     const ShapeBase*, const ShapeBase*)>(&MinkowskiDiff::set)))
+        .def("set",
+             static_cast<void (MinkowskiDiff::*)(
+                 const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
+                 const Transform3f& tf1)>(&MinkowskiDiff::set),
+             doxygen::member_func_doc(
+                 static_cast<void (MinkowskiDiff::*)(
+                     const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
+                     const Transform3f& tf1)>(&MinkowskiDiff::set)))
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
   }
 
   if (!eigenpy::register_symbolic_link_to_registered_type<GJK>()) {
