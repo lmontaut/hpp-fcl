@@ -49,22 +49,22 @@ using namespace hpp::fcl;
 
 namespace dv = doxygen::visitor;
 
-struct DistanceRequestWrapper {
+struct DistanceResultWrapper {
   static Vec3f getNearestPoint1(const DistanceResult& res) {
     return res.nearest_points[0];
   }
+
   static Vec3f getNearestPoint2(const DistanceResult& res) {
     return res.nearest_points[1];
   }
-};
 
-struct DistanceResultWrapper {
   static size_t getNumSupportsGJK(const DistanceResult& res) {
     if (res.supports_gjk[0].size() != res.supports_gjk[1].size()) {
       throw std::logic_error("Must have same number of supports on both shapes.");
     }
     return res.supports_gjk[0].size();
   }
+
   static Vec3f getSupportGJK(const DistanceResult& res, size_t i, size_t j) {
     if (i < 0 || i > 1) {
       throw std::logic_error("Index i must be 0 or 1.");
@@ -81,6 +81,7 @@ struct DistanceResultWrapper {
     }
     return res.supports_epa[0].size();
   }
+
   static Vec3f getSupportEPA(const DistanceResult& res, size_t i, size_t j) {
     if (i < 0 || i > 1) {
       throw std::logic_error("Index i must be 0 or 1.");
@@ -118,9 +119,9 @@ void exposeDistanceAPI() {
         .DEF_RW_CLASS_ATTRIB(DistanceResult, min_distance)
         .DEF_RW_CLASS_ATTRIB(DistanceResult, normal)
         //.def_readwrite ("nearest_points", &DistanceResult::nearest_points)
-        .def("getNearestPoint1", &DistanceRequestWrapper::getNearestPoint1,
+        .def("getNearestPoint1", &DistanceResultWrapper::getNearestPoint1,
              doxygen::class_attrib_doc<DistanceResult>("nearest_points"))
-        .def("getNearestPoint2", &DistanceRequestWrapper::getNearestPoint2,
+        .def("getNearestPoint2", &DistanceResultWrapper::getNearestPoint2,
              doxygen::class_attrib_doc<DistanceResult>("nearest_points"))
         .def("getNumSupportsGJK", &DistanceResultWrapper::getNumSupportsGJK)
         .def("getSupportGJK", &DistanceResultWrapper::getSupportGJK)
