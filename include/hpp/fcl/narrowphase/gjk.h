@@ -161,7 +161,6 @@ struct HPP_FCL_DLLAPI GJK {
     int index_w0 = 0;
     int index_w1 = 0;
     Vec3f w;
-    SimplexV() {}
   };
 
   typedef unsigned char vertex_id_t;
@@ -169,24 +168,8 @@ struct HPP_FCL_DLLAPI GJK {
   struct HPP_FCL_DLLAPI Simplex {
     /// @brief simplex vertex
     SimplexV* vertex[4];
-    SimplexV vertex_mem[4];  // used to allocate memory
     /// @brief size of simplex (number of vertices)
     vertex_id_t rank;
-    Vec3f cp0 = Vec3f::Zero();
-    Vec3f cp1 = Vec3f::Zero();
-    Simplex() {
-      vertex[0] = &vertex_mem[0];
-      vertex[1] = &vertex_mem[1];
-      vertex[2] = &vertex_mem[2];
-      vertex[3] = &vertex_mem[3];
-    }
-
-    inline SimplexV getVertex(int i) const {
-      SimplexV v = *vertex[i];
-      return v;
-    }
-
-    inline void setVertex(const SimplexV& v, int i) { *vertex[i] = v; }
   };
 
   /// @brief Status of the GJK algorithm:

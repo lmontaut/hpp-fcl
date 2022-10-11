@@ -51,7 +51,8 @@ using hpp::fcl::details::EPA;
 using hpp::fcl::details::GJK;
 using hpp::fcl::details::MinkowskiDiff;
 
-struct SupportData{
+struct SupportData
+{
   public:
     Vec3f support;
     int hint;
@@ -61,11 +62,79 @@ struct SupportData{
     }
 };
 
-void getSupport(const ShapeBase* shape, const Vec3f& dir, bool is_normalized, SupportData& support_data){
+void getSupport(const ShapeBase* shape, const Vec3f& dir, bool is_normalized, SupportData& support_data)
+{
   int hint = support_data.hint;
   Vec3f support = hpp::fcl::details::getSupport(shape, dir, is_normalized, hint);
   support_data.hint = hint;
   support_data.support = support;
+}
+
+struct SimplexWrapper 
+{
+  hpp::fcl::details::GJK::SimplexV vertices[4];
+  hpp::fcl::details::GJK::vertex_id_t rank;
+  inline void copy(const SimplexWrapper& other) {
+    rank = other.rank;
+    for (int i = 0; i < rank; i++) {
+      vertices[i].index_w0 = other.vertices[i].index_w0;
+      vertices[i].index_w1 = other.vertices[i].index_w1;
+      vertices[i].w = other.vertices[i].w;
+      vertices[i].w0 = other.vertices[i].w0;
+      vertices[i].w1 = other.vertices[i].w1;
+    }
+  }
+
+  hpp::fcl::details::GJK::SimplexV getVertex(int i){
+    return vertices[i];
+  }
+
+  void setVertex(const hpp::fcl::details::GJK::SimplexV& vertex, int i){
+    vertices[i] = vertex;
+  }
+};
+
+Vec3f projectOriginOntoSimplex(const SimplexWrapper& curr_simplex, SimplexWrapper& next_simplex)
+{
+  Project::ProjectResult projection_result;
+  // Project simplex
+  switch (curr_simplex.rank) {
+    case 1:
+      next_simplex.copy(curr_simplex);  
+      break;
+    case 2:
+      projection_result = Project::projectLineOrigin(curr_simplex.vertices[0].w,
+                                                     curr_simplex.vertices[1].w);
+      break;
+    case 3:
+      projection_result = Project::projectTriangleOrigin(curr_simplex.vertices[0].w,
+                                                         curr_simplex.vertices[1].w,
+                                                         curr_simplex.vertices[2].w);
+      break;
+    case 4:
+      projection_result = Project::projectTetrahedraOrigin(curr_simplex.vertices[0].w,
+                                                           curr_simplex.vertices[1].w,
+                                                           curr_simplex.vertices[2].w,
+                                                           curr_simplex.vertices[3].w);
+      break;
+    default:
+      throw std::logic_error("Invalid simplex rank!");
+  }
+  if (curr_simplex.rank == 1){
+    return curr_simplex.vertices[0].w;
+  }
+
+  // Construct next_simplex and projection
+  Vec3f projection = Vec3f::Zero();
+  next_simplex.rank = 0;
+  for (int i = 0; i < curr_simplex.rank; i++) {
+    projection += projection_result.parameterization[i] * curr_simplex.vertices[i].w;
+    if (projection_result.parameterization[i] > 1e-12){
+      next_simplex.vertices[next_simplex.rank] = curr_simplex.vertices[i];
+      next_simplex.rank++;
+    }
+  }
+  return projection;
 }
 
 void exposeGJK() {
@@ -119,6 +188,27 @@ void exposeGJK() {
   }
 
   def("getSupport", &getSupport);
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<GJK::SimplexV>()) {
+    class_<GJK::SimplexV>("SimplexV", doxygen::class_doc<GJK::SimplexV>(),
+                          no_init)
+        .def(doxygen::visitor::init<GJK::SimplexV>())
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w0)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w);
+  }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<SimplexWrapper>()) {
+    class_<SimplexWrapper>("Simplex", doxygen::class_doc<SimplexWrapper>(),
+                          no_init)
+        .def(doxygen::visitor::init<SimplexWrapper>())
+        .def("getVertex", &SimplexWrapper::getVertex)
+        .def("setVertex", &SimplexWrapper::setVertex)
+        .def("copy", &SimplexWrapper::copy)
+        .DEF_RW_CLASS_ATTRIB(SimplexWrapper, rank);
+  }
+
+  def("projectOriginOntoSimplex", &projectOriginOntoSimplex);
 
   if (!eigenpy::register_symbolic_link_to_registered_type<MinkowskiDiff>()) {
     class_<MinkowskiDiff>("MinkowskiDiff", doxygen::class_doc<MinkowskiDiff>(),
@@ -174,35 +264,7 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, getGJKRunTimeEarly)
         .DEF_CLASS_FUNC(GJK, computeGJKAverageRunTime)
         .DEF_CLASS_FUNC(GJK, getAverageGJKRunTime)
-        .DEF_CLASS_FUNC(GJK, getAverageGJKRunTimeEarly)
-        .def("projectLineOrigin",
-             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
-                 &GJK::projectLineOrigin))
-        .def("projectTriangleOrigin",
-             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
-                 &GJK::projectTriangleOrigin))
-        .def("projectTetrahedraOrigin",
-             static_cast<bool (GJK::*)(const GJK::Simplex&, GJK::Simplex&)>(
-                 &GJK::projectTetrahedraOrigin));
-  }
-
-  if (!eigenpy::register_symbolic_link_to_registered_type<GJK::Simplex>()) {
-    class_<GJK::Simplex>("Simplex", doxygen::class_doc<GJK::Simplex>(), no_init)
-        .def(doxygen::visitor::init<GJK::Simplex>())
-        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, rank)
-        .DEF_CLASS_FUNC(GJK::Simplex, getVertex)
-        .DEF_CLASS_FUNC(GJK::Simplex, setVertex);
-  }
-
-  if (!eigenpy::register_symbolic_link_to_registered_type<GJK::SimplexV>()) {
-    class_<GJK::SimplexV>("SimplexV", doxygen::class_doc<GJK::SimplexV>(),
-                          no_init)
-        .def(doxygen::visitor::init<GJK::SimplexV>())
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w0)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1);
+        .DEF_CLASS_FUNC(GJK, getAverageGJKRunTimeEarly);
   }
 
   def("projectLineOrigin", &Project::projectLineOrigin);
