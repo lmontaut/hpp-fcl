@@ -126,26 +126,11 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
     return getSupport(shapes[0], d, dIsNormalized, hint);
   }
 
-  /// @brief support function for shape0, reference to hint removed
-  inline Vec3f support0(const Vec3f& d, bool dIsNormalized) {
-    Vec3f res;
-    res = getSupport(shapes[0], d, dIsNormalized, index_support0);
-    return res;
-  }
-
   /// @brief support function for shape1
   inline Vec3f support1(const Vec3f& d, bool dIsNormalized, int& hint) const {
     return oR1 *
                getSupport(shapes[1], oR1.transpose() * d, dIsNormalized, hint) +
            ot1;
-  }
-  /// @brief support function for shape1
-  inline Vec3f support1(const Vec3f& d, bool dIsNormalized) {
-    Vec3f res;
-    res = oR1 * getSupport(shapes[1], oR1.transpose() * d, dIsNormalized,
-                           index_support1) +
-          ot1;
-    return res;
   }
 
   /// @brief support function for the pair of shapes

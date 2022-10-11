@@ -51,6 +51,23 @@ using hpp::fcl::details::EPA;
 using hpp::fcl::details::GJK;
 using hpp::fcl::details::MinkowskiDiff;
 
+struct SupportData{
+  public:
+    Vec3f support;
+    int hint;
+    SupportData(){
+      support.setZero();
+      hint = 0;
+    }
+};
+
+void getSupport(const ShapeBase* shape, const Vec3f& dir, bool is_normalized, SupportData& support_data){
+  int hint = support_data.hint;
+  Vec3f support = hpp::fcl::details::getSupport(shape, dir, is_normalized, hint);
+  support_data.hint = hint;
+  support_data.support = support;
+}
+
 void exposeGJK() {
   if (!eigenpy::register_symbolic_link_to_registered_type<GJK::Status>()) {
     enum_<GJK::Status>("GJKStatus")
@@ -92,6 +109,16 @@ void exposeGJK() {
         .value("Relative", GJKConvergenceCriterionType::Relative)
         .export_values();
   }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<SupportData>()) {
+    class_<SupportData>("SupportData", doxygen::class_doc<SupportData>(),
+                          no_init)
+      .def(doxygen::visitor::init<SupportData>())
+        .DEF_RW_CLASS_ATTRIB(SupportData, support)
+        .DEF_RW_CLASS_ATTRIB(SupportData, hint);
+  }
+
+  def("getSupport", &getSupport);
 
   if (!eigenpy::register_symbolic_link_to_registered_type<MinkowskiDiff>()) {
     class_<MinkowskiDiff>("MinkowskiDiff", doxygen::class_doc<MinkowskiDiff>(),
@@ -163,8 +190,6 @@ void exposeGJK() {
     class_<GJK::Simplex>("Simplex", doxygen::class_doc<GJK::Simplex>(), no_init)
         .def(doxygen::visitor::init<GJK::Simplex>())
         .DEF_RW_CLASS_ATTRIB(GJK::Simplex, rank)
-        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, cp0)
-        .DEF_RW_CLASS_ATTRIB(GJK::Simplex, cp1)
         .DEF_CLASS_FUNC(GJK::Simplex, getVertex)
         .DEF_CLASS_FUNC(GJK::Simplex, setVertex);
   }
