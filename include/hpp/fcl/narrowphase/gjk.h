@@ -236,7 +236,8 @@ struct HPP_FCL_DLLAPI GJK {
     sv.w = sv.w0 - sv.w1;
   }
 
-  /// @brief whether the simplex enclose the origin
+  /// @brief whether the simplex enclose the origin.
+  /// If the simplex is not of rank 4, adds points to fill the simplex. 
   bool encloseOrigin();
 
   /// @brief get the underlying simplex using in GJK, can be used for cache in
@@ -384,13 +385,20 @@ struct HPP_FCL_DLLAPI EPA {
     FCL_REAL d;
     SimplexV* vertex[3];  // a face has three vertices
     SimplexF* f[3];       // a face has three adjacent faces
-    SimplexF* l[2];       // the pre and post faces in the list
+    SimplexF* l[2];       // the pre (l[0]) and post (l[1]) faces in the list
     size_t e[3];
     size_t pass;
 
     SimplexF() : n(Vec3f::Zero()){};
   };
 
+  /// @brief SimplexList is a chain of SimplexF.
+  /// This chain is constructed starting by the last element of the chain.
+  /// When we append a new link to the chain, it becomes the new first element.
+  /// When we remove a link, we connect its successor and its predecessor
+  /// so that they point to each other.
+  /// At both ends of the chain is the NULL ptr; this is usefull as we can check
+  /// easily if we can add/remove elements from the SimplexList.
   struct HPP_FCL_DLLAPI SimplexList {
     SimplexF* root;
     size_t count;

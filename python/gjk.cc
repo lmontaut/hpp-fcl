@@ -72,8 +72,8 @@ void getSupport(const ShapeBase* shape, const Vec3f& dir, bool is_normalized, Su
 
 struct SimplexWrapper 
 {
-  hpp::fcl::details::GJK::SimplexV vertices[4];
-  hpp::fcl::details::GJK::vertex_id_t rank;
+  GJK::SimplexV vertices[4];
+  GJK::vertex_id_t rank;
   inline void copy(const SimplexWrapper& other) {
     rank = other.rank;
     for (int i = 0; i < rank; i++) {
@@ -85,11 +85,11 @@ struct SimplexWrapper
     }
   }
 
-  hpp::fcl::details::GJK::SimplexV getVertex(int i){
+  GJK::SimplexV getVertex(int i){
     return vertices[i];
   }
 
-  void setVertex(const hpp::fcl::details::GJK::SimplexV& vertex, int i){
+  void setVertex(const GJK::SimplexV& vertex, int i){
     vertices[i] = vertex;
   }
 };
@@ -128,8 +128,8 @@ Vec3f projectOriginOntoSimplex(const SimplexWrapper& curr_simplex, SimplexWrappe
   Vec3f projection = Vec3f::Zero();
   next_simplex.rank = 0;
   for (int i = 0; i < curr_simplex.rank; i++) {
-    projection += projection_result.parameterization[i] * curr_simplex.vertices[i].w;
     if (projection_result.parameterization[i] > 1e-12){
+      projection += projection_result.parameterization[i] * curr_simplex.vertices[i].w;
       next_simplex.vertices[next_simplex.rank] = curr_simplex.vertices[i];
       next_simplex.rank++;
     }

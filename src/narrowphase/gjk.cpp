@@ -1576,9 +1576,14 @@ EPA::SimplexF* EPA::newFace(SimplexV* a, SimplexV* b, SimplexV* c,
     if (l > Eigen::NumTraits<FCL_REAL>::epsilon()) {
       face->n /= l;
 
+      // The following block computes the distance of the added face 
+      // to the origin.
       if (!(getEdgeDist(face, a, b, face->d) ||
             getEdgeDist(face, b, c, face->d) ||
             getEdgeDist(face, c, a, face->d))) {
+        // We have not found the origin to be on the outside
+        // of any edge of the triangle. Therefore the origin
+        // lies *inside* the triangle.
         face->d = a->w.dot(face->n);
       }
 
@@ -1587,7 +1592,7 @@ EPA::SimplexF* EPA::newFace(SimplexV* a, SimplexV* b, SimplexV* c,
       else
         status = NonConvex;
     } else
-      status = Degenerated;
+      status = Degenerated; // TODO: what to do in this case?
 
     hull.remove(face);
     stock.append(face);
@@ -1599,6 +1604,7 @@ EPA::SimplexF* EPA::newFace(SimplexV* a, SimplexV* b, SimplexV* c,
 }
 
 /** @brief Find the best polytope face to split */
+// TODO: storing the best distance in a heap would be better
 EPA::SimplexF* EPA::findBest() {
   SimplexF* minf = hull.root;
   FCL_REAL mind = minf->d * minf->d;
@@ -1616,6 +1622,7 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
   GJK::Simplex& simplex = *gjk.getSimplex();
   support_func_guess_t hint(gjk.support_hint);
   if ((simplex.rank > 1) && gjk.encloseOrigin()) {
+    // Make sure hull is empty
     while (hull.root) {
       SimplexF* f = hull.root;
       hull.remove(f);
@@ -1625,6 +1632,10 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
     status = Valid;
     nextsv = 0;
 
+    // Make sure the triple product is positive
+    // so that the computed normals are well defined.
+    // The basis defined by the tip of the tetrahedron
+    // must follow the right-hand orientation rule.
     if ((simplex.vertex[0]->w - simplex.vertex[3]->w)
             .dot((simplex.vertex[1]->w - simplex.vertex[3]->w)
                      .cross(simplex.vertex[2]->w - simplex.vertex[3]->w)) < 0) {
@@ -1639,6 +1650,10 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
         newFace(simplex.vertex[2], simplex.vertex[1], simplex.vertex[3], true),
         newFace(simplex.vertex[0], simplex.vertex[2], simplex.vertex[3], true)};
 
+    // TODO: remove hull.count, put assert
+    // Handle the case where tetrahedron is not complete
+    // -> happens when normal computed by newface is = 0;
+    // this happens when tetrahedron is degenerated.
     if (hull.count == 4) {
       SimplexF* best = findBest();  // find the best face (the face with the
                                     // minimum distance to origin) to split
@@ -1729,6 +1744,7 @@ bool EPA::expand(size_t pass, SimplexV* w, SimplexF* f, size_t e,
   static const size_t previ[] = {2, 0, 1};
 
   if (f->pass == pass) {
+    // TODO: how do we get here/what to do in this case?
     status = InvalidHull;
     return false;
   }
