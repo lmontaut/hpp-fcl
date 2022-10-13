@@ -202,6 +202,7 @@ SET(${PROJECT_NAME}_HEADERS
   include/hpp/fcl/broadphase/detail/spatial_hash.h
   include/hpp/fcl/narrowphase/narrowphase.h
   include/hpp/fcl/narrowphase/gjk.h
+  include/hpp/fcl/narrowphase/epa.h
   include/hpp/fcl/shape/convex.h
   include/hpp/fcl/shape/details/convex.hxx
   include/hpp/fcl/shape/geometric_shape_to_BVH_model.h

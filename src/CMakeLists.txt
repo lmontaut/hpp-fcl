@@ -60,6 +60,7 @@ set(${LIBRARY_NAME}_SOURCES
   broadphase/detail/morton.cpp
   narrowphase/narrowphase.cpp
   narrowphase/gjk.cpp
+  narrowphase/epa.cpp
   narrowphase/details.h
   shape/convex.cpp
   shape/geometric_shapes.cpp
