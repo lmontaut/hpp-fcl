@@ -1692,6 +1692,11 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
           status = AccuracyReached;
           break;
         }
+        // Let's denote best the face which has normal best->n.
+        // For each face best->f[j] adjacent to the best face,
+        // we connect a new face along the corresponding edge of the best face,
+        // i.e along edge best->e[j].
+        // Then we simply remove the face best from the chain of faces.
         for (size_t j = 0; (j < 3) && valid; ++j)
           valid &= expand(pass, w, best->f[j], best->e[j], horizon);
 
@@ -1758,6 +1763,10 @@ bool EPA::expand(size_t pass, SimplexV* w, SimplexF* f, size_t e,
     SimplexF* nf = newFace(f->vertex[e1], f->vertex[e], w, false);
     if (nf) {
       // add face-face connectivity
+      // Remark: the faces are defined in a very specific way such that 
+      // the bind function works the way it does.
+      // Binding is important as it allows to track how to connect elements
+      // in the face chain.
       bind(nf, 0, f, e);
 
       // if there is last face in the horizon, then need to add another
