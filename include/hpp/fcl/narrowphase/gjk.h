@@ -156,6 +156,7 @@ struct HPP_FCL_DLLAPI GJK {
   struct HPP_FCL_DLLAPI SimplexV {
     /// @brief support vector for shape 0 and 1.
     Vec3f w0, w1;
+    Vec3f dir; // support obtained in direction dir
     /// @brief support vector (i.e., the furthest point on the shape along the
     /// support direction)
     int index_w0 = 0;
@@ -234,6 +235,7 @@ struct HPP_FCL_DLLAPI GJK {
                          support_func_guess_t& hint) const {
     shape->support(d, dIsNormalized, sv.w0, sv.w1, hint);
     sv.w = sv.w0 - sv.w1;
+    sv.dir = d;
   }
 
   /// @brief whether the simplex enclose the origin.

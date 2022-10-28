@@ -190,12 +190,15 @@ void exposeGJK() {
   def("getSupport", &getSupport);
 
   if (!eigenpy::register_symbolic_link_to_registered_type<GJK::SimplexV>()) {
-    class_<GJK::SimplexV>("SimplexV", doxygen::class_doc<GJK::SimplexV>(),
+    class_<GJK::SimplexV>("Vertex", doxygen::class_doc<GJK::SimplexV>(),
                           no_init)
         .def(doxygen::visitor::init<GJK::SimplexV>())
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w0)
         .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w1)
-        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w);
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, w)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w0)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, index_w1)
+        .DEF_RW_CLASS_ATTRIB(GJK::SimplexV, dir);
   }
 
   if (!eigenpy::register_symbolic_link_to_registered_type<SimplexWrapper>()) {
