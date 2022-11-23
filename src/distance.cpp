@@ -195,6 +195,7 @@ FCL_REAL ComputeDistance::operator()(const Transform3f& tf1,
     result.cached_gjk_guess = solver.cached_guess;
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }
+  result.gjk_numit = solver.gjk_numit;
   return res;
 }
 
