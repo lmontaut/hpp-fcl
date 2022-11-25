@@ -532,6 +532,7 @@ void GJK::initialize() {
   timer_early.stop();
   supports[0].clear();
   supports[1].clear();
+  restart_momentum = false;
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -661,6 +662,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
                           const support_func_guess_t& supportHint) {
   FCL_REAL alpha = 0;
   iterations = 0;
+  iterations_momentum_stop = 0;
   // Reset metrics
   bool found_separating_plane = false;
   iterations_early = 0;
@@ -795,6 +797,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       if (frank_wolfe_duality_gap - tolerance <= 0) {
         removeVertex(simplices[current]);
         current_gjk_variant = DefaultGJK;  // move back to classic GJK
+        iterations_momentum_stop = iterations;
         continue;                          // continue to next iteration
       }
     }
@@ -818,6 +821,8 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       if (distance < tolerance) status = Inside;
       break;
     }
+    if (restart_momentum)
+      current_gjk_variant = gjk_variant;
 
     // This has been rewritten thanks to the excellent video:
     // https://youtu.be/Qupqu1xe7Io

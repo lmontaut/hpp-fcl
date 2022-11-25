@@ -107,7 +107,6 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
   unsigned int i_polygon = 0;
 
   // Compute the neighbors from the edges of the faces.
-  std::cout << "Num facets: " << qh.facetCount() << std::endl;
   Vec3f* normals = new Vec3f[qh.facetCount()];
   FCL_REAL* offsets = new FCL_REAL[qh.facetCount()];
   convex->num_normals = static_cast<unsigned int>(qh.facetCount());

@@ -201,6 +201,7 @@ struct HPP_FCL_DLLAPI GJK {
   FCL_REAL distance;
   Simplex simplices[2];
   mutable std::array<std::vector<Vec3f>, 2> supports;
+  bool restart_momentum;
 
   /// \param max_iterations_ number of iteration before GJK returns failure.
   /// \param tolerance_ precision of the algorithm.
@@ -301,6 +302,7 @@ struct HPP_FCL_DLLAPI GJK {
 
   /// @brief Get GJK number of iterations.
   inline size_t getIterations() { return iterations; }
+  inline size_t getIterationsMomentumStopped() { return iterations_momentum_stop; }
 
   vertex_id_t nfree;  // public for python exposition
 
@@ -325,6 +327,7 @@ struct HPP_FCL_DLLAPI GJK {
   Timer timer_early;
 
   size_t iterations;
+  size_t iterations_momentum_stop;
   bool normalize_support_direction;
   size_t iterations_early;  // early: metric if we had stopped when separating
                             // plane is found
