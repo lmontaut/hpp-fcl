@@ -702,12 +702,12 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   Vec3f y;
   FCL_REAL momentum;
   bool normalize_support_direction = shape->normalize_support_direction;
-  if (measure_run_time) {
-    timer.stop();
-    timer_early.stop();
-    timer.start();
-    timer_early.start();
-  }
+  // if (measure_run_time) {
+  //   timer.stop();
+  //   timer_early.stop();
+  //   timer.start();
+  //   timer_early.start();
+  // }
   do {
     vertex_id_t next = (vertex_id_t)(1 - current);
     Simplex& curr_simplex = simplices[current];
@@ -788,7 +788,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       num_call_support_early = num_call_support;
       num_call_projection_early = num_call_projection;
       cumulative_support_dotprods_early = cumulative_support_dotprods;
-      gjk_run_time_early = timer_early.elapsed();
+      // gjk_run_time_early = timer_early.elapsed();
     }
 
     // Check to remove acceleration
@@ -860,13 +860,13 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
 
   } while (status == Valid);
 
-  gjk_run_time = timer.elapsed();
+  // gjk_run_time = timer.elapsed();
   if (!found_separating_plane) {
     iterations_early = iterations;
     num_call_support_early = num_call_support;
     num_call_projection_early = num_call_projection;
     cumulative_support_dotprods_early = cumulative_support_dotprods;
-    gjk_run_time_early = gjk_run_time;
+    // gjk_run_time_early = gjk_run_time;
   }
   simplex = &simplices[current];
   assert(simplex->rank > 0 && simplex->rank < 5);
