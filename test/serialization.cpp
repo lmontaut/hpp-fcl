@@ -46,6 +46,7 @@
 #include <hpp/fcl/serialization/BVH_model.h>
 #include <hpp/fcl/serialization/hfield.h>
 #include <hpp/fcl/serialization/geometric_shapes.h>
+#include <hpp/fcl/serialization/transform.h>
 #include <hpp/fcl/serialization/memory.h>
 
 #include "utility.h"
@@ -150,6 +151,11 @@ void test_serialization(const T& value,
 BOOST_AUTO_TEST_CASE(test_aabb) {
   AABB aabb(-Vec3f::Ones(), Vec3f::Ones());
   test_serialization(aabb);
+}
+
+BOOST_AUTO_TEST_CASE(test_transform) {
+  Transform3f tf = Transform3f::Identity();
+  test_serialization(tf);
 }
 
 BOOST_AUTO_TEST_CASE(test_collision_data) {
