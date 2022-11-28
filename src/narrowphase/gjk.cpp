@@ -533,6 +533,7 @@ void GJK::initialize() {
   supports[0].clear();
   supports[1].clear();
   restart_momentum = false;
+  name = "NO_NAME";
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }

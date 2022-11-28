@@ -202,6 +202,7 @@ struct HPP_FCL_DLLAPI GJK {
   Simplex simplices[2];
   mutable std::array<std::vector<Vec3f>, 2> supports;
   bool restart_momentum;
+  std::string name;
 
   /// \param max_iterations_ number of iteration before GJK returns failure.
   /// \param tolerance_ precision of the algorithm.
