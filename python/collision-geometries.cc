@@ -298,6 +298,8 @@ void exposeShapes() {
            bp::return_internal_reference<>())
       .def("offset", &ConvexWrapper<Triangle>::offset, bp::args("self", "index"),
            "Retrieve the offset given by its index.")
+      .def("buildDoubleDescription", &Convex<Triangle>::buildDoubleDescription, bp::args("self"),
+           "Build the double description of the convex object.")
       .def("polygons", &ConvexWrapper<Triangle>::polygons);
 
   class_<Cylinder, bases<ShapeBase>, shared_ptr<Cylinder> >(
