@@ -75,6 +75,12 @@ class Convex : public ConvexBase {
   /// in counter clockwise order.
   PolygonT* polygons;
   unsigned int num_polygons;
+  Vec3f* normals;
+  unsigned int num_normals;
+  FCL_REAL* offsets;
+
+  /// @brief Double desciption of convex hull, using QHull library
+  void buildDoubleDescription();
 
   /// based on http://number-none.com/blow/inertia/bb_inertia.doc
   Matrix3f computeMomentofInertia() const;

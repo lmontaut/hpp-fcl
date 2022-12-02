@@ -605,9 +605,6 @@ class HPP_FCL_DLLAPI ConvexBase : public ShapeBase {
   /// @brief An array of the points of the polygon.
   Vec3f* points;
   unsigned int num_points;
-  Vec3f* normals;
-  unsigned int num_normals;
-  FCL_REAL* offsets;
 
   struct HPP_FCL_DLLAPI Neighbors {
     unsigned char count_;
@@ -651,9 +648,6 @@ class HPP_FCL_DLLAPI ConvexBase : public ShapeBase {
       : ShapeBase(),
         points(NULL),
         num_points(0),
-        normals(NULL),
-        num_normals(0),
-        offsets(NULL),
         neighbors(NULL),
         nneighbors_(NULL),
         own_storage_(false){}

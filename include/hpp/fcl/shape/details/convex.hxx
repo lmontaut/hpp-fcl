@@ -37,6 +37,26 @@
 #ifndef HPP_FCL_SHAPE_CONVEX_HXX
 #define HPP_FCL_SHAPE_CONVEX_HXX
 
+#ifdef HPP_FCL_HAS_QHULL
+#include <libqhullcpp/QhullError.h>
+#include <libqhullcpp/QhullFacet.h>
+#include <libqhullcpp/QhullHyperplane.h>
+#include <libqhullcpp/QhullLinkedList.h>
+#include <libqhullcpp/QhullVertex.h>
+#include <libqhullcpp/QhullVertexSet.h>
+#include <libqhullcpp/QhullRidge.h>
+#include <libqhullcpp/Qhull.h>
+
+using orgQhull::Qhull;
+using orgQhull::QhullFacet;
+using orgQhull::QhullPoint;
+using orgQhull::QhullRidgeSet;
+using orgQhull::QhullVertex;
+using orgQhull::QhullVertexList;
+using orgQhull::QhullVertexSet;
+using orgQhull::QhullHyperplane;
+#endif
+
 #include <set>
 #include <vector>
 
@@ -49,6 +69,9 @@ Convex<PolygonT>::Convex(bool own_storage, Vec3f* points_,
                          unsigned int num_polygons_)
     : ConvexBase(), polygons(polygons_), num_polygons(num_polygons_) {
   initialize(own_storage, points_, num_points_);
+  normals = NULL;
+  num_normals = 0;
+  offsets = NULL;
   fillNeighbors();
 }
 
@@ -79,6 +102,43 @@ void Convex<PolygonT>::set(bool own_storage, Vec3f* points_,
   polygons = polygons_;
 
   fillNeighbors();
+}
+
+template<typename PolygonT>
+void Convex<PolygonT>::buildDoubleDescription(){
+#ifdef HPP_FCL_HAS_QHULL
+  if (num_points <= 3) {
+    throw std::invalid_argument(
+        "You shouldn't use this function with less than"
+        " 4 points.");
+  }
+  assert(pts[0].data() + 3 == pts[1].data());
+
+  Qhull qh;
+  const char* command = "Qt";
+  qh.runQhull("", 3, static_cast<int>(num_points), points[0].data(), command);
+
+  if (qh.qhullStatus() != qh_ERRnone) {
+    if (qh.hasQhullMessage()) std::cerr << qh.qhullMessage() << std::endl;
+    throw std::logic_error("Qhull failed");
+  }
+
+  normals = new Vec3f[qh.facetCount()];
+  offsets = new FCL_REAL[qh.facetCount()];
+  num_normals = static_cast<unsigned int>(qh.facetCount());
+  int i_normal = 0;
+  for (QhullFacet facet = qh.beginFacet(); facet != qh.endFacet();
+       facet = facet.next()) {
+      QhullHyperplane plane = facet.hyperplane();
+      normals[i_normal] = Vec3f(*(plane.coordinates()), *(plane.coordinates() + 1), *(plane.coordinates() + 2));
+      offsets[i_normal] = plane.offset();
+      ++i_normal;
+  }
+#else
+  throw std::logic_error(
+      "Library built without qhull. Cannot build object of this type.");
+#endif
+
 }
 
 template <typename PolygonT>

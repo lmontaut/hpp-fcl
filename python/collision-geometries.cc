@@ -155,18 +155,6 @@ struct ConvexBaseWrapper {
     return convex.points[i];
   }
 
-  static Vec3f& normal(const ConvexBase& convex, unsigned int i) {
-    if (i >= convex.num_normals)
-      throw std::out_of_range("index is out of range");
-    return convex.normals[i];
-  }
-
-  static FCL_REAL offset(const ConvexBase& convex, unsigned int i) {
-    if (i >= convex.num_normals)
-      throw std::out_of_range("index is out of range");
-    return convex.offsets[i];
-  }
-
   static RefRowMatrixX3 points(const ConvexBase& convex) {
     return MapRowMatrixX3(convex.points[0].data(), convex.num_points, 3);
   }
@@ -206,6 +194,18 @@ struct ConvexWrapper {
     return shared_ptr<Convex_t>(new Convex_t(true, points,
                                              (unsigned int)_points.size(), tris,
                                              (unsigned int)_tris.size()));
+  }
+
+  static Vec3f& normal(const Convex_t& convex, unsigned int i) {
+    if (i >= convex.num_normals)
+      throw std::out_of_range("index is out of range");
+    return convex.normals[i];
+  }
+
+  static FCL_REAL offset(const Convex_t& convex, unsigned int i) {
+    if (i >= convex.num_normals)
+      throw std::out_of_range("index is out of range");
+    return convex.offsets[i];
   }
 };
 
@@ -265,7 +265,6 @@ void exposeShapes() {
       "ConvexBase", doxygen::class_doc<ConvexBase>(), no_init)
       .DEF_RO_CLASS_ATTRIB(ConvexBase, center)
       .DEF_RO_CLASS_ATTRIB(ConvexBase, num_points)
-      .DEF_RO_CLASS_ATTRIB(ConvexBase, num_normals)
       .def("point", &ConvexBaseWrapper::point, bp::args("self", "index"),
            "Retrieve the point given by its index.",
            bp::return_internal_reference<>())
@@ -279,11 +278,6 @@ void exposeShapes() {
       //    .add_property ("points",
       //                   bp::make_function(&ConvexBaseWrapper::points,bp::with_custodian_and_ward_postcall<0,1>()),
       //                   "Points of the convex.")
-      .def("normal", &ConvexBaseWrapper::normal, bp::args("self", "index"),
-           "Retrieve the normal given by its index.",
-           bp::return_internal_reference<>())
-      .def("offset", &ConvexBaseWrapper::offset, bp::args("self", "index"),
-           "Retrieve the offset given by its index.")
       .def("neighbors", &ConvexBaseWrapper::neighbors)
       .def("convexHull", &ConvexBaseWrapper::convexHull,
            doxygen::member_func_doc(&ConvexBase::convexHull),
@@ -298,6 +292,12 @@ void exposeShapes() {
                       no_init)
       .def("__init__", make_constructor(&ConvexWrapper<Triangle>::constructor))
       .DEF_RO_CLASS_ATTRIB(Convex<Triangle>, num_polygons)
+      .DEF_RO_CLASS_ATTRIB(Convex<Triangle>, num_normals)
+      .def("normal", &ConvexWrapper<Triangle>::normal, bp::args("self", "index"),
+           "Retrieve the normal given by its index.",
+           bp::return_internal_reference<>())
+      .def("offset", &ConvexWrapper<Triangle>::offset, bp::args("self", "index"),
+           "Retrieve the offset given by its index.")
       .def("polygons", &ConvexWrapper<Triangle>::polygons);
 
   class_<Cylinder, bases<ShapeBase>, shared_ptr<Cylinder> >(

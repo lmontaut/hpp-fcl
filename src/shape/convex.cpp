@@ -107,16 +107,9 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
   unsigned int i_polygon = 0;
 
   // Compute the neighbors from the edges of the faces.
-  Vec3f* normals = new Vec3f[qh.facetCount()];
-  FCL_REAL* offsets = new FCL_REAL[qh.facetCount()];
-  convex->num_normals = static_cast<unsigned int>(qh.facetCount());
-  int i_normal = 0;
   for (QhullFacet facet = qh.beginFacet(); facet != qh.endFacet();
        facet = facet.next()) {
       QhullHyperplane plane = facet.hyperplane();
-      normals[i_normal] = Vec3f(*(plane.coordinates()), *(plane.coordinates() + 1), *(plane.coordinates() + 2));
-      offsets[i_normal] = plane.offset();
-      ++i_normal;
     if (facet.isSimplicial()) {
       // In 3D, simplicial faces have 3 vertices. We mark them as neighbors.
       QhullVertexSet f_vertices(facet.vertices());
@@ -169,8 +162,6 @@ ConvexBase* ConvexBase::convexHull(const Vec3f* pts, unsigned int num_points,
     }
   }
   assert(!keepTriangles || i_polygon == qh.facetCount());
-  convex->normals = normals;
-  convex->offsets = offsets;
 
   // Fill the neighbor attribute of the returned object.
   convex->nneighbors_ = new unsigned int[c_nneighbors];
