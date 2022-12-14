@@ -5,3 +5,5 @@ Xcode/*
 
 
 .ccls-cache
+.cache/clangd/index
+compile_commands.json
