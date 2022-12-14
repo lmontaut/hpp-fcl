@@ -665,7 +665,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   iterations = 0;
   iterations_momentum_stop = 0;
   // Reset metrics
-  bool found_separating_plane = false;
+  // bool found_separating_plane = false;
   iterations_early = 0;
   num_call_support = 0;
   num_call_support_early = 0;
@@ -709,6 +709,9 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   //   timer.start();
   //   timer_early.start();
   // }
+  // FCL_REAL cv_criterion_val, cv_criterion_val_prev;
+  // cv_criterion_sequence.clear();
+  // bool restarted = false;
   do {
     vertex_id_t next = (vertex_id_t)(1 - current);
     Simplex& curr_simplex = simplices[current];
@@ -740,13 +743,13 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         if (normalize_support_direction) {
           momentum = (FCL_REAL(iterations) + 2) / (FCL_REAL(iterations) + 3);
           y = momentum * ray + (1 - momentum) * w;
-          FCL_REAL y_norm = y.norm();
+          // FCL_REAL y_norm = y.norm();
           // ray is the point of the Minkowski difference which currently the
           // closest to the origin. Therefore, y.norm() > ray.norm() Hence, if
           // check A above has not stopped the algorithm, we necessarily have
           // y.norm() > tolerance. The following assert is just a safety check.
           assert(y_norm > tolerance);
-          dir = momentum * dir / dir.norm() + (1 - momentum) * y / y_norm;
+          dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
         } else {
           momentum = (FCL_REAL(iterations) + 1) / (FCL_REAL(iterations) + 3);
           y = momentum * ray + (1 - momentum) * w;
@@ -757,6 +760,32 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       case PolyakAcceleration:
         momentum = 1 / (FCL_REAL(iterations) + 1);
         dir = momentum * dir + (1 - momentum) * ray;
+        // if (normalize_support_direction){
+        //   dir = momentum * dir.normalized() + (1 - momentum) * ray.normalized();
+        // } else {
+        // }
+        break;
+
+      case PolyakNesterovAcceleration:
+        if (iterations < 3){
+          momentum = 1 / (FCL_REAL(iterations) + 1);
+          dir = momentum * dir + (1 - momentum) * ray;
+        } else {
+          momentum = (FCL_REAL(iterations) + 2) / (FCL_REAL(iterations) + 3);
+          y = momentum * ray + (1 - momentum) * w;
+          dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+        }
+        break;
+
+      case NesterovPolyakAcceleration:
+        if (iterations < 3){
+          momentum = (FCL_REAL(iterations) + 2) / (FCL_REAL(iterations) + 3);
+          y = momentum * ray + (1 - momentum) * w;
+          dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+        } else {
+          momentum = 1 / (FCL_REAL(iterations) + 1);
+          dir = momentum * dir + (1 - momentum) * ray;
+        }
         break;
 
       default:
@@ -765,32 +794,25 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
 
     appendVertex(curr_simplex, -dir, false,
                  support_hint);  // see below, ray points away from origin
-    Vec3f w0 = curr_simplex.vertex[curr_simplex.rank-1]->w0;
-    Vec3f w1 = curr_simplex.vertex[curr_simplex.rank-1]->w1;
-    supports[0].push_back(w0);
-    supports[1].push_back(w1);
+    // Vec3f w0 = curr_simplex.vertex[curr_simplex.rank-1]->w0;
+    // Vec3f w1 = curr_simplex.vertex[curr_simplex.rank-1]->w1;
+    // supports[0].push_back(w0);
+    // supports[1].push_back(w1);
 
     // check removed (by ?): when the new support point is close to previous
     // support points, stop (as the new simplex is degenerated)
     w = curr_simplex.vertex[curr_simplex.rank - 1]->w;
 
-    // check B: no collision if omega > 0
-    FCL_REAL omega = dir.dot(w) / dir.norm();
-    if (omega > upper_bound) {
-      distance = omega - inflation;
-      break;
-    }
-
     // Metrics for early stopping
-    if (omega > 0 && !found_separating_plane) {
-      found_separating_plane = true;
-      iterations_early =
-          iterations + 1;  // Take this iteration into consideration
-      num_call_support_early = num_call_support;
-      num_call_projection_early = num_call_projection;
-      cumulative_support_dotprods_early = cumulative_support_dotprods;
+    // if (omega > 0 && !found_separating_plane) {
+    //   found_separating_plane = true;
+    //   iterations_early =
+    //       iterations + 1;  // Take this iteration into consideration
+    //   num_call_support_early = num_call_support;
+    //   num_call_projection_early = num_call_projection;
+    //   cumulative_support_dotprods_early = cumulative_support_dotprods;
       // gjk_run_time_early = timer_early.elapsed();
-    }
+    // }
 
     // Check to remove acceleration
     if (current_gjk_variant != DefaultGJK) {
@@ -799,13 +821,35 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         removeVertex(simplices[current]);
         current_gjk_variant = DefaultGJK;  // move back to classic GJK
         iterations_momentum_stop = iterations;
-        continue;                          // continue to next iteration
+        // continue;                          // continue to next iteration
+        dir = ray;
+        appendVertex(curr_simplex, -dir, false, support_hint);
+        w = curr_simplex.vertex[curr_simplex.rank - 1]->w;
       }
+    }
+
+    // check B: no collision if omega > 0
+    FCL_REAL omega = (dir.normalized()).dot(w);
+    if (omega > upper_bound) {
+      distance = omega - inflation;
+      break;
     }
 
     // check C: when the new support point is close to the sub-simplex where the
     // ray point lies, stop (as the new simplex again is degenerated)
     bool cv_check_passed = checkConvergence(w, rl, alpha, omega);
+    // cv_criterion_val = 2 * ray.dot(ray - w);
+    // cv_criterion_sequence.push_back(cv_criterion_val);
+    // if(current_gjk_variant != GJKVariant::DefaultGJK && iterations > 0){
+    //   if ((cv_criterion_val / cv_criterion_val_prev) > 10){
+    //     // removeVertex(simplices[current]);
+    //     dir = ray;
+    //     // restarted = true;
+    //     // continue;
+    //   }
+    // }
+    // restarted = false;
+    // cv_criterion_val_prev = cv_criterion_val;
     // TODO here, we can stop at iteration 0 if this condition is met.
     // We stopping at iteration 0, the closest point will not be valid.
     // if(diff - tolerance * rl <= 0)
@@ -862,13 +906,13 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   } while (status == Valid);
 
   // gjk_run_time = timer.elapsed();
-  if (!found_separating_plane) {
-    iterations_early = iterations;
-    num_call_support_early = num_call_support;
-    num_call_projection_early = num_call_projection;
-    cumulative_support_dotprods_early = cumulative_support_dotprods;
+  // if (!found_separating_plane) {
+  //   iterations_early = iterations;
+  //   num_call_support_early = num_call_support;
+  //   num_call_projection_early = num_call_projection;
+  //   cumulative_support_dotprods_early = cumulative_support_dotprods;
     // gjk_run_time_early = gjk_run_time;
-  }
+  // }
   simplex = &simplices[current];
   assert(simplex->rank > 0 && simplex->rank < 5);
   return status;

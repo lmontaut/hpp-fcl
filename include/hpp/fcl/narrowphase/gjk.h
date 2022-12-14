@@ -203,6 +203,7 @@ struct HPP_FCL_DLLAPI GJK {
   mutable std::array<std::vector<Vec3f>, 2> supports;
   bool restart_momentum;
   std::string name;
+  // std::vector<FCL_REAL> cv_criterion_sequence;
 
   /// \param max_iterations_ number of iteration before GJK returns failure.
   /// \param tolerance_ precision of the algorithm.
