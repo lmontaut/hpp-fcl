@@ -240,7 +240,6 @@ void exposeGJK() {
         .def(doxygen::visitor::init<GJK, unsigned int, FCL_REAL>())
         .DEF_RW_CLASS_ATTRIB(GJK, distance)
         .DEF_RW_CLASS_ATTRIB(GJK, ray)
-        .DEF_RW_CLASS_ATTRIB(GJK, dir)
         .DEF_RW_CLASS_ATTRIB(GJK, init_momentum)
         .DEF_RW_CLASS_ATTRIB(GJK, x0)
         .DEF_RW_CLASS_ATTRIB(GJK, x1)
