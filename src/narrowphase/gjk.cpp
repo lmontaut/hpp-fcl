@@ -534,6 +534,9 @@ void GJK::initialize() {
   supports[1].clear();
   restart_momentum = false;
   name = "NO_NAME";
+  ray = Vec3f(1, 0, 0);
+  dir_init = ray;
+  init_momentum = false;
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -699,7 +702,11 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   // Momentum
   GJKVariant current_gjk_variant = gjk_variant;
   Vec3f w = ray;
-  Vec3f dir = ray;
+  Vec3f dir;
+  if (!init_momentum)
+    dir = ray;
+  else
+    dir = dir_init;
   Vec3f y;
   FCL_REAL momentum;
   bool normalize_support_direction = shape->normalize_support_direction;
@@ -821,6 +828,8 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         removeVertex(simplices[current]);
         current_gjk_variant = DefaultGJK;  // move back to classic GJK
         iterations_momentum_stop = iterations;
+        if (init_momentum)
+          dir_init = dir;
         // continue;                          // continue to next iteration
         dir = ray;
         appendVertex(curr_simplex, -dir, false, support_hint);
