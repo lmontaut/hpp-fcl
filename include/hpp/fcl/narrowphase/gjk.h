@@ -185,7 +185,6 @@ struct HPP_FCL_DLLAPI GJK {
   GJKConvergenceCriterion convergence_criterion;
   GJKConvergenceCriterionType convergence_criterion_type;
   support_func_guess_t support_hint;
-  bool init_momentum;
   /// The distance computed by GJK. The possible values are
   /// - \f$ d = - R - 1 \f$ when a collision is detected and GJK
   ///   cannot compute penetration informations.
@@ -203,7 +202,6 @@ struct HPP_FCL_DLLAPI GJK {
   Simplex simplices[2];
   mutable std::array<std::vector<Vec3f>, 2> supports;
   bool restart_momentum;
-  Vec3f dir_init;
   std::string name;
   // std::vector<FCL_REAL> cv_criterion_sequence;
 

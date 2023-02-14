@@ -70,7 +70,7 @@ void getSupport(const ShapeBase* shape, const Vec3f& dir, bool is_normalized, Su
   support_data.support = support;
 }
 
-struct SimplexWrapper 
+struct SimplexWrapper
 {
   GJK::SimplexV vertices[4];
   GJK::vertex_id_t rank;
@@ -100,7 +100,7 @@ Vec3f projectOriginOntoSimplex(const SimplexWrapper& curr_simplex, SimplexWrappe
   // Project simplex
   switch (curr_simplex.rank) {
     case 1:
-      next_simplex.copy(curr_simplex);  
+      next_simplex.copy(curr_simplex);
       break;
     case 2:
       projection_result = Project::projectLineOrigin(curr_simplex.vertices[0].w,
@@ -240,7 +240,6 @@ void exposeGJK() {
         .def(doxygen::visitor::init<GJK, unsigned int, FCL_REAL>())
         .DEF_RW_CLASS_ATTRIB(GJK, distance)
         .DEF_RW_CLASS_ATTRIB(GJK, ray)
-        .DEF_RW_CLASS_ATTRIB(GJK, init_momentum)
         .DEF_RW_CLASS_ATTRIB(GJK, x0)
         .DEF_RW_CLASS_ATTRIB(GJK, x1)
         .DEF_RW_CLASS_ATTRIB(GJK, support_hint)
