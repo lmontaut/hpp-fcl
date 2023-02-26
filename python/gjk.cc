@@ -232,6 +232,8 @@ void exposeGJK() {
                      const ShapeBase*, const ShapeBase*, const Transform3f& tf0,
                      const Transform3f& tf1)>(&MinkowskiDiff::set)))
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, inflation)
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, oR1)
+        .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, ot1)
         .DEF_RW_CLASS_ATTRIB(MinkowskiDiff, normalize_support_direction);
   }
 
@@ -256,6 +258,7 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex)
         .DEF_CLASS_FUNC(GJK, getIterations)
         .DEF_CLASS_FUNC(GJK, getIterationsEarly)
+        .DEF_CLASS_FUNC(GJK, getIterationsMomentumStopped)
         .DEF_CLASS_FUNC(GJK, getNumCallSupport)
         .DEF_CLASS_FUNC(GJK, getNumCallSupportEarly)
         .DEF_CLASS_FUNC(GJK, getCumulativeSupportDotprods)
