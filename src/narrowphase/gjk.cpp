@@ -743,7 +743,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
           // closest to the origin. Therefore, y.norm() > ray.norm() Hence, if
           // check A above has not stopped the algorithm, we necessarily have
           // y.norm() > tolerance. The following assert is just a safety check.
-          assert(y_norm > tolerance);
+          assert(y.norm() > tolerance);
           dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
         } else {
           momentum = (FCL_REAL(iterations) + 1) / (FCL_REAL(iterations) + 3);

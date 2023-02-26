@@ -112,7 +112,6 @@ void Convex<PolygonT>::buildDoubleDescription(){
         "You shouldn't use this function with less than"
         " 4 points.");
   }
-  assert(pts[0].data() + 3 == pts[1].data());
 
   Qhull qh;
   const char* command = "Qt";
