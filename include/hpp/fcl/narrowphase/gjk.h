@@ -242,7 +242,7 @@ struct HPP_FCL_DLLAPI GJK {
   }
 
   /// @brief whether the simplex enclose the origin.
-  /// If the simplex is not of rank 4, adds points to fill the simplex. 
+  /// If the simplex is not of rank 4, adds points to fill the simplex.
   bool encloseOrigin();
 
   /// @brief get the underlying simplex using in GJK, can be used for cache in
@@ -277,23 +277,23 @@ struct HPP_FCL_DLLAPI GJK {
 
   // Performance metrics get functions
   void measureRunTime() { measure_run_time = true; }
-  inline size_t getIterationsEarly() { return iterations_early; }
-  inline size_t getNumCallSupport() { return num_call_support; }
-  inline size_t getNumCallSupportEarly() { return num_call_support_early; }
-  inline size_t getNumCallProjection() { return num_call_projection; }
-  inline size_t getNumCallProjectionEarly() {
+  inline size_t getIterationsEarly() const { return iterations_early; }
+  inline size_t getNumCallSupport() const { return num_call_support; }
+  inline size_t getNumCallSupportEarly() const { return num_call_support_early; }
+  inline size_t getNumCallProjection() const { return num_call_projection; }
+  inline size_t getNumCallProjectionEarly() const {
     return num_call_projection_early;
   }
-  inline size_t getCumulativeSupportDotprods() {
+  inline size_t getCumulativeSupportDotprods() const {
     return cumulative_support_dotprods;
   }
-  inline size_t getCumulativeSupportDotprodsEarly() {
+  inline size_t getCumulativeSupportDotprodsEarly() const {
     return cumulative_support_dotprods_early;
   }
-  inline CPUTimes getGJKRunTime() { return gjk_run_time; }
-  inline CPUTimes getGJKRunTimeEarly() { return gjk_run_time_early; }
-  inline FCL_REAL getAverageGJKRunTime() { return average_gjk_run_time; }
-  inline FCL_REAL getAverageGJKRunTimeEarly() {
+  inline CPUTimes getGJKRunTime() const { return gjk_run_time; }
+  inline CPUTimes getGJKRunTimeEarly() const { return gjk_run_time_early; }
+  inline FCL_REAL getAverageGJKRunTime() const { return average_gjk_run_time; }
+  inline FCL_REAL getAverageGJKRunTimeEarly() const {
     return average_gjk_run_time_early;
   }
 
@@ -303,8 +303,8 @@ struct HPP_FCL_DLLAPI GJK {
                         const FCL_REAL& omega);
 
   /// @brief Get GJK number of iterations.
-  inline size_t getIterations() { return iterations; }
-  inline size_t getIterationsMomentumStopped() { return iterations_momentum_stop; }
+  inline size_t getIterations() const { return iterations; }
+  inline size_t getIterationsMomentumStopped() const { return iterations_momentum_stop; }
 
   vertex_id_t nfree;  // public for python exposition
 
@@ -312,7 +312,7 @@ struct HPP_FCL_DLLAPI GJK {
   Vec3f x1;
   inline void computeClosestPoints() { getClosestPoints(*shape, x0, x1); }
   /// @brief Get GJK tolerance.
-  inline FCL_REAL getTolerance() { return tolerance; }
+  inline FCL_REAL getTolerance() const { return tolerance; }
 
  private:
   SimplexV store_v[4];
