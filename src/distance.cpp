@@ -172,6 +172,8 @@ FCL_REAL ComputeDistance::run(const Transform3f& tf1, const Transform3f& tf2,
   } else {
     res = func(o1, tf1, o2, tf2, &solver, request, result);
   }
+  result.gjk_numit = solver.gjk_numit;
+  result.epa_numit = solver.epa_numit;
 
   return res;
 }
@@ -195,7 +197,6 @@ FCL_REAL ComputeDistance::operator()(const Transform3f& tf1,
     result.cached_gjk_guess = solver.cached_guess;
     result.cached_support_func_guess = solver.support_func_cached_guess;
   }
-  result.gjk_numit = solver.gjk_numit;
   return res;
 }
 
