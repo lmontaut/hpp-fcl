@@ -68,6 +68,15 @@ struct ContactWrapper {
   }
 };
 
+struct CollisionResultWrapper {
+  static Vec3f getNearestPoint1(const CollisionResult& res) {
+    return res.nearest_points[0];
+  }
+  static Vec3f getNearestPoint2(const CollisionResult& res) {
+    return res.nearest_points[1];
+  }
+};
+
 void exposeCollisionAPI() {
   if (!eigenpy::register_symbolic_link_to_registered_type<
           CollisionRequestFlag>()) {
@@ -212,7 +221,10 @@ void exposeCollisionAPI() {
                  static_cast<const std::vector<Contact>& (CollisionResult::*)()
                                  const>(&CollisionResult::getContacts)),
              return_internal_reference<>())
-
+        .def("getNearestPoint1", &CollisionResultWrapper::getNearestPoint1,
+             doxygen::class_attrib_doc<CollisionResult>("nearest_points"))
+        .def("getNearestPoint2", &CollisionResultWrapper::getNearestPoint2,
+             doxygen::class_attrib_doc<CollisionResult>("nearest_points"))
         .DEF_RW_CLASS_ATTRIB(CollisionResult, distance_lower_bound);
   }
 
