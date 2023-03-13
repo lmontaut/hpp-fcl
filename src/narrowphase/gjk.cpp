@@ -36,6 +36,7 @@
 
 /** \author Jia Pan */
 
+#include "hpp/fcl/collision_object.h"
 #include <hpp/fcl/narrowphase/gjk.h>
 #include <hpp/fcl/internal/intersect.h>
 #include <hpp/fcl/internal/tools.h>
@@ -179,15 +180,17 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
   if (hint < 0 || hint >= (int)convex->num_points) hint = 0;
   FCL_REAL maxdot = pts[hint].dot(dir);
   std::vector<int8_t>& visited = data->visited;
-  visited.assign(convex->num_points, false);
+  // visited.assign(convex->num_points, false);
+  // std::fill(visited.begin(), visited.end(), false);
+  std::fill(data->it_min, data->it_max, false);
   visited[static_cast<std::size_t>(hint)] = true;
   // when the first face is orthogonal to dir, all the dot products will be
   // equal. Yet, the neighbors must be visited.
   bool found = true, loose_check = true;
-  while (found) {
+  while (found) { // We continue searching as long as we find a better dotprod
     const ConvexBase::Neighbors& n = nn[hint];
     found = false;
-    for (int in = 0; in < n.count(); ++in) {
+    for (int in = 0; in < n.count(); ++in) { // iterate over neighbors of hint
       const unsigned int ip = n[in];
       if (visited[ip]) continue;
       visited[ip] = true;
@@ -197,8 +200,17 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3f& dir,
       if (dot > maxdot) {
         better = true;
         loose_check = false;
-      } else if (loose_check && dot == maxdot)
+        if (ip < static_cast<const unsigned int>(*data->it_min))
+          *data->it_min = static_cast<signed char>(ip);
+        if (ip > static_cast<const unsigned int>(*data->it_max))
+          *data->it_max = static_cast<signed char>(ip);
+      } else if (loose_check && dot == maxdot){
         better = true;
+        if (ip < static_cast<const unsigned int>(*data->it_min))
+          *data->it_min = static_cast<signed char>(ip);
+        if (ip > static_cast<const unsigned int>(*data->it_max))
+          *data->it_max = static_cast<signed char>(ip);
+      }
       if (better) {
         maxdot = dot;
         hint = static_cast<int>(ip);
@@ -234,6 +246,9 @@ void getShapeSupport(const ConvexBase* convex, const Vec3f& dir, Vec3f& support,
   // logarithmic.
   if (convex->num_points > 32) {
     MinkowskiDiff::ShapeData data;
+    data.visited.reserve(convex->num_points);
+    data.it_min = data.visited.begin();
+    data.it_max = data.visited.end();
     getShapeSupportLog(convex, dir, support, hint, &data);
   } else
     getShapeSupportLinear(convex, dir, support, hint, NULL);
@@ -504,6 +519,17 @@ void MinkowskiDiff::set(const ShapeBase* shape0, const ShapeBase* shape1,
 
   getSupportFunc = makeGetSupportFunction0(shape0, shape1, identity, inflation,
                                            linear_log_convex_threshold);
+
+  if (shape0->getNodeType() == GEOM_CONVEX) {
+    data[0].visited.assign(static_cast<const ConvexBase*>(shape0)->num_points, false);
+    data[0].it_min = data[0].visited.begin();
+    data[0].it_max = data[0].visited.end();
+  }
+  if (shape1->getNodeType() == GEOM_CONVEX) {
+    data[1].visited.assign(static_cast<const ConvexBase*>(shape1)->num_points, false);
+    data[1].it_min = data[1].visited.begin();
+    data[1].it_max = data[1].visited.end();
+  }
 }
 
 void MinkowskiDiff::set(const ShapeBase* shape0, const ShapeBase* shape1) {
@@ -517,6 +543,16 @@ void MinkowskiDiff::set(const ShapeBase* shape0, const ShapeBase* shape1) {
 
   getSupportFunc = makeGetSupportFunction0(shape0, shape1, true, inflation,
                                            linear_log_convex_threshold);
+  if (shape0->getNodeType() == GEOM_CONVEX) {
+    data[0].visited.reserve(static_cast<const ConvexBase*>(shape0)->num_points);
+    data[0].it_min = data[0].visited.begin();
+    data[0].it_max = data[0].visited.end();
+  }
+  if (shape1->getNodeType() == GEOM_CONVEX) {
+    data[1].visited.reserve(static_cast<const ConvexBase*>(shape1)->num_points);
+    data[1].it_min = data[1].visited.begin();
+    data[1].it_max = data[1].visited.end();
+  }
 }
 
 void GJK::initialize() {

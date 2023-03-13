@@ -67,6 +67,8 @@ struct HPP_FCL_DLLAPI MinkowskiDiff {
 
   struct ShapeData {
     std::vector<int8_t> visited;
+    std::vector<int8_t>::iterator it_min;
+    std::vector<int8_t>::iterator it_max;
     size_t num_dotproducts = 1;  // By default at least one dot-product is
                                  // computed per support call on a shape
   };
