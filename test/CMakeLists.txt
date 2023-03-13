@@ -13,6 +13,11 @@ macro(add_fcl_test test_name source)
     Boost::timer
     utility
     )
+  add_custom_target(
+    run_${test_name}
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name}
+    VERBATIM
+  )
   IF(NOT WIN32)
     target_compile_options(${test_name} PRIVATE "-Wno-c99-extensions")
   ENDIF(NOT WIN32)
