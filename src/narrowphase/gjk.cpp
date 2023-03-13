@@ -765,10 +765,18 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         if (iterations < 3){
           momentum = 1 / (FCL_REAL(iterations) + 1);
           dir = momentum * dir + (1 - momentum) * ray;
+          // if (normalize_support_direction){
+          //   dir = momentum * dir.normalized() + (1 - momentum) * ray.normalized();
+          // } else {
+          // }
         } else {
           momentum = (FCL_REAL(iterations) + 2) / (FCL_REAL(iterations) + 3);
           y = momentum * ray + (1 - momentum) * w;
-          dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+          if (normalize_support_direction){
+            dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+          } else {
+            dir = momentum * dir + (1 - momentum) * ray;
+          }
         }
         break;
 
@@ -776,10 +784,18 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         if (iterations < 3){
           momentum = (FCL_REAL(iterations) + 2) / (FCL_REAL(iterations) + 3);
           y = momentum * ray + (1 - momentum) * w;
-          dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+          if (normalize_support_direction){
+            dir = momentum * dir.normalized() + (1 - momentum) * y.normalized();
+          } else {
+            dir = momentum * dir + (1 - momentum) * ray;
+          }
         } else {
           momentum = 1 / (FCL_REAL(iterations) + 1);
           dir = momentum * dir + (1 - momentum) * ray;
+          // if (normalize_support_direction){
+          //   dir = momentum * dir.normalized() + (1 - momentum) * ray.normalized();
+          // } else {
+          // }
         }
         break;
 
