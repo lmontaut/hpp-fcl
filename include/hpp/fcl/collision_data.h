@@ -176,6 +176,18 @@ struct HPP_FCL_DLLAPI QueryRequest {
   /// @brief threshold below which a collision is considered.
   FCL_REAL collision_distance_threshold;
 
+  /// @brief maximum number of simplex face used in EPA algorithm
+  unsigned int epa_max_face_num;
+
+  /// @brief maximum number of simplex vertex used in EPA algorithm
+  unsigned int epa_max_vertex_num;
+
+  /// @brief maximum number of iterations used for EPA iterations
+  unsigned int epa_max_iterations;
+
+  /// @brief the threshold used in EPA to stop iteration
+  FCL_REAL epa_tolerance;
+
   HPP_FCL_COMPILER_DIAGNOSTIC_PUSH
   HPP_FCL_COMPILER_DIAGNOSTIC_IGNORED_DEPRECECATED_DECLARATIONS
   /// @brief Default constructor.
@@ -191,7 +203,11 @@ struct HPP_FCL_DLLAPI QueryRequest {
         cached_support_func_guess(support_func_guess_t::Zero()),
         enable_timings(false),
         collision_distance_threshold(
-            Eigen::NumTraits<FCL_REAL>::dummy_precision()) {}
+            Eigen::NumTraits<FCL_REAL>::dummy_precision()),
+        epa_max_face_num(128),
+        epa_max_vertex_num(64),
+        epa_max_iterations(255),
+        epa_tolerance(1e-6) {}
 
   /// @brief Copy  constructor.
   QueryRequest(const QueryRequest& other) = default;

@@ -98,6 +98,10 @@ void exposeCollisionAPI() {
         .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_convergence_criterion)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_convergence_criterion_type)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, gjk_initial_guess)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, epa_max_face_num)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, epa_max_vertex_num)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, epa_max_iterations)
+        .DEF_RW_CLASS_ATTRIB(QueryRequest, epa_tolerance)
         .DEF_RW_CLASS_ATTRIB(QueryRequest, enable_cached_gjk_guess)
         .add_property(
             "enable_cached_gjk_guess",
