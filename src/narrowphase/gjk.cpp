@@ -846,13 +846,6 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
     // support points, stop (as the new simplex is degenerated)
     w = curr_simplex.vertex[curr_simplex.rank - 1]->w;
 
-    // check B: no collision if omega > 0
-    FCL_REAL omega = (dir.normalized()).dot(w);
-    if (omega > upper_bound) {
-      distance = omega - inflation;
-      break;
-    }
-
     // Check to remove acceleration
     if (current_gjk_variant != DefaultGJK) {
       FCL_REAL frank_wolfe_duality_gap = 2 * ray.dot(ray - w);
@@ -863,13 +856,14 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
         dir = ray;
         appendVertex(curr_simplex, -dir, false, support_hint);
         w = curr_simplex.vertex[curr_simplex.rank - 1]->w;
-        // check B: no collision if omega > 0
-        FCL_REAL omega = (dir.normalized()).dot(w);
-        if (omega > upper_bound) {
-          distance = omega - inflation;
-          break;
-        }
       }
+    }
+
+    // check B: no collision if omega > 0
+    FCL_REAL omega = (dir.normalized()).dot(w);
+    if (omega > upper_bound) {
+      distance = omega - inflation;
+      break;
     }
 
     // Check to restart momentum
