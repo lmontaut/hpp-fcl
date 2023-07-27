@@ -84,7 +84,7 @@ void test_gjk_distance_triangle_triangle(
   clock_t start, end;
 
   std::size_t nCol = 0, nDiff = 0;
-  FCL_REAL eps = 1e-7;
+  FCL_REAL eps = 1e-4;
   Results_t results(N);
   for (std::size_t i = 0; i < N; ++i) {
     Vec3f P1_loc(Vec3f::Random()), P2_loc(Vec3f::Random()),
@@ -183,7 +183,7 @@ void test_gjk_distance_triangle_triangle(
     Vec3f u2(Q2 - Q1);
     Vec3f v2(Q3 - Q1);
     Vec3f w2(u2.cross(v2));
-    BOOST_CHECK(w1.squaredNorm() > eps * eps);
+    BOOST_CHECK(w1.squaredNorm() > 1e-12);
     M.col(0) = u1;
     M.col(1) = v1;
     M.col(2) = w1;

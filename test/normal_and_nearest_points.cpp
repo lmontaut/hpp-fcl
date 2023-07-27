@@ -106,23 +106,23 @@ void test_normal_and_nearest_points(const ShapeType1& o1,
 
     if (col) {
       BOOST_CHECK(dist <= 0.);
-      BOOST_CHECK_CLOSE(dist, distres.min_distance, 1e-6);
+      BOOST_CHECK_CLOSE(dist, distres.min_distance, 3e-5);
       Contact contact = colres.getContact(0);
-      BOOST_CHECK_CLOSE(dist, contact.penetration_depth, 1e-6);
+      BOOST_CHECK_CLOSE(dist, contact.penetration_depth, 3e-5);
 
       Vec3f cp1 = contact.nearest_points[0];
-      EIGEN_VECTOR_IS_APPROX(cp1, distres.nearest_points[0], 1e-6);
+      EIGEN_VECTOR_IS_APPROX(cp1, distres.nearest_points[0], 3e-5);
 
       Vec3f cp2 = contact.nearest_points[1];
-      EIGEN_VECTOR_IS_APPROX(cp2, distres.nearest_points[1], 1e-6);
-      BOOST_CHECK_CLOSE(contact.penetration_depth, -(cp2 - cp1).norm(), 1e-6);
-      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(cp2, distres.nearest_points[1], 3e-5);
+      BOOST_CHECK_CLOSE(contact.penetration_depth, -(cp2 - cp1).norm(), 3e-5);
+      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 3e-5);
 
       Vec3f separation_vector = contact.penetration_depth * contact.normal;
-      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 3e-5);
 
       if (dist < 0) {
-        EIGEN_VECTOR_IS_APPROX(contact.normal, -(cp2 - cp1).normalized(), 1e-6);
+        EIGEN_VECTOR_IS_APPROX(contact.normal, -(cp2 - cp1).normalized(), 3e-5);
       }
 
       // Separate the shapes
@@ -135,34 +135,34 @@ void test_normal_and_nearest_points(const ShapeType1& o1,
       dist = distance(&o1, tf1, &o2, tf2, distreq, distres);
       BOOST_CHECK(dist > 0);
       BOOST_CHECK(!col);
-      BOOST_CHECK_CLOSE(colres.distance_lower_bound, dist, 1e-6);
+      BOOST_CHECK_CLOSE(colres.distance_lower_bound, dist, 3e-5);
       BOOST_CHECK(fabs(colres.distance_lower_bound - eps) <= 1e-2);
       cp1 = distres.nearest_points[0];
       cp2 = distres.nearest_points[1];
-      BOOST_CHECK_CLOSE(dist, (cp1 - cp2).norm(), 1e-6);
-      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 1e-6);
+      BOOST_CHECK_CLOSE(dist, (cp1 - cp2).norm(), 3e-5);
+      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 3e-5);
 
       separation_vector = dist * distres.normal;
-      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 3e-5);
 
       if (dist > 0) {
-        EIGEN_VECTOR_IS_APPROX(distres.normal, (cp2 - cp1).normalized(), 1e-6);
+        EIGEN_VECTOR_IS_APPROX(distres.normal, (cp2 - cp1).normalized(), 3e-5);
       }
     } else {
       BOOST_CHECK(dist >= 0.);
-      BOOST_CHECK_CLOSE(distres.min_distance, dist, 1e-6);
-      BOOST_CHECK_CLOSE(dist, colres.distance_lower_bound, 1e-6);
+      BOOST_CHECK_CLOSE(distres.min_distance, dist, 3e-5);
+      BOOST_CHECK_CLOSE(dist, colres.distance_lower_bound, 3e-5);
 
       Vec3f cp1 = distres.nearest_points[0];
       Vec3f cp2 = distres.nearest_points[1];
-      BOOST_CHECK_CLOSE(dist, (cp1 - cp2).norm(), 1e-6);
-      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 1e-6);
+      BOOST_CHECK_CLOSE(dist, (cp1 - cp2).norm(), 3e-5);
+      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 3e-5);
 
       Vec3f separation_vector = dist * distres.normal;
-      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 3e-5);
 
       if (dist > 0) {
-        EIGEN_VECTOR_IS_APPROX(distres.normal, (cp2 - cp1).normalized(), 1e-6);
+        EIGEN_VECTOR_IS_APPROX(distres.normal, (cp2 - cp1).normalized(), 3e-5);
       }
 
       // Bring the shapes in collision
@@ -178,22 +178,22 @@ void test_normal_and_nearest_points(const ShapeType1& o1,
       // Contrary to Contact::penetration_depth,
       // CollisionResult::distance_lower_bound is a signed distance like
       // DistanceResult::min_distance
-      BOOST_CHECK_CLOSE(colres.distance_lower_bound, dist, 1e-6);
+      BOOST_CHECK_CLOSE(colres.distance_lower_bound, dist, 3e-5);
       BOOST_CHECK(fabs(colres.distance_lower_bound - -eps) <= 1e-2);
       Contact contact = colres.getContact(0);
       cp1 = contact.nearest_points[0];
-      EIGEN_VECTOR_IS_APPROX(cp1, distres.nearest_points[0], 1e-6);
+      EIGEN_VECTOR_IS_APPROX(cp1, distres.nearest_points[0], 3e-5);
 
       cp2 = contact.nearest_points[1];
-      EIGEN_VECTOR_IS_APPROX(cp2, distres.nearest_points[1], 1e-6);
-      BOOST_CHECK_CLOSE(contact.penetration_depth, -(cp2 - cp1).norm(), 1e-6);
-      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(cp2, distres.nearest_points[1], 3e-5);
+      BOOST_CHECK_CLOSE(contact.penetration_depth, -(cp2 - cp1).norm(), 3e-5);
+      EIGEN_VECTOR_IS_APPROX(cp1, cp2 - dist * distres.normal, 3e-5);
 
       separation_vector = contact.penetration_depth * contact.normal;
-      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 1e-6);
+      EIGEN_VECTOR_IS_APPROX(separation_vector, cp2 - cp1, 3e-5);
 
       if (dist < 0) {
-        EIGEN_VECTOR_IS_APPROX(contact.normal, -(cp2 - cp1).normalized(), 1e-6);
+        EIGEN_VECTOR_IS_APPROX(contact.normal, -(cp2 - cp1).normalized(), 3e-5);
       }
     }
   }

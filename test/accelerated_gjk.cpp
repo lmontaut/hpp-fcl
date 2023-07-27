@@ -106,7 +106,10 @@ BOOST_AUTO_TEST_CASE(need_nesterov_normalize_support_direction) {
 void test_accelerated_gjk(const ShapeBase& shape0, const ShapeBase& shape1) {
   // Solvers
   unsigned int max_iterations = 128;
-  FCL_REAL tolerance = 1e-6;
+  // TODO: if ellipsoid, then tolerance goes from 1e-10 to 1e-8 or 1e-6. By
+  // definition
+  FCL_REAL tolerance = 1e-6;  // -> in this branch the tolerance is set directly
+                              // in `GJK::evaluate`
   GJK gjk(max_iterations, tolerance);
   GJK gjk_nesterov(max_iterations, tolerance);
   gjk_nesterov.gjk_variant = GJKVariant::NesterovAcceleration;

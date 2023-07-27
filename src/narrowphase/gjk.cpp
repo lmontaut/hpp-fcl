@@ -528,8 +528,8 @@ void GJK::initialize() {
   distance_upper_bound = (std::numeric_limits<FCL_REAL>::max)();
   simplex = NULL;
   gjk_variant = GJKVariant::DefaultGJK;
-  convergence_criterion = GJKConvergenceCriterion::VDB;
-  convergence_criterion_type = GJKConvergenceCriterionType::Relative;
+  convergence_criterion = GJKConvergenceCriterion::DualityGap;
+  convergence_criterion_type = GJKConvergenceCriterionType::Absolute;
 }
 
 Vec3f GJK::getGuessFromSimplex() const { return ray; }
@@ -649,7 +649,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
   support_hint = supportHint;
 
   FCL_REAL rl = guess.norm();
-  if (rl < tolerance) {
+  if (rl < sqrt(tolerance)) {
     ray = Vec3f(-1, 0, 0);
     rl = 1;
   } else
@@ -672,8 +672,8 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
     // - EPA will not run correctly because it starts with a tetrahedron which
     //   does not include the origin. Note that, at this stage, we do not know
     //   whether a tetrahedron including the origin exists.
-    if (rl < tolerance)  // mean origin is near the face of original simplex,
-                         // return touch
+    if (rl < sqrt(tolerance))  // mean origin is near the face of original
+                               // simplex, return touch
     {
       assert(rl > 0);
       status = Inside;
@@ -757,7 +757,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess,
       // TODO When inflation is strictly positive, the distance may be exactly
       // zero (so the ray is not zero) and we are not in the case rl <
       // tolerance.
-      if (distance < tolerance) status = Inside;
+      if (distance < sqrt(tolerance)) status = Inside;
       break;
     }
 
@@ -834,7 +834,7 @@ bool GJK::checkConvergence(const Vec3f& w, const FCL_REAL& rl, FCL_REAL& alpha,
       diff = 2 * ray.dot(ray - w);
       switch (convergence_criterion_type) {
         case Absolute:
-          check_passed = (diff - tolerance) <= 0;
+          check_passed = (diff - tolerance - sqrt(tolerance) * rl * rl) <= 0;
           break;
         case Relative:
           check_passed = ((diff / tolerance * rl) - tolerance * rl) <= 0;
@@ -851,7 +851,7 @@ bool GJK::checkConvergence(const Vec3f& w, const FCL_REAL& rl, FCL_REAL& alpha,
       diff = rl * rl - alpha * alpha;
       switch (convergence_criterion_type) {
         case Absolute:
-          check_passed = (diff - tolerance) <= 0;
+          check_passed = (diff - tolerance - sqrt(tolerance) * rl * rl) <= 0;
           break;
         case Relative:
           check_passed = ((diff / tolerance * rl) - tolerance * rl) <= 0;
@@ -1634,7 +1634,8 @@ EPA::Status EPA::evaluate(GJK& gjk, const Vec3f& guess) {
   // the origin.
   status = FallBack;
   // TODO: define a better normal
-  assert(simplex.rank == 1 && simplex.vertex[0]->w.isZero(gjk.getTolerance()));
+  assert(simplex.rank == 1 &&
+         simplex.vertex[0]->w.isZero(sqrt(gjk.getTolerance())));
   normal = -guess;
   FCL_REAL nl = normal.norm();
   if (nl > 0)
