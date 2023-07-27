@@ -232,10 +232,28 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
 
   Convex<Triangle>& convex = static_cast<Convex<Triangle>&>(*m1.convex.get());
 
-  // Test Convex
+  // Test Convex<Triangle>
   {
     Convex<Triangle> convex_copy;
     test_serialization(convex, convex_copy);
+  }
+
+  BVHModel<OBBRSS> m2;
+
+  m2.beginModel();
+  m2.addSubModel(p1, t1);
+  m2.endModel();
+
+  m2.buildConvexHull(false);
+
+  ConvexBase& convex_base = *m2.convex.get();
+
+  struct ConvexBaseAccessor : hpp::fcl::ConvexBase {};
+
+  // Test Convex<Triangle>
+  {
+    ConvexBaseAccessor convex_base_copy;
+    test_serialization(convex_base, static_cast<ConvexBase&>(convex_base_copy));
   }
 }
 #endif

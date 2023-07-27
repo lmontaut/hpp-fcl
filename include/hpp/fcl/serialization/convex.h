@@ -19,6 +19,7 @@ namespace serialization {
 namespace internal {
 struct ConvexBaseAccessor : hpp::fcl::ConvexBase {
   typedef hpp::fcl::ConvexBase Base;
+  using Base::nneighbors_;
   using Base::own_storage_;
 };
 
@@ -57,6 +58,44 @@ void serialize(Archive &ar, hpp::fcl::ConvexBase &convex_base,
   ar &make_nvp("center", convex_base.center);
   // We don't save neighbors as they will be computed directly by calling
   // fillNeighbors.
+  // Update: actually, it's important to save neighbors if we save a ConvexBase
+  // and not a Convex<PolygonT>.
+  // For example the GJK algorithm requires neighbors for the support function
+  // of large ConvexBase objects.
+  {
+    std::vector<unsigned int> neighbors_indexes;
+    std::vector<unsigned char> num_neighbors;
+    if (Archive::is_loading::value) {
+      ar &make_nvp("neighbors_indexes", neighbors_indexes);
+      ar &make_nvp("num_neighbors", num_neighbors);
+      assert(num_neighbors.size() == convex_base.num_points);
+      convex_base.neighbors = new ConvexBase::Neighbors[convex_base.num_points];
+      accessor.nneighbors_ = new unsigned int[neighbors_indexes.size()];
+      std::copy(neighbors_indexes.begin(), neighbors_indexes.end(),
+                accessor.nneighbors_);
+
+      unsigned int *p_nneighbors = accessor.nneighbors_;
+      for (size_t i = 0; i < static_cast<size_t>(convex_base.num_points); ++i) {
+        ConvexBase::Neighbors &n = convex_base.neighbors[i];
+        n.count_ = num_neighbors[i];
+        n.n_ = p_nneighbors;
+        p_nneighbors += num_neighbors[i];
+      }
+    } else {
+      neighbors_indexes.clear();
+      num_neighbors.clear();
+      num_neighbors.reserve(convex_base.num_points);
+      for (size_t i = 0; i < static_cast<size_t>(convex_base.num_points); ++i) {
+        ConvexBase::Neighbors &n = convex_base.neighbors[i];
+        num_neighbors.push_back(n.count_);
+        for (size_t j = 0; j < static_cast<size_t>(n.count_); ++j) {
+          neighbors_indexes.push_back(n.n_[j]);
+        }
+      }
+      ar &make_nvp("neighbors_indexes", neighbors_indexes);
+      ar &make_nvp("num_neighbors", num_neighbors);
+    }
+  }
 }
 
 namespace internal {
