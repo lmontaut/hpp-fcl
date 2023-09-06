@@ -43,6 +43,7 @@
 #include <hpp/fcl/collision_object.h>
 #include <hpp/fcl/data_types.h>
 #include <string.h>
+#include <vector>
 
 namespace hpp {
 namespace fcl {
