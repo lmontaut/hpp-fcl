@@ -280,6 +280,11 @@ class HPP_FCL_DLLAPI OcTree : public CollisionGeometry {
     const OcTree* other_ptr = dynamic_cast<const OcTree*>(&_other);
     if (other_ptr == nullptr) return false;
     const OcTree& other = *other_ptr;
+    std::cout << "tree.get() == other.tree.get(): "  << (tree.get() == other.tree.get()) << std::endl;
+    std::cout << "toBoxes() == other.toBoxes(): " << (toBoxes() == other.toBoxes()) << std::endl;
+    std::cout << "default_occupancy == other.default_occupancy: " << (default_occupancy == other.default_occupancy) << std::endl;
+    std::cout << "occupancy_threshold == other.occupancy_threshold: " << (occupancy_threshold == other.occupancy_threshold) << std::endl;
+    std::cout << "free_threshold == other.free_threshold: " << (free_threshold == other.free_threshold) << std::endl;
 
     return (tree.get() == other.tree.get() || toBoxes() == other.toBoxes()) &&
            default_occupancy == other.default_occupancy &&
