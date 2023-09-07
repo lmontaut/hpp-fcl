@@ -45,6 +45,7 @@
 #include <hpp/fcl/fwd.hh>
 #include <hpp/fcl/BV/AABB.h>
 #include <hpp/fcl/collision_object.h>
+#include <vector>
 
 namespace hpp {
 namespace fcl {
