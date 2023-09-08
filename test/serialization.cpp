@@ -107,6 +107,7 @@ void test_serialization(const T& value, T& other_value,
       boost::archive::text_oarchive oa(ofs);
       oa << value;
     }
+    std::cout << "\n TXT BOOST_CHECK(check(value, value))" << std::endl;
     BOOST_CHECK(check(value, value));
 
     {
@@ -115,6 +116,7 @@ void test_serialization(const T& value, T& other_value,
 
       ia >> other_value;
     }
+    std::cout << "\n TXT BOOST_CHECK(check(value, other_value))" << std::endl;
     BOOST_CHECK(check(value, other_value));
   }
 
@@ -125,6 +127,7 @@ void test_serialization(const T& value, T& other_value,
       boost::archive::binary_oarchive oa(ofs);
       oa << value;
     }
+    std::cout << "\n BIN BOOST_CHECK(check(value, value))" << std::endl;
     BOOST_CHECK(check(value, value));
 
     {
@@ -133,6 +136,7 @@ void test_serialization(const T& value, T& other_value,
 
       ia >> other_value;
     }
+    std::cout << "\n BIN BOOST_CHECK(check(value, other_value))" << std::endl;
     BOOST_CHECK(check(value, other_value));
   }
 
@@ -140,9 +144,11 @@ void test_serialization(const T& value, T& other_value,
   if (mode & 0x8) {
     boost::asio::streambuf buffer;
     saveToBinary(value, buffer);
+    std::cout << "\n STREAM BUFFER BOOST_CHECK(check(value, value))" << std::endl;
     BOOST_CHECK(check(value, value));
 
     loadFromBinary(other_value, buffer);
+    std::cout << "\n STREAM BUFFER BOOST_CHECK(check(value, other_value))" << std::endl;
     BOOST_CHECK(check(value, other_value));
   }
 }
@@ -360,6 +366,9 @@ BOOST_AUTO_TEST_CASE(test_octree) {
   BOOST_CHECK(octree == octree_value);
 
   OcTree octree_copy(1.);
+  std::cout << "----------------------------------------------------------" << std::endl;
+  std::cout << "--- Going into `test_serialization()` in `test_octree` ---" << std::endl;
+  std::cout << "----------------------------------------------------------\n" << std::endl;
   test_serialization(octree, octree_copy);
 }
 #endif
