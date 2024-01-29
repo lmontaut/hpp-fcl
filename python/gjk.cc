@@ -50,6 +50,38 @@ using hpp::fcl::details::EPA;
 using hpp::fcl::details::GJK;
 using hpp::fcl::details::MinkowskiDiff;
 
+struct SupportFeature {
+  Vec3f support_point;
+  int support_index;  // For meshes, vertex index of the support point
+
+  SupportFeature() : support_point(Vec3f::Zero()), support_index(-1) {}
+};
+
+/// @brief Populates the `support_point` field of `SupportFeature` with the
+/// support point of shape in direction `dir` and the `support_point` field with
+/// the index of the support point (only makes sense for meshes i.e. shapes
+/// which derive from `ConvexBase`). The support point is expressed in the
+/// **local** frame of the shape.
+SupportFeature getSupportWrapper(const ShapeBase* shape, const Vec3f& dir,
+                                 bool dirIsNormalized, int hint) {
+  SupportFeature support_feature;
+  support_feature.support_index = hint;
+  support_feature.support_point = details::getSupport(
+      shape, dir, dirIsNormalized, support_feature.support_index);
+  return support_feature;
+}
+
+/// @brief Same as other `getSupportWrapper` function but the support point is
+/// transformed using the transform `Tf`.
+SupportFeature getSupportWrapper(const ShapeBase* shape, const Transform3f& tf,
+                                 const Vec3f& dir, bool dirIsNormalized,
+                                 int hint) {
+  SupportFeature support_feature =
+      getSupportWrapper(shape, dir, dirIsNormalized, hint);
+  support_feature.support_point = tf.transform(support_feature.support_point);
+  return support_feature;
+}
+
 void exposeGJK() {
   if (!eigenpy::register_symbolic_link_to_registered_type<GJK::Status>()) {
     enum_<GJK::Status>("GJKStatus")
@@ -135,4 +167,20 @@ void exposeGJK() {
         .DEF_CLASS_FUNC(GJK, setDistanceEarlyBreak)
         .DEF_CLASS_FUNC(GJK, getGuessFromSimplex);
   }
+
+  if (!eigenpy::register_symbolic_link_to_registered_type<SupportFeature>()) {
+    class_<SupportFeature>("SupportFeature",
+                           doxygen::class_doc<SupportFeature>(), no_init)
+        .DEF_RW_CLASS_ATTRIB(SupportFeature, support_point)
+        .DEF_RW_CLASS_ATTRIB(SupportFeature, support_index);
+  }
+
+  doxygen::def("getSupport",
+               static_cast<SupportFeature (*)(const ShapeBase*, const Vec3f&,
+                                              bool, int)>(&getSupportWrapper));
+  doxygen::def(
+      "getSupport",
+      static_cast<SupportFeature (*)(const ShapeBase*, const Transform3f&,
+                                     const Vec3f&, bool, int)>(
+          &getSupportWrapper));
 }
