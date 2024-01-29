@@ -60,8 +60,9 @@ struct SupportFeature {
 /// @brief Populates the `support_point` field of `SupportFeature` with the
 /// support point of shape in direction `dir` and the `support_point` field with
 /// the index of the support point (only makes sense for meshes i.e. shapes
-/// which derive from `ConvexBase`). The support point is expressed in the
-/// **local** frame of the shape.
+/// which derive from `ConvexBase`).
+/// NOTE: Both the support direction `dir` and the support point in
+/// `SupportFeature` are expressed in the **local** frame of the shape!
 SupportFeature getSupportWrapper(const ShapeBase* shape, const Vec3f& dir,
                                  bool dirIsNormalized, int hint) {
   SupportFeature support_feature;
@@ -72,12 +73,15 @@ SupportFeature getSupportWrapper(const ShapeBase* shape, const Vec3f& dir,
 }
 
 /// @brief Same as other `getSupportWrapper` function but the support point is
-/// transformed using the transform `Tf`.
+/// transformed using the transform `tf`.
+/// NOTE: If `tf` represents a transform from frame A to frame W,
+/// both the support direction `dir` and the support point in `SupportFeature`
+/// are expressed in the frame W.
 SupportFeature getSupportWrapper(const ShapeBase* shape, const Transform3f& tf,
                                  const Vec3f& dir, bool dirIsNormalized,
                                  int hint) {
-  SupportFeature support_feature =
-      getSupportWrapper(shape, dir, dirIsNormalized, hint);
+  SupportFeature support_feature = getSupportWrapper(
+      shape, tf.getRotation().transpose() * dir, dirIsNormalized, hint);
   support_feature.support_point = tf.transform(support_feature.support_point);
   return support_feature;
 }
