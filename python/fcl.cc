@@ -101,4 +101,5 @@ BOOST_PYTHON_MODULE(hppfcl) {
   exposeOctree();
 #endif
   exposeBroadPhase();
+  exposeSerialization();
 }

@@ -38,8 +38,9 @@
 #ifndef HPP_FCL_TRANSFORM_H
 #define HPP_FCL_TRANSFORM_H
 
-#include <hpp/fcl/fwd.hh>
-#include <hpp/fcl/data_types.h>
+#include "hpp/fcl/fwd.hh"
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -53,7 +54,8 @@ static inline std::ostream& operator<<(std::ostream& o, const Quatf& q) {
 }
 
 /// @brief Simple transform class used locally by InterpMotion
-class HPP_FCL_DLLAPI Transform3f {
+class HPP_FCL_DLLAPI Transform3f
+    : public ::hpp::fcl::serialization::Serializable<Transform3f> {
   /// @brief Matrix cache
   Matrix3f R;
 

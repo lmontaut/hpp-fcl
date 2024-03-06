@@ -37,11 +37,12 @@
 #ifndef HPP_FCL_HEIGHT_FIELD_H
 #define HPP_FCL_HEIGHT_FIELD_H
 
-#include <hpp/fcl/fwd.hh>
-#include <hpp/fcl/data_types.h>
-#include <hpp/fcl/collision_object.h>
-#include <hpp/fcl/BV/BV_node.h>
-#include <hpp/fcl/BVH/BVH_internal.h>
+#include "hpp/fcl/fwd.hh"
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/collision_object.h"
+#include "hpp/fcl/BV/BV_node.h"
+#include "hpp/fcl/BVH/BVH_internal.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 #include <vector>
 
@@ -200,14 +201,16 @@ struct UpdateBoundingVolume<AABB> {
 /// The height field is centered at the origin and the corners of the geometry
 /// correspond to the following coordinates [± x_dim/2; ± y_dim/2].
 template <typename BV>
-class HPP_FCL_DLLAPI HeightField : public CollisionGeometry {
+class HPP_FCL_DLLAPI HeightField
+    : public CollisionGeometry,
+      public ::hpp::fcl::serialization::Serializable<HeightField<BV>> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   typedef CollisionGeometry Base;
 
   typedef HFNode<BV> Node;
-  typedef std::vector<Node, Eigen::aligned_allocator<Node> > BVS;
+  typedef std::vector<Node, Eigen::aligned_allocator<Node>> BVS;
 
   /// @brief Constructing an empty HeightField
   HeightField()
@@ -528,13 +531,13 @@ template <>
 NODE_TYPE HeightField<OBBRSS>::getNodeType() const;
 
 template <>
-NODE_TYPE HeightField<KDOP<16> >::getNodeType() const;
+NODE_TYPE HeightField<KDOP<16>>::getNodeType() const;
 
 template <>
-NODE_TYPE HeightField<KDOP<18> >::getNodeType() const;
+NODE_TYPE HeightField<KDOP<18>>::getNodeType() const;
 
 template <>
-NODE_TYPE HeightField<KDOP<24> >::getNodeType() const;
+NODE_TYPE HeightField<KDOP<24>>::getNodeType() const;
 
 /// @}
 

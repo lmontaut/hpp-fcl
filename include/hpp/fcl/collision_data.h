@@ -43,11 +43,12 @@
 #include <set>
 #include <limits>
 
-#include <hpp/fcl/collision_object.h>
-#include <hpp/fcl/config.hh>
-#include <hpp/fcl/data_types.h>
-#include <hpp/fcl/timings.h>
-#include <hpp/fcl/narrowphase/narrowphase_defaults.h>
+#include "hpp/fcl/collision_object.h"
+#include "hpp/fcl/config.hh"
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/timings.h"
+#include "hpp/fcl/narrowphase/narrowphase_defaults.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -301,7 +302,9 @@ enum CollisionRequestFlag {
 };
 
 /// @brief request to the collision algorithm
-struct HPP_FCL_DLLAPI CollisionRequest : QueryRequest {
+struct HPP_FCL_DLLAPI CollisionRequest
+    : QueryRequest,
+      ::hpp::fcl::serialization::Serializable<CollisionRequest> {
   /// @brief The maximum number of contacts that can be returned
   size_t num_max_contacts;
 
@@ -382,7 +385,9 @@ inline FCL_REAL Contact::getDistanceToCollision(
 }
 
 /// @brief collision result
-struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
+struct HPP_FCL_DLLAPI CollisionResult
+    : QueryResult,
+      ::hpp::fcl::serialization::Serializable<CollisionResult> {
  private:
   /// @brief contact information
   std::vector<Contact> contacts;
@@ -490,7 +495,9 @@ struct HPP_FCL_DLLAPI CollisionResult : QueryResult {
 struct DistanceResult;
 
 /// @brief request to the distance computation
-struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
+struct HPP_FCL_DLLAPI DistanceRequest
+    : QueryRequest,
+      ::hpp::fcl::serialization::Serializable<DistanceRequest> {
   /// @brief whether to return the nearest points.
   /// Nearest points are always computed and are the points of the shapes that
   /// achieve a distance of `DistanceResult::min_distance`.
@@ -556,7 +563,9 @@ struct HPP_FCL_DLLAPI DistanceRequest : QueryRequest {
 };
 
 /// @brief distance result
-struct HPP_FCL_DLLAPI DistanceResult : QueryResult {
+struct HPP_FCL_DLLAPI DistanceResult
+    : QueryResult,
+      ::hpp::fcl::serialization::Serializable<DistanceResult> {
  public:
   /// @brief minimum distance between two objects.
   /// If two objects are in collision and

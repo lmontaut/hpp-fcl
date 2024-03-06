@@ -21,3 +21,5 @@ void exposeOctree();
 #endif
 
 void exposeBroadPhase();
+
+void exposeSerialization();

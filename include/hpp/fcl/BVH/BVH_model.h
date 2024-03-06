@@ -39,10 +39,12 @@
 #ifndef HPP_FCL_BVH_MODEL_H
 #define HPP_FCL_BVH_MODEL_H
 
-#include <hpp/fcl/fwd.hh>
-#include <hpp/fcl/collision_object.h>
-#include <hpp/fcl/BVH/BVH_internal.h>
-#include <hpp/fcl/BV/BV_node.h>
+#include "hpp/fcl/fwd.hh"
+#include "hpp/fcl/collision_object.h"
+#include "hpp/fcl/BVH/BVH_internal.h"
+#include "hpp/fcl/BV/BV_node.h"
+#include "hpp/fcl/serialization/serializable.h"
+
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -311,7 +313,9 @@ class HPP_FCL_DLLAPI BVHModelBase : public CollisionGeometry {
 /// cloud model (which is viewed as a degraded version of mesh) \tparam BV one
 /// of the bounding volume class in \ref Bounding_Volume.
 template <typename BV>
-class HPP_FCL_DLLAPI BVHModel : public BVHModelBase {
+class HPP_FCL_DLLAPI BVHModel
+    : public BVHModelBase,
+      public ::hpp::fcl::serialization::Serializable<BVHModel<BV>> {
   typedef BVHModelBase Base;
 
  public:

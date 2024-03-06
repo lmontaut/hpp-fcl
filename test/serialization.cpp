@@ -48,6 +48,7 @@
 #include <hpp/fcl/serialization/transform.h>
 #include <hpp/fcl/serialization/geometric_shapes.h>
 #include <hpp/fcl/serialization/convex.h>
+#include <hpp/fcl/serialization/archive.h>
 #include <hpp/fcl/serialization/memory.h>
 
 #ifdef HPP_FCL_HAS_OCTOMAP
@@ -58,31 +59,11 @@
 #include "fcl_resources/config.h"
 
 #include <boost/archive/tmpdir.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
-
-#include <boost/asio/streambuf.hpp>
 
 namespace utf = boost::unit_test::framework;
 
 using namespace hpp::fcl;
-
-template <typename T>
-void saveToBinary(const T& object, boost::asio::streambuf& buffer) {
-  boost::archive::binary_oarchive oa(buffer);
-  oa & object;
-}
-
-template <typename T>
-inline void loadFromBinary(T& object, boost::asio::streambuf& buffer) {
-  boost::archive::binary_iarchive ia(buffer);
-  ia >> object;
-}
 
 template <typename T>
 bool check(const T& value, const T& other) {
@@ -167,6 +148,7 @@ void test_serialization(const T& value, T& other_value,
 
   // TXT
   if (mode & 0x1) {
+    // Test manual saving/loading
     {
       std::ofstream ofs(txt_filename.c_str());
 
@@ -182,10 +164,42 @@ void test_serialization(const T& value, T& other_value,
       ia >> other_value;
     }
     BOOST_CHECK(check(value, other_value));
+
+    // Test archiving functions
+    // -- TXT
+    {
+      hpp::fcl::serialization::saveToText(value, txt_filename.c_str());
+      BOOST_CHECK(check(value, value));
+
+      hpp::fcl::serialization::loadFromText(other_value, txt_filename.c_str());
+      BOOST_CHECK(check(value, other_value));
+    }
+
+    // -- String stream (TXT format)
+    {
+      std::stringstream ss_out;
+      hpp::fcl::serialization::saveToStringStream(value, ss_out);
+      BOOST_CHECK(check(value, value));
+
+      std::istringstream ss_in(ss_out.str());
+      hpp::fcl::serialization::loadFromStringStream(other_value, ss_in);
+      BOOST_CHECK(check(value, other_value));
+    }
+
+    // -- String
+    {
+      const std::string str_out = hpp::fcl::serialization::saveToString(value);
+      BOOST_CHECK(check(value, value));
+
+      const std::string str_in(str_out);
+      hpp::fcl::serialization::loadFromString(other_value, str_in);
+      BOOST_CHECK(check(value, other_value));
+    }
   }
 
   // XML
   if (mode & 0x2) {
+    // Test manual saving/loading
     {
       std::ofstream ofs(xml_filename.c_str());
       boost::archive::xml_oarchive oa(ofs);
@@ -200,10 +214,22 @@ void test_serialization(const T& value, T& other_value,
       ia >> boost::serialization::make_nvp("value", other_value);
     }
     BOOST_CHECK(check(value, other_value));
+
+    // Test archiving functions
+    {
+      const std::string xml_tag = "value";
+      hpp::fcl::serialization::saveToXML(value, xml_filename.c_str(), xml_tag);
+      BOOST_CHECK(check(value, value));
+
+      hpp::fcl::serialization::loadFromXML(other_value, xml_filename.c_str(),
+                                           xml_tag);
+      BOOST_CHECK(check(value, other_value));
+    }
   }
 
   // BIN
   if (mode & 0x4) {
+    // Test manual saving/loading
     {
       std::ofstream ofs(bin_filename.c_str(), std::ios::binary);
       boost::archive::binary_oarchive oa(ofs);
@@ -218,16 +244,42 @@ void test_serialization(const T& value, T& other_value,
       ia >> other_value;
     }
     BOOST_CHECK(check(value, other_value));
+
+    // Test archiving functions
+    {
+      hpp::fcl::serialization::saveToBinary(value, bin_filename.c_str());
+      BOOST_CHECK(check(value, value));
+
+      hpp::fcl::serialization::loadFromBinary(other_value,
+                                              bin_filename.c_str());
+      BOOST_CHECK(check(value, other_value));
+    }
   }
 
   // Stream Buffer
   if (mode & 0x8) {
-    boost::asio::streambuf buffer;
-    saveToBinary(value, buffer);
-    BOOST_CHECK(check(value, value));
+    // -- Stream Buffer
+    {
+      boost::asio::streambuf buffer;
+      hpp::fcl::serialization::saveToBinary(value, buffer);
+      BOOST_CHECK(check(value, value));
 
-    loadFromBinary(other_value, buffer);
-    BOOST_CHECK(check(value, other_value));
+      hpp::fcl::serialization::loadFromBinary(other_value, buffer);
+      BOOST_CHECK(check(value, other_value));
+    }
+
+    // -- Static Buffer
+    {
+      // buffer size needs to be relatively large to deal with large objects
+      // like BVHModels or HeightFields.
+      const size_t buffer_size = 100000000;
+      hpp::fcl::serialization::StaticBuffer buffer(buffer_size);
+      hpp::fcl::serialization::saveToBinary(value, buffer);
+      BOOST_CHECK(check(value, value));
+
+      hpp::fcl::serialization::loadFromBinary(other_value, buffer);
+      BOOST_CHECK(check(value, other_value));
+    }
   }
 
   // Test std::shared_ptr<T>

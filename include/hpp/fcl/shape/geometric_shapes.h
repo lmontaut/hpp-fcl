@@ -38,13 +38,14 @@
 #ifndef HPP_FCL_GEOMETRIC_SHAPES_H
 #define HPP_FCL_GEOMETRIC_SHAPES_H
 
-#include <boost/math/constants/constants.hpp>
-
-#include <hpp/fcl/collision_object.h>
-#include <hpp/fcl/data_types.h>
-#include <string.h>
 #include <vector>
 #include <memory>
+
+#include <boost/math/constants/constants.hpp>
+
+#include "hpp/fcl/collision_object.h"
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 #ifdef HPP_FCL_HAS_QHULL
 namespace orgQhull {
@@ -76,7 +77,9 @@ class HPP_FCL_DLLAPI ShapeBase : public CollisionGeometry {
 /// @{
 
 /// @brief Triangle stores the points instead of only indices of points
-class HPP_FCL_DLLAPI TriangleP : public ShapeBase {
+class HPP_FCL_DLLAPI TriangleP
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<TriangleP> {
  public:
   TriangleP(){};
 
@@ -130,7 +133,8 @@ class HPP_FCL_DLLAPI TriangleP : public ShapeBase {
 };
 
 /// @brief Center at zero point, axis aligned box
-class HPP_FCL_DLLAPI Box : public ShapeBase {
+class HPP_FCL_DLLAPI Box : public ShapeBase,
+                           public ::hpp::fcl::serialization::Serializable<Box> {
  public:
   Box(FCL_REAL x, FCL_REAL y, FCL_REAL z)
       : ShapeBase(), halfSide(x / 2, y / 2, z / 2) {}
@@ -201,7 +205,9 @@ class HPP_FCL_DLLAPI Box : public ShapeBase {
 };
 
 /// @brief Center at zero point sphere
-class HPP_FCL_DLLAPI Sphere : public ShapeBase {
+class HPP_FCL_DLLAPI Sphere
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Sphere> {
  public:
   /// @brief Default constructor
   Sphere() {}
@@ -263,7 +269,9 @@ class HPP_FCL_DLLAPI Sphere : public ShapeBase {
 };
 
 /// @brief Ellipsoid centered at point zero
-class HPP_FCL_DLLAPI Ellipsoid : public ShapeBase {
+class HPP_FCL_DLLAPI Ellipsoid
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Ellipsoid> {
  public:
   /// @brief Default constructor
   Ellipsoid() {}
@@ -338,7 +346,9 @@ class HPP_FCL_DLLAPI Ellipsoid : public ShapeBase {
 /// It is \f$ { x~\in~\mathbb{R}^3, d(x, AB) \leq radius } \f$
 /// where \f$ d(x, AB) \f$ is the distance between the point x and the capsule
 /// segment AB, with \f$ A = (0,0,-halfLength), B = (0,0,halfLength) \f$.
-class HPP_FCL_DLLAPI Capsule : public ShapeBase {
+class HPP_FCL_DLLAPI Capsule
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Capsule> {
  public:
   /// @brief Default constructor
   Capsule() {}
@@ -419,7 +429,9 @@ class HPP_FCL_DLLAPI Capsule : public ShapeBase {
 /// @brief Cone
 /// The base of the cone is at \f$ z = - halfLength \f$ and the top is at
 /// \f$ z = halfLength \f$.
-class HPP_FCL_DLLAPI Cone : public ShapeBase {
+class HPP_FCL_DLLAPI Cone
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Cone> {
  public:
   /// @brief Default constructor
   Cone() {}
@@ -506,7 +518,9 @@ class HPP_FCL_DLLAPI Cone : public ShapeBase {
 
 /// @brief Cylinder along Z axis.
 /// The cylinder is defined at its centroid.
-class HPP_FCL_DLLAPI Cylinder : public ShapeBase {
+class HPP_FCL_DLLAPI Cylinder
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Cylinder> {
  public:
   /// @brief Default constructor
   Cylinder() {}
@@ -829,7 +843,9 @@ class Convex;
 /// plane (i.e. {x | n * x < d}) are inside the half space and points in the
 /// positive side of the separation plane (i.e. {x | n * x > d}) are outside the
 /// half space
-class HPP_FCL_DLLAPI Halfspace : public ShapeBase {
+class HPP_FCL_DLLAPI Halfspace
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Halfspace> {
  public:
   /// @brief Construct a half space with normal direction and offset
   Halfspace(const Vec3f& n_, FCL_REAL d_) : ShapeBase(), n(n_), d(d_) {
@@ -910,7 +926,9 @@ class HPP_FCL_DLLAPI Halfspace : public ShapeBase {
 };
 
 /// @brief Infinite plane
-class HPP_FCL_DLLAPI Plane : public ShapeBase {
+class HPP_FCL_DLLAPI Plane
+    : public ShapeBase,
+      public ::hpp::fcl::serialization::Serializable<Plane> {
  public:
   /// @brief Construct a plane with normal direction and offset
   Plane(const Vec3f& n_, FCL_REAL d_) : ShapeBase(), n(n_), d(d_) {

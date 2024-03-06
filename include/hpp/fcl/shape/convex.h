@@ -38,7 +38,7 @@
 #ifndef HPP_FCL_SHAPE_CONVEX_H
 #define HPP_FCL_SHAPE_CONVEX_H
 
-#include <hpp/fcl/shape/geometric_shapes.h>
+#include "hpp/fcl/shape/geometric_shapes.h"
 
 namespace hpp {
 namespace fcl {
@@ -47,7 +47,9 @@ namespace fcl {
 /// @tparam PolygonT the polygon class. It must have method \c size() and
 ///         \c operator[](int i)
 template <typename PolygonT>
-class Convex : public ConvexBase {
+class Convex
+    : public ConvexBase,
+      public ::hpp::fcl::serialization::Serializable<Convex<PolygonT>> {
  public:
   /// @brief Construct an uninitialized convex object
   Convex() : ConvexBase(), num_polygons(0) {}
