@@ -38,8 +38,9 @@
 #ifndef HPP_FCL_KDOP_H
 #define HPP_FCL_KDOP_H
 
-#include <hpp/fcl/fwd.hh>
-#include <hpp/fcl/data_types.h>
+#include "hpp/fcl/fwd.hh"
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -89,7 +90,8 @@ struct CollisionRequest;
 /// (-1, 1, -1) and (1, -1, 1) --> indices 10 and 22
 /// (1, -1, -1) and (-1, 1, 1) --> indices 11 and 23
 template <short N>
-class HPP_FCL_DLLAPI KDOP {
+class HPP_FCL_DLLAPI KDOP
+    : public ::hpp::fcl::serialization::Serializable<KDOP<N>> {
  protected:
   /// @brief Origin's distances to N KDOP planes
   Eigen::Array<FCL_REAL, N, 1> dist_;

@@ -580,7 +580,8 @@ void exposeCollisionGeometries() {
            //         doxygen::member_func_args(static_cast<AABB&
            //         (AABB::*)(const Vec3f &)>(&AABB::expand)),
            bp::return_internal_reference<>())
-      .def_pickle(PickleObject<AABB>());
+      .def_pickle(PickleObject<AABB>())
+      .def(SerializableVisitor<AABB>());
 
   def("translate", (AABB(*)(const AABB&, const Vec3f&)) & translate,
       bp::args("aabb", "t"), "Translate the center of AABB by t");

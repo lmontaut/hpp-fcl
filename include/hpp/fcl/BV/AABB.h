@@ -38,7 +38,8 @@
 #ifndef HPP_FCL_AABB_H
 #define HPP_FCL_AABB_H
 
-#include <hpp/fcl/data_types.h>
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -51,7 +52,8 @@ struct CollisionRequest;
 
 /// @brief A class describing the AABB collision structure, which is a box in 3D
 /// space determined by two diagonal points
-class HPP_FCL_DLLAPI AABB {
+class HPP_FCL_DLLAPI AABB
+    : public ::hpp::fcl::serialization::Serializable<AABB> {
  public:
   /// @brief The min point in the AABB
   Vec3f min_;

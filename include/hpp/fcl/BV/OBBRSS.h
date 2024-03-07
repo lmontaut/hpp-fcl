@@ -38,8 +38,9 @@
 #ifndef HPP_FCL_OBBRSS_H
 #define HPP_FCL_OBBRSS_H
 
-#include <hpp/fcl/BV/OBB.h>
-#include <hpp/fcl/BV/RSS.h>
+#include "hpp/fcl/BV/OBB.h"
+#include "hpp/fcl/BV/RSS.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -51,7 +52,8 @@ struct CollisionRequest;
 
 /// @brief Class merging the OBB and RSS, can handle collision and distance
 /// simultaneously
-struct HPP_FCL_DLLAPI OBBRSS {
+struct HPP_FCL_DLLAPI OBBRSS
+    : public ::hpp::fcl::serialization::Serializable<OBBRSS> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /// @brief OBB member, for rotation

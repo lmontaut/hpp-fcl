@@ -38,7 +38,8 @@
 #ifndef HPP_FCL_KIOS_H
 #define HPP_FCL_KIOS_H
 
-#include <hpp/fcl/BV/OBB.h>
+#include "hpp/fcl/BV/OBB.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -50,7 +51,8 @@ struct CollisionRequest;
 
 /// @brief A class describing the kIOS collision structure, which is a set of
 /// spheres.
-class HPP_FCL_DLLAPI kIOS {
+class HPP_FCL_DLLAPI kIOS
+    : public ::hpp::fcl::serialization::Serializable<kIOS> {
   /// @brief One sphere in kIOS
   struct HPP_FCL_DLLAPI kIOS_Sphere {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

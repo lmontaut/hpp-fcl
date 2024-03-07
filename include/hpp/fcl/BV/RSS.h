@@ -38,7 +38,9 @@
 #ifndef HPP_FCL_RSS_H
 #define HPP_FCL_RSS_H
 
-#include <hpp/fcl/data_types.h>
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
+
 #include <boost/math/constants/constants.hpp>
 
 namespace hpp {
@@ -50,7 +52,8 @@ struct CollisionRequest;
 /// @{
 
 /// @brief A class for rectangle sphere-swept bounding volume
-struct HPP_FCL_DLLAPI RSS {
+struct HPP_FCL_DLLAPI RSS
+    : public ::hpp::fcl::serialization::Serializable<RSS> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /// @brief Orientation of RSS. axis[i] is the ith column of the orientation

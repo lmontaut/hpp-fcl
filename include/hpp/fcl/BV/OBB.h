@@ -38,7 +38,8 @@
 #ifndef HPP_FCL_OBB_H
 #define HPP_FCL_OBB_H
 
-#include <hpp/fcl/data_types.h>
+#include "hpp/fcl/data_types.h"
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 namespace fcl {
@@ -49,7 +50,8 @@ struct CollisionRequest;
 /// @{
 
 /// @brief Oriented bounding box class
-struct HPP_FCL_DLLAPI OBB {
+struct HPP_FCL_DLLAPI OBB
+    : public ::hpp::fcl::serialization::Serializable<OBB> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /// @brief Orientation of OBB. axis[i] is the ith column of the orientation
