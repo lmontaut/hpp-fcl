@@ -35,6 +35,9 @@
 #include <eigenpy/eigenpy.hpp>
 #include <eigenpy/eigen-to-python.hpp>
 
+#include "fcl.hh"
+#include "deprecation.hh"
+
 #include <hpp/fcl/fwd.hh>
 #include <hpp/fcl/shape/geometric_shapes.h>
 #include <hpp/fcl/shape/convex.h>
@@ -48,8 +51,6 @@
 #include <hpp/fcl/serialization/geometric_shapes.h>
 #include <hpp/fcl/serialization/convex.h>
 
-#include "fcl.hh"
-#include "deprecation.hh"
 #include "pickle.hh"
 #include "serializable.hh"
 
