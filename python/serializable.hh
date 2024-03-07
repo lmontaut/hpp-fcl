@@ -7,7 +7,9 @@
 #ifndef HPP_FCL_PYTHON_SERIALIZABLE_H
 #define HPP_FCL_PYTHON_SERIALIZABLE_H
 
-#include "serialization.hh"
+#include <boost/python.hpp>
+
+#include "hpp/fcl/serialization/archive.h"
 #include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
@@ -53,19 +55,7 @@ struct SerializableVisitor
         .def("loadFromBinary",
              (void(Derived::*)(boost::asio::streambuf&)) &
                  Derived::loadFromBinary,
-             bp::args("self", "buffer"), "Loads *this from a binary buffer.")
-
-        .def("saveToBinary",
-             (void(Derived::*)(serialization::StaticBuffer&) const) &
-                 Derived::saveToBinary,
-             bp::args("self", "buffer"),
-             "Saves *this inside a static binary buffer.")
-        .def("loadFromBinary",
-             (void(Derived::*)(serialization::StaticBuffer&)) &
-                 Derived::loadFromBinary,
-             bp::args("self", "buffer"),
-             "Loads *this from a static binary buffer.");
-    serialize<Derived>();
+             bp::args("self", "buffer"), "Loads *this from a binary buffer.");
   }
 };
 }  // namespace python

@@ -51,7 +51,6 @@ SET(${LIBRARY_NAME}_HEADERS
   pickle.hh
   utils/std-pair.hh
   serializable.hh
-  serialization.hh
   )
 
 SET(ENABLE_PYTHON_DOXYGEN_AUTODOC TRUE CACHE BOOL "Enable automatic documentation of Python bindings from Doxygen documentation")
@@ -111,7 +110,6 @@ SET(${LIBRARY_NAME}_SOURCES
   fcl.cc
   gjk.cc
   broadphase/broadphase.cc
-  serialization.cc
   )
 
 IF(HPP_FCL_HAS_OCTOMAP)

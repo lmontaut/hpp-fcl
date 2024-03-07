@@ -8,7 +8,6 @@
 #define HPP_FCL_SERIALIZATION_ARCHIVE_H
 
 #include "hpp/fcl/fwd.hh"
-#include "hpp/fcl/serialization/static-buffer.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -286,42 +285,6 @@ inline void loadFromBinary(T& object, boost::asio::streambuf& buffer) {
 template <typename T>
 void saveToBinary(const T& object, boost::asio::streambuf& buffer) {
   boost::archive::binary_oarchive oa(buffer);
-  oa & object;
-}
-
-///
-/// \brief Loads an object from a static binary buffer.
-///        The buffer should be of a sufficient size.
-///
-/// \tparam T Type of the object to deserialize.
-///
-/// \param[out] object Object in which the loaded data are copied.
-/// \param[in] buffer Input buffer containing the serialized data.
-///
-template <typename T>
-inline void loadFromBinary(T& object, StaticBuffer& buffer) {
-  boost::iostreams::stream_buffer<boost::iostreams::basic_array<char> > stream(
-      buffer.data(), buffer.size());
-
-  boost::archive::binary_iarchive ia(stream);
-  ia >> object;
-}
-
-///
-/// \brief Saves an object to a static binary buffer.
-///        The buffer should be of a sufficient size.
-///
-/// \tparam T Type of the object to deserialize.
-///
-/// \param[in]  object Object in which the loaded data are copied.
-/// \param[out] buffer Output buffer containing the serialized data.
-///
-template <typename T>
-inline void saveToBinary(const T& object, StaticBuffer& buffer) {
-  boost::iostreams::stream_buffer<boost::iostreams::basic_array<char> > stream(
-      buffer.data(), buffer.size());
-
-  boost::archive::binary_oarchive oa(stream);
   oa & object;
 }
 

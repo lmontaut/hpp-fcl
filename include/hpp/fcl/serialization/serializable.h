@@ -80,16 +80,6 @@ struct Serializable {
   void saveToBinary(boost::asio::streambuf& container) const {
     ::hpp::fcl::serialization::saveToBinary(this->derived(), container);
   }
-
-  /// \brief Loads a Derived object from a static binary container.
-  void loadFromBinary(StaticBuffer& container) {
-    ::hpp::fcl::serialization::loadFromBinary(this->derived(), container);
-  }
-
-  /// \brief Saves a Derived object as a static binary container.
-  void saveToBinary(StaticBuffer& container) const {
-    ::hpp::fcl::serialization::saveToBinary(this->derived(), container);
-  }
 };
 
 }  // namespace serialization

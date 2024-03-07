@@ -206,22 +206,8 @@ void test_serialization(const T& value, T& other_value,
 
   // Stream Buffer
   if (mode & 0x8) {
-    // -- Stream Buffer
     {
       boost::asio::streambuf buffer;
-      hpp::fcl::serialization::saveToBinary(value, buffer);
-      BOOST_CHECK(check(value, value));
-
-      hpp::fcl::serialization::loadFromBinary(other_value, buffer);
-      BOOST_CHECK(check(value, other_value));
-    }
-
-    // -- Static Buffer
-    {
-      // buffer size needs to be relatively large to deal with large objects
-      // like BVHModels or HeightFields.
-      const size_t buffer_size = 100000000;
-      hpp::fcl::serialization::StaticBuffer buffer(buffer_size);
       hpp::fcl::serialization::saveToBinary(value, buffer);
       BOOST_CHECK(check(value, value));
 
