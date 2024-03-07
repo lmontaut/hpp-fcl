@@ -148,24 +148,6 @@ void test_serialization(const T& value, T& other_value,
 
   // TXT
   if (mode & 0x1) {
-    // Test manual saving/loading
-    {
-      std::ofstream ofs(txt_filename.c_str());
-
-      boost::archive::text_oarchive oa(ofs);
-      oa << value;
-    }
-    BOOST_CHECK(check(value, value));
-
-    {
-      std::ifstream ifs(txt_filename.c_str());
-      boost::archive::text_iarchive ia(ifs);
-
-      ia >> other_value;
-    }
-    BOOST_CHECK(check(value, other_value));
-
-    // Test archiving functions
     // -- TXT
     {
       hpp::fcl::serialization::saveToText(value, txt_filename.c_str());
@@ -199,23 +181,6 @@ void test_serialization(const T& value, T& other_value,
 
   // XML
   if (mode & 0x2) {
-    // Test manual saving/loading
-    {
-      std::ofstream ofs(xml_filename.c_str());
-      boost::archive::xml_oarchive oa(ofs);
-      oa << boost::serialization::make_nvp("value", value);
-    }
-    BOOST_CHECK(check(value, value));
-
-    {
-      std::ifstream ifs(xml_filename.c_str());
-      boost::archive::xml_iarchive ia(ifs, boost::archive::no_codecvt);
-
-      ia >> boost::serialization::make_nvp("value", other_value);
-    }
-    BOOST_CHECK(check(value, other_value));
-
-    // Test archiving functions
     {
       const std::string xml_tag = "value";
       hpp::fcl::serialization::saveToXML(value, xml_filename.c_str(), xml_tag);
@@ -229,23 +194,6 @@ void test_serialization(const T& value, T& other_value,
 
   // BIN
   if (mode & 0x4) {
-    // Test manual saving/loading
-    {
-      std::ofstream ofs(bin_filename.c_str(), std::ios::binary);
-      boost::archive::binary_oarchive oa(ofs);
-      oa << value;
-    }
-    BOOST_CHECK(check(value, value));
-
-    {
-      std::ifstream ifs(bin_filename.c_str(), std::ios::binary);
-      boost::archive::binary_iarchive ia(ifs);
-
-      ia >> other_value;
-    }
-    BOOST_CHECK(check(value, other_value));
-
-    // Test archiving functions
     {
       hpp::fcl::serialization::saveToBinary(value, bin_filename.c_str());
       BOOST_CHECK(check(value, value));
@@ -287,21 +235,11 @@ void test_serialization(const T& value, T& other_value,
     const boost::filesystem::path txt_ptr_filename(tmp_path / txt_ptr_path);
     std::shared_ptr<T> ptr = std::make_shared<T>(value);
 
-    {
-      std::ofstream ofs(txt_ptr_filename.c_str());
-
-      boost::archive::text_oarchive oa(ofs);
-      oa << ptr;
-    }
+    hpp::fcl::serialization::saveToText(ptr, txt_filename.c_str());
     BOOST_CHECK(check_ptr(ptr.get(), ptr.get()));
 
     std::shared_ptr<T> other_ptr = nullptr;
-    {
-      std::ifstream ifs(txt_ptr_filename.c_str());
-      boost::archive::text_iarchive ia(ifs);
-
-      ia >> other_ptr;
-    }
+    hpp::fcl::serialization::loadFromText(other_ptr, txt_filename.c_str());
     BOOST_CHECK(check_ptr(ptr.get(), other_ptr.get()));
   }
 
@@ -430,22 +368,12 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
     std::shared_ptr<CollisionGeometry> ptr =
         std::make_shared<Convex<Triangle>>(convex);
     BOOST_CHECK(ptr.get());
-    {
-      std::ofstream ofs(txt_filename.c_str());
-
-      boost::archive::text_oarchive oa(ofs);
-      oa << ptr;
-    }
+    hpp::fcl::serialization::saveToText(ptr, txt_filename.c_str());
     BOOST_CHECK(check(*reinterpret_cast<Convex<Triangle>*>(ptr.get()), convex));
 
     std::shared_ptr<CollisionGeometry> other_ptr = nullptr;
     BOOST_CHECK(!other_ptr.get());
-    {
-      std::ifstream ifs(txt_filename.c_str());
-      boost::archive::text_iarchive ia(ifs);
-
-      ia >> other_ptr;
-    }
+    hpp::fcl::serialization::loadFromText(other_ptr, txt_filename.c_str());
     BOOST_CHECK(
         check(convex, *reinterpret_cast<Convex<Triangle>*>(other_ptr.get())));
   }
@@ -545,7 +473,6 @@ BOOST_AUTO_TEST_CASE(test_shapes) {
       points->emplace_back(Vec3f::Random());
     }
     using Convex = Convex<Triangle>;
-    // using ConvexBase = hpp::fcl::ConvexBase;
     std::unique_ptr<Convex> convex =
         std::unique_ptr<Convex>(static_cast<Convex*>(ConvexBase::convexHull(
             points, static_cast<unsigned int>(points->size()), true)));
