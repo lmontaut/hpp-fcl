@@ -14,7 +14,7 @@ namespace fcl {
 namespace serialization {
 
 template <class Derived>
-struct Serializable {
+struct HPP_FCL_DLLAPI Serializable {
  private:
   Derived& derived() { return *static_cast<Derived*>(this); }
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
@@ -85,5 +85,23 @@ struct Serializable {
 }  // namespace serialization
 }  // namespace fcl
 }  // namespace hpp
+
+#define HPP_FCL_SERIALIZATION_DECLARATION(Type)                                \
+  namespace boost {                                                            \
+  namespace serialization {                                                    \
+  template <>                                                                  \
+  void serialize(boost::archive::text_iarchive&, Type&, const unsigned int);   \
+  template <>                                                                  \
+  void serialize(boost::archive::text_oarchive&, Type&, const unsigned int);   \
+  template <>                                                                  \
+  void serialize(boost::archive::xml_iarchive&, Type&, const unsigned int);    \
+  template <>                                                                  \
+  void serialize(boost::archive::xml_oarchive&, Type&, const unsigned int);    \
+  template <>                                                                  \
+  void serialize(boost::archive::binary_iarchive&, Type&, const unsigned int); \
+  template <>                                                                  \
+  void serialize(boost::archive::binary_oarchive&, Type&, const unsigned int); \
+  }                                                                            \
+  } /**/
 
 #endif  // ifndef HPP_FCL_SERIALIZATION_SERIALIZABLE_H

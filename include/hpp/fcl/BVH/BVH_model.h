@@ -542,4 +542,12 @@ NODE_TYPE BVHModel<KDOP<24>>::getNodeType() const;
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::AABB>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::OBB>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::RSS>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::OBBRSS>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::KDOP<16>>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::KDOP<18>>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::BVHModel<::hpp::fcl::KDOP<24>>)
+
 #endif

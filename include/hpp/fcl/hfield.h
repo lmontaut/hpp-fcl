@@ -545,4 +545,13 @@ NODE_TYPE HeightField<KDOP<24>>::getNodeType() const;
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::AABB>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::OBB>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::RSS>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::OBBRSS>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::kIOS>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::KDOP<16>>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::KDOP<18>>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::HeightField<::hpp::fcl::KDOP<24>>)
+
 #endif

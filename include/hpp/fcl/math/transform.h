@@ -216,4 +216,6 @@ inline Quatf fromAxisAngle(const Eigen::MatrixBase<Derived>& axis,
 }  // namespace fcl
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::Transform3f)
+
 #endif

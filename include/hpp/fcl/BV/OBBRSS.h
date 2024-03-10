@@ -161,4 +161,6 @@ inline FCL_REAL distance(const Matrix3f& R0, const Vec3f& T0, const OBBRSS& b1,
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::OBBRSS)
+
 #endif

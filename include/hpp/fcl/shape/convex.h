@@ -112,6 +112,9 @@ class Convex
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::Convex<::hpp::fcl::Triangle>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::Convex<::hpp::fcl::Quadrilateral>)
+
 #include <hpp/fcl/shape/details/convex.hxx>
 
 #endif

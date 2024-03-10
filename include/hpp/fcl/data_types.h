@@ -43,6 +43,7 @@
 #include <Eigen/Geometry>
 
 #include <hpp/fcl/config.hh>
+#include "hpp/fcl/serialization/serializable.h"
 
 namespace hpp {
 
@@ -96,7 +97,8 @@ enum GJKConvergenceCriterion { VDB, DualityGap, Hybrid };
 enum GJKConvergenceCriterionType { Relative, Absolute };
 
 /// @brief Triangle with 3 indices for points
-class HPP_FCL_DLLAPI Triangle {
+class HPP_FCL_DLLAPI Triangle
+    : public ::hpp::fcl::serialization::Serializable<Triangle> {
  public:
   typedef std::size_t index_type;
   typedef int size_type;
@@ -142,7 +144,8 @@ class HPP_FCL_DLLAPI Triangle {
 };
 
 /// @brief Quadrilateral with 4 indices for points
-struct HPP_FCL_DLLAPI Quadrilateral {
+struct HPP_FCL_DLLAPI Quadrilateral
+    : public ::hpp::fcl::serialization::Serializable<Quadrilateral> {
   typedef std::size_t index_type;
   typedef int size_type;
 
@@ -183,5 +186,8 @@ struct HPP_FCL_DLLAPI Quadrilateral {
 }  // namespace fcl
 
 }  // namespace hpp
+
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::Triangle)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::Quadrilateral)
 
 #endif

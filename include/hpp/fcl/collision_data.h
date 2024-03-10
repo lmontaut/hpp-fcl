@@ -751,4 +751,9 @@ inline CollisionRequestFlag& operator^=(CollisionRequestFlag& a,
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::CollisionRequest)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::CollisionResult)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::DistanceRequest)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::DistanceResult)
+
 #endif

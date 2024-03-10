@@ -152,4 +152,6 @@ HPP_FCL_DLLAPI bool obbDisjoint(const Matrix3f& B, const Vec3f& T,
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::OBB)
+
 #endif

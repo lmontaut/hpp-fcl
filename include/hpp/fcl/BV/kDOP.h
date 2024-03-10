@@ -192,4 +192,8 @@ HPP_FCL_DLLAPI KDOP<N> translate(const KDOP<N>& bv, const Vec3f& t);
 
 }  // namespace hpp
 
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::KDOP<16>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::KDOP<18>)
+HPP_FCL_SERIALIZATION_DECLARATION(::hpp::fcl::KDOP<24>)
+
 #endif
