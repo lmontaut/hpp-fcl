@@ -113,8 +113,10 @@ class HPP_FCL_DLLAPI kIOS
   /// @brief Difference operator
   bool operator!=(const kIOS& other) const { return !(*this == other); }
 
+  static constexpr size_t max_num_spheres = 5;
+
   /// @brief The (at most) five spheres for intersection
-  kIOS_Sphere spheres[5];
+  kIOS_Sphere spheres[max_num_spheres];
 
   /// @brief The number of spheres, no larger than 5
   unsigned int num_spheres;

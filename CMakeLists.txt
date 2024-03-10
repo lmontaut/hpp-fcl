@@ -280,6 +280,8 @@ SET(${PROJECT_NAME}_HEADERS
   include/hpp/fcl/serialization/OBB.h
   include/hpp/fcl/serialization/RSS.h
   include/hpp/fcl/serialization/OBBRSS.h
+  include/hpp/fcl/serialization/kIOS.h
+  include/hpp/fcl/serialization/kDOP.h
   include/hpp/fcl/serialization/hfield.h
   include/hpp/fcl/serialization/quadrilateral.h
   include/hpp/fcl/serialization/triangle.h
