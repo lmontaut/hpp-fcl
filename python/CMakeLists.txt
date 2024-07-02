@@ -180,3 +180,9 @@ FOREACH(python ${PYTHON_FILES})
     "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}/${python}"
     DESTINATION ${${PYTHON_LIB_NAME}_INSTALL_DIR})
 ENDFOREACH(python)
+
+
+if(COAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL)
+  python_install_on_site(hppfcl __init__.py)
+  python_install_on_site(hppfcl viewer.py)
+endif()
