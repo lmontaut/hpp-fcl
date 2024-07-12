@@ -61,6 +61,14 @@ IF(    NOT ENABLE_PYTHON_DOXYGEN_AUTODOC
 ELSE()
   SET(ENABLE_DOXYGEN_AUTODOC TRUE)
 
+  IF(DOXYGEN_VERSION VERSION_GREATER_EQUAL 1.9.8 AND DOXYGEN_VERSION VERSION_LESS 1.11.0)
+    # deactivate python doxygen automoc for doxygen 1.9.8 and 1.10.0,
+    # as it incorrectly parse "const" keyword,
+    # generating wrong links in C++ doc, and fail generating python doc
+    # ref. https://github.com/doxygen/doxygen/issues/10797
+    SET(ENABLE_DOXYGEN_AUTODOC FALSE)
+    MESSAGE(AUTHOR_WARNING "automoc deactivated because of doxygen 1.10. Please use <1.10 or >=1.11.")
+  ENDIF()
   EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} -c "import lxml"
     RESULT_VARIABLE _pypkg_found
     OUTPUT_QUIET
