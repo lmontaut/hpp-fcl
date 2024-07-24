@@ -51,6 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix issue in Octomap.computeLocalAABB
 - Fix unsupported function for contact_patch_matrix
 - Fix Octomap dependency on ROS
+- Remove CMake CMP0167 warnings
 
 ## [2.4.4] - 2024-03-06
 
