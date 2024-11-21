@@ -41,7 +41,7 @@ jobs:
     - name: Build Coal
       shell: cmd /C CALL {0}
       run: |
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+        call conda list
 
         :: Create build
         mkdir build
@@ -62,7 +62,7 @@ jobs:
         if errorlevel 1 exit 1
 
         :: Build and Install
-        cmake --build . --config Release --target install
+        ninja install -v
         if errorlevel 1 exit 1
 
         :: Testing

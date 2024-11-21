@@ -42,7 +42,7 @@ jobs:
     - name: Build Coal
       shell: cmd /C CALL {0}
       run: |
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+        call conda list
         :: Tell Ninja to use clang-cl
         set CC=clang-cl
         set CXX=clang-cl
@@ -54,7 +54,6 @@ jobs:
         cmake ^
           -G "Ninja" ^
           -DCMAKE_INSTALL_PREFIX=%CONDA_PREFIX%\Library ^
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
           -DCMAKE_BUILD_TYPE=Release ^
           -DGENERATE_PYTHON_STUBS=ON ^
           -DPYTHON_SITELIB=%CONDA_PREFIX%\Lib\site-packages ^
@@ -65,7 +64,7 @@ jobs:
         if errorlevel 1 exit 1
 
         :: Build and Install
-        cmake --build . --config Release --target install
+        ninja install -v
         if errorlevel 1 exit 1
 
         :: Testing

@@ -16,5 +16,6 @@ dependencies:
   - qhull
   - cmake
   - ccache
+  - cxx-compiler
   - pkg-config
   - ninja
