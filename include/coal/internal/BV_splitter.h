@@ -64,7 +64,7 @@ class BVSplitter {
   virtual ~BVSplitter() {}
 
   /// @brief Set the geometry data needed by the split rule
-  void set(Vec3s* vertices_, Triangle* tri_indices_, BVHModelType type_) {
+  void set(Vec3s* vertices_, Triangle32* tri_indices_, BVHModelType type_) {
     vertices = vertices_;
     tri_indices = tri_indices_;
     type = type_;
@@ -116,7 +116,7 @@ class BVSplitter {
   Vec3s* vertices;
 
   /// @brief The triangles handled by the splitter
-  Triangle* tri_indices;
+  Triangle32* tri_indices;
 
   /// @brief Whether the geometry is mesh or point cloud
   BVHModelType type;
@@ -154,7 +154,7 @@ class BVSplitter {
 
     if (type == BVH_MODEL_TRIANGLES) {
       for (unsigned int i = 0; i < num_primitives; ++i) {
-        const Triangle& t = tri_indices[primitive_indices[i]];
+        const Triangle32& t = tri_indices[primitive_indices[i]];
         sum += (vertices[t[0]][split_axis] + vertices[t[1]][split_axis] +
                 vertices[t[2]][split_axis]);
       }
@@ -185,7 +185,7 @@ class BVSplitter {
 
     if (type == BVH_MODEL_TRIANGLES) {
       for (unsigned int i = 0; i < num_primitives; ++i) {
-        const Triangle& t = tri_indices[primitive_indices[i]];
+        const Triangle32& t = tri_indices[primitive_indices[i]];
         proj[i] = (vertices[t[0]][split_axis] + vertices[t[1]][split_axis] +
                    vertices[t[2]][split_axis]) /
                   3;

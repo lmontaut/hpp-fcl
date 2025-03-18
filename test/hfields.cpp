@@ -527,7 +527,7 @@ bool isApprox(const Scalar v1, const Scalar v2,
   return std::fabs(v1 - v2) <= tol;
 }
 
-Vec3s computeFaceNormal(const Triangle& triangle,
+Vec3s computeFaceNormal(const Triangle32& triangle,
                         const std::vector<Vec3s>& points) {
   const Vec3s pointA = points[triangle[0]];
   const Vec3s pointB = points[triangle[1]];
@@ -564,7 +564,7 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
   BOOST_CHECK((node.contact_active_faces & FaceOrientation::WEST) ==
               int(FaceOrientation::WEST));
 
-  Convex<Triangle> convex1, convex2;
+  Convex<Triangle32> convex1, convex2;
   int convex1_active_faces, convex2_active_faces;
   details::buildConvexTriangles(node, hfield, convex1, convex1_active_faces,
                                 convex2, convex2_active_faces);
@@ -574,7 +574,7 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
     const std::vector<Vec3s>& points = *(convex1.points);
     // BOTTOM
     {
-      const Triangle& triangle = (*(convex1.polygons))[0];
+      const Triangle32& triangle = (*(convex1.polygons))[0];
 
       BOOST_CHECK(
           computeFaceNormal(triangle, points).isApprox(-Vec3s::UnitZ()));
@@ -582,15 +582,15 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
 
     // TOP
     {
-      const Triangle& triangle = (*(convex1.polygons))[1];
+      const Triangle32& triangle = (*(convex1.polygons))[1];
 
       BOOST_CHECK(computeFaceNormal(triangle, points).isApprox(Vec3s::UnitZ()));
     }
 
     // WEST sides
     {
-      const Triangle& triangle1 = (*(convex1.polygons))[2];
-      const Triangle& triangle2 = (*(convex1.polygons))[3];
+      const Triangle32& triangle1 = (*(convex1.polygons))[2];
+      const Triangle32& triangle2 = (*(convex1.polygons))[3];
 
       BOOST_CHECK(
           computeFaceNormal(triangle1, points).isApprox(-Vec3s::UnitX()));
@@ -602,8 +602,8 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
     {
       const Vec3s south_east_normal = Vec3s(1., -1., 0).normalized();
 
-      const Triangle& triangle1 = (*(convex1.polygons))[4];
-      const Triangle& triangle2 = (*(convex1.polygons))[5];
+      const Triangle32& triangle1 = (*(convex1.polygons))[4];
+      const Triangle32& triangle2 = (*(convex1.polygons))[5];
 
       BOOST_CHECK(
           computeFaceNormal(triangle1, points).isApprox(south_east_normal));
@@ -613,8 +613,8 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
 
     // NORTH sides
     {
-      const Triangle& triangle1 = (*(convex1.polygons))[6];
-      const Triangle& triangle2 = (*(convex1.polygons))[7];
+      const Triangle32& triangle1 = (*(convex1.polygons))[6];
+      const Triangle32& triangle2 = (*(convex1.polygons))[7];
 
       std::cout << "computeFaceNormal(triangle1,points): "
                 << computeFaceNormal(triangle1, points).transpose()
@@ -632,7 +632,7 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
 
     // BOTTOM
     {
-      const Triangle& triangle = (*(convex2.polygons))[0];
+      const Triangle32& triangle = (*(convex2.polygons))[0];
 
       BOOST_CHECK(
           computeFaceNormal(triangle, points).isApprox(-Vec3s::UnitZ()));
@@ -640,15 +640,15 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
 
     // TOP
     {
-      const Triangle& triangle = (*(convex2.polygons))[1];
+      const Triangle32& triangle = (*(convex2.polygons))[1];
 
       BOOST_CHECK(computeFaceNormal(triangle, points).isApprox(Vec3s::UnitZ()));
     }
 
     // SOUTH sides
     {
-      const Triangle& triangle1 = (*(convex2.polygons))[2];
-      const Triangle& triangle2 = (*(convex2.polygons))[3];
+      const Triangle32& triangle1 = (*(convex2.polygons))[2];
+      const Triangle32& triangle2 = (*(convex2.polygons))[3];
 
       BOOST_CHECK(
           computeFaceNormal(triangle1, points).isApprox(-Vec3s::UnitY()));
@@ -660,8 +660,8 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
     {
       const Vec3s north_west_normal = Vec3s(-1., 1., 0).normalized();
 
-      const Triangle& triangle1 = (*(convex2.polygons))[4];
-      const Triangle& triangle2 = (*(convex2.polygons))[5];
+      const Triangle32& triangle1 = (*(convex2.polygons))[4];
+      const Triangle32& triangle2 = (*(convex2.polygons))[5];
 
       BOOST_CHECK(
           computeFaceNormal(triangle1, points).isApprox(north_west_normal));
@@ -671,8 +671,8 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
 
     // EAST sides
     {
-      const Triangle& triangle1 = (*(convex2.polygons))[6];
-      const Triangle& triangle2 = (*(convex2.polygons))[7];
+      const Triangle32& triangle1 = (*(convex2.polygons))[6];
+      const Triangle32& triangle2 = (*(convex2.polygons))[7];
 
       BOOST_CHECK(
           computeFaceNormal(triangle1, points).isApprox(Vec3s::UnitX()));

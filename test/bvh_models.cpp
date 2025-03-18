@@ -146,7 +146,7 @@ void testBVHModelTriangles() {
   Scalar b = box.halfSide[1];
   Scalar c = box.halfSide[2];
   std::vector<Vec3s> points(8);
-  std::vector<Triangle> tri_indices(12);
+  std::vector<Triangle32> tri_indices(12);
   points[0] << a, -b, c;
   points[1] << a, b, c;
   points[2] << -a, b, c;
@@ -236,7 +236,7 @@ void testBVHModelSubModel() {
   Scalar b = box.halfSide[1];
   Scalar c = box.halfSide[2];
   std::vector<Vec3s> points(8);
-  std::vector<Triangle> tri_indices(12);
+  std::vector<Triangle32> tri_indices(12);
   points[0] << a, -b, c;
   points[1] << a, b, c;
   points[2] << -a, b, c;

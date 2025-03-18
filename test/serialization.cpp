@@ -327,7 +327,7 @@ void checkEqualStdVector(const std::vector<T>& v1, const std::vector<T>& v2) {
 
 BOOST_AUTO_TEST_CASE(test_BVHModel) {
   std::vector<Vec3s> p1, p2;
-  std::vector<Triangle> t1, t2;
+  std::vector<Triangle32> t1, t2;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
 
   loadOBJFile((path / "env.obj").string().c_str(), p1, t1);
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(test_BVHModel) {
 #ifdef COAL_HAS_QHULL
 BOOST_AUTO_TEST_CASE(test_Convex) {
   std::vector<Vec3s> p1;
-  std::vector<Triangle> t1;
+  std::vector<Triangle32> t1;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
 
   loadOBJFile((path / "env.obj").string().c_str(), p1, t1);
@@ -381,11 +381,12 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
 
   m1.buildConvexHull(true);
 
-  Convex<Triangle>& convex = static_cast<Convex<Triangle>&>(*m1.convex.get());
+  Convex<Triangle32>& convex =
+      static_cast<Convex<Triangle32>&>(*m1.convex.get());
 
   // Test Convex
   {
-    Convex<Triangle> convex_copy;
+    Convex<Triangle32> convex_copy;
     test_serialization(convex, convex_copy);
   }
 
@@ -397,21 +398,22 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
     // const boost::filesystem::path txt_filename = tmp_dir / "file.txt";
     // const boost::filesystem::path bin_filename = tmp_dir / "file.bin";
     const boost::filesystem::path xml_filename = tmp_dir / "file.xml";
-    Convex<Triangle> convex_copy;
+    Convex<Triangle32> convex_copy;
 
     std::shared_ptr<CollisionGeometry> ptr =
-        std::make_shared<Convex<Triangle>>(convex);
+        std::make_shared<Convex<Triangle32>>(convex);
     BOOST_CHECK(ptr.get());
     const std::string filename = xml_filename.string();
     const std::string tag_name = "CollisionGeometry";
     coal::serialization::saveToXML(ptr, filename, tag_name);
-    BOOST_CHECK(check(*reinterpret_cast<Convex<Triangle>*>(ptr.get()), convex));
+    BOOST_CHECK(
+        check(*reinterpret_cast<Convex<Triangle32>*>(ptr.get()), convex));
 
     std::shared_ptr<CollisionGeometry> other_ptr = nullptr;
     BOOST_CHECK(!other_ptr.get());
     coal::serialization::loadFromXML(other_ptr, filename, tag_name);
     BOOST_CHECK(
-        check(convex, *reinterpret_cast<Convex<Triangle>*>(other_ptr.get())));
+        check(convex, *reinterpret_cast<Convex<Triangle32>*>(other_ptr.get())));
   }
 }
 #endif
@@ -518,7 +520,7 @@ BOOST_AUTO_TEST_CASE(test_shapes) {
     for (size_t i = 0; i < num_points; i++) {
       points->emplace_back(Vec3s::Random());
     }
-    using Convex = Convex<Triangle>;
+    using Convex = Convex<Triangle32>;
     std::unique_ptr<Convex> convex =
         std::unique_ptr<Convex>(static_cast<Convex*>(ConvexBase::convexHull(
             points, static_cast<unsigned int>(points->size()), true)));
@@ -575,7 +577,7 @@ BOOST_AUTO_TEST_CASE(test_memory_footprint) {
   BOOST_CHECK(sizeof(Sphere) == computeMemoryFootprint(sphere));
 
   std::vector<Vec3s> p1;
-  std::vector<Triangle> t1;
+  std::vector<Triangle32> t1;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
 
   loadOBJFile((path / "env.obj").string().c_str(), p1, t1);

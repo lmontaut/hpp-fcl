@@ -52,7 +52,7 @@ void generateBVHModel(BVHModel<BV>& model, const Box& shape,
   Scalar b = shape.halfSide[1];
   Scalar c = shape.halfSide[2];
   std::vector<Vec3s> points(8);
-  std::vector<Triangle> tri_indices(12);
+  std::vector<Triangle32> tri_indices(12);
   points[0] = Vec3s(a, -b, c);
   points[1] = Vec3s(a, b, c);
   points[2] = Vec3s(-a, b, c);
@@ -92,7 +92,7 @@ void generateBVHModel(BVHModel<BV>& model, const Sphere& shape,
                       const Transform3s& pose, unsigned int seg,
                       unsigned int ring) {
   std::vector<Vec3s> points;
-  std::vector<Triangle> tri_indices;
+  std::vector<Triangle32> tri_indices;
 
   Scalar r = shape.radius;
   Scalar phi, phid;
@@ -122,8 +122,8 @@ void generateBVHModel(BVHModel<BV>& model, const Sphere& shape,
       b = (j == seg - 1) ? (i * seg) : (i * seg + j + 1);
       c = (i + 1) * seg + j;
       d = (j == seg - 1) ? ((i + 1) * seg) : ((i + 1) * seg + j + 1);
-      tri_indices.push_back(Triangle(a, c, b));
-      tri_indices.push_back(Triangle(b, c, d));
+      tri_indices.push_back(Triangle32(a, c, b));
+      tri_indices.push_back(Triangle32(b, c, d));
     }
   }
 
@@ -131,11 +131,11 @@ void generateBVHModel(BVHModel<BV>& model, const Sphere& shape,
     unsigned int a, b;
     a = j;
     b = (j == seg - 1) ? 0 : (j + 1);
-    tri_indices.push_back(Triangle(ring * seg, a, b));
+    tri_indices.push_back(Triangle32(ring * seg, a, b));
 
     a = (ring - 1) * seg + j;
     b = (j == seg - 1) ? (ring - 1) * seg : ((ring - 1) * seg + j + 1);
-    tri_indices.push_back(Triangle(a, ring * seg + 1, b));
+    tri_indices.push_back(Triangle32(a, ring * seg + 1, b));
   }
 
   for (unsigned int i = 0; i < points.size(); ++i) {
@@ -173,7 +173,7 @@ void generateBVHModel(BVHModel<BV>& model, const Cylinder& shape,
                       const Transform3s& pose, unsigned int tot,
                       unsigned int h_num) {
   std::vector<Vec3s> points;
-  std::vector<Triangle> tri_indices;
+  std::vector<Triangle32> tri_indices;
 
   Scalar r = shape.radius;
   Scalar h = shape.halfLength;
@@ -204,13 +204,14 @@ void generateBVHModel(BVHModel<BV>& model, const Cylinder& shape,
   points.push_back(Vec3s(0, 0, -h));
 
   for (unsigned int i = 0; i < tot; ++i) {
-    Triangle tmp((h_num + 1) * tot, i, ((i == tot - 1) ? 0 : (i + 1)));
+    Triangle32 tmp((h_num + 1) * tot, i, ((i == tot - 1) ? 0 : (i + 1)));
     tri_indices.push_back(tmp);
   }
 
   for (unsigned int i = 0; i < tot; ++i) {
-    Triangle tmp((h_num + 1) * tot + 1,
-                 h_num * tot + ((i == tot - 1) ? 0 : (i + 1)), h_num * tot + i);
+    Triangle32 tmp((h_num + 1) * tot + 1,
+                   h_num * tot + ((i == tot - 1) ? 0 : (i + 1)),
+                   h_num * tot + i);
     tri_indices.push_back(tmp);
   }
 
@@ -223,8 +224,8 @@ void generateBVHModel(BVHModel<BV>& model, const Cylinder& shape,
       d = (j == tot - 1) ? tot : (j + 1 + tot);
 
       unsigned int start = i * tot;
-      tri_indices.push_back(Triangle(start + b, start + a, start + c));
-      tri_indices.push_back(Triangle(start + b, start + c, start + d));
+      tri_indices.push_back(Triangle32(start + b, start + a, start + c));
+      tri_indices.push_back(Triangle32(start + b, start + c, start + d));
     }
   }
 
@@ -266,7 +267,7 @@ void generateBVHModel(BVHModel<BV>& model, const Cone& shape,
                       const Transform3s& pose, unsigned int tot,
                       unsigned int h_num) {
   std::vector<Vec3s> points;
-  std::vector<Triangle> tri_indices;
+  std::vector<Triangle32> tri_indices;
 
   Scalar r = shape.radius;
   Scalar h = shape.halfLength;
@@ -295,14 +296,14 @@ void generateBVHModel(BVHModel<BV>& model, const Cone& shape,
   points.push_back(Vec3s(0, 0, -h));
 
   for (unsigned int i = 0; i < tot; ++i) {
-    Triangle tmp(h_num * tot, i, (i == tot - 1) ? 0 : (i + 1));
+    Triangle32 tmp(h_num * tot, i, (i == tot - 1) ? 0 : (i + 1));
     tri_indices.push_back(tmp);
   }
 
   for (unsigned int i = 0; i < tot; ++i) {
-    Triangle tmp(h_num * tot + 1,
-                 (h_num - 1) * tot + ((i == tot - 1) ? 0 : (i + 1)),
-                 (h_num - 1) * tot + i);
+    Triangle32 tmp(h_num * tot + 1,
+                   (h_num - 1) * tot + ((i == tot - 1) ? 0 : (i + 1)),
+                   (h_num - 1) * tot + i);
     tri_indices.push_back(tmp);
   }
 
@@ -315,8 +316,8 @@ void generateBVHModel(BVHModel<BV>& model, const Cone& shape,
       d = (j == tot - 1) ? tot : (j + 1 + tot);
 
       unsigned int start = i * tot;
-      tri_indices.push_back(Triangle(start + b, start + a, start + c));
-      tri_indices.push_back(Triangle(start + b, start + c, start + d));
+      tri_indices.push_back(Triangle32(start + b, start + a, start + c));
+      tri_indices.push_back(Triangle32(start + b, start + c, start + d));
     }
   }
 

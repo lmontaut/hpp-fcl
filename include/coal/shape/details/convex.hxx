@@ -269,9 +269,9 @@ void Convex<PolygonT>::fillNeighbors() {
     }
   }
 
-  nneighbors_.reset(new std::vector<unsigned int>(c_nneighbors));
+  nneighbors_.reset(new std::vector<Neighbors::index_type>(c_nneighbors));
 
-  unsigned int* p_nneighbors = nneighbors_->data();
+  Neighbors::index_type* p_nneighbors = nneighbors_->data();
   std::vector<Neighbors>& neighbors_ = *neighbors;
   for (unsigned int i = 0; i < num_points; ++i) {
     Neighbors& n = neighbors_[i];

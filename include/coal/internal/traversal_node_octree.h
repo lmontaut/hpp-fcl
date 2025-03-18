@@ -385,7 +385,7 @@ class COAL_DLLAPI OcTreeSolver {
 
         size_t primitive_id =
             static_cast<size_t>(tree2->getBV(root2).primitiveId());
-        const Triangle& tri_id = (*(tree2->tri_indices))[primitive_id];
+        const Triangle32& tri_id = (*(tree2->tri_indices))[primitive_id];
         const TriangleP tri((*(tree2->vertices))[tri_id[0]],
                             (*(tree2->vertices))[tri_id[1]],
                             (*(tree2->vertices))[tri_id[2]]);
@@ -502,7 +502,7 @@ class COAL_DLLAPI OcTreeSolver {
       }
 
       size_t primitive_id = static_cast<size_t>(bvn2.primitiveId());
-      const Triangle& tri_id = (*(tree2->tri_indices))[primitive_id];
+      const Triangle32& tri_id = (*(tree2->tri_indices))[primitive_id];
       const TriangleP tri((*(tree2->vertices))[tri_id[0]],
                           (*(tree2->vertices))[tri_id[1]],
                           (*(tree2->vertices))[tri_id[2]]);
@@ -606,7 +606,7 @@ class COAL_DLLAPI OcTreeSolver {
         box.computeLocalAABB();
       }
 
-      typedef Convex<Triangle> ConvexTriangle;
+      typedef Convex<Triangle32> ConvexTriangle;
       ConvexTriangle convex1, convex2;
       int convex1_active_faces, convex2_active_faces;
       details::buildConvexTriangles(bvn2, *tree2, convex1, convex1_active_faces,
@@ -620,7 +620,7 @@ class COAL_DLLAPI OcTreeSolver {
       Scalar distance;
       bool hfield_witness_is_on_bin_side;
 
-      bool collision = details::shapeDistance<Triangle, Box, 0>(
+      bool collision = details::shapeDistance<Triangle32, Box, 0>(
           solver, *crequest, convex1, convex1_active_faces, convex2,
           convex2_active_faces, tf2, box, box_tf, distance, c2, c1, normal,
           normal_top, hfield_witness_is_on_bin_side);
@@ -726,7 +726,7 @@ class COAL_DLLAPI OcTreeSolver {
         box.computeLocalAABB();
       }
 
-      typedef Convex<Triangle> ConvexTriangle;
+      typedef Convex<Triangle32> ConvexTriangle;
       ConvexTriangle convex1, convex2;
       int convex1_active_faces, convex2_active_faces;
       details::buildConvexTriangles(bvn1, *tree1, convex1, convex1_active_faces,
@@ -740,7 +740,7 @@ class COAL_DLLAPI OcTreeSolver {
       Scalar distance;
       bool hfield_witness_is_on_bin_side;
 
-      bool collision = details::shapeDistance<Triangle, Box, 0>(
+      bool collision = details::shapeDistance<Triangle32, Box, 0>(
           solver, *crequest, convex1, convex1_active_faces, convex2,
           convex2_active_faces, tf1, box, box_tf, distance, c1, c2, normal,
           normal_top, hfield_witness_is_on_bin_side);

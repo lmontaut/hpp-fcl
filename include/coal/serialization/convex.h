@@ -148,8 +148,10 @@ void serialize(Archive& ar, coal::Convex<PolygonT>& convex_,
 }  // namespace serialization
 }  // namespace boost
 
-COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Triangle>)
-COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Quadrilateral>)
+COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Triangle16>)
+COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Triangle32>)
+COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Quadrilateral16>)
+COAL_SERIALIZATION_DECLARE_EXPORT(coal::Convex<coal::Quadrilateral32>)
 
 namespace coal {
 
