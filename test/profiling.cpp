@@ -45,7 +45,7 @@ bool supportedPair(const CollisionGeometry* o1, const CollisionGeometry* o2) {
 template <typename BV /*, SplitMethodType split_method*/>
 CollisionGeometryPtr_t objToGeom(const std::string& filename) {
   std::vector<Vec3s> pt;
-  std::vector<Triangle> tri;
+  std::vector<Triangle32> tri;
   loadOBJFile(filename.c_str(), pt, tri);
 
   BVHModel<BV>* model(new BVHModel<BV>());

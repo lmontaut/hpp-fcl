@@ -57,7 +57,7 @@ using coal::OBBRSS;
 using coal::Scalar;
 using coal::shared_ptr;
 using coal::Transform3s;
-using coal::Triangle;
+using coal::Triangle32;
 using coal::Vec3s;
 
 bool testDistanceLowerBound(const Transform3s& tf,
@@ -114,7 +114,7 @@ bool testDistance(const Transform3s& tf, const CollisionGeometryPtr_t& m1,
 
 BOOST_AUTO_TEST_CASE(mesh_mesh) {
   std::vector<Vec3s> p1, p2;
-  std::vector<Triangle> t1, t2;
+  std::vector<Triangle32> t1, t2;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
 
   loadOBJFile((path / "env.obj").string().c_str(), p1, t1);
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE(sphere_sphere) {
 
 BOOST_AUTO_TEST_CASE(box_mesh) {
   std::vector<Vec3s> p1;
-  std::vector<Triangle> t1;
+  std::vector<Triangle32> t1;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
 
   loadOBJFile((path / "env.obj").string().c_str(), p1, t1);

@@ -56,7 +56,8 @@ namespace utf = boost::unit_test::framework;
 using namespace coal;
 
 void makeMesh(const std::vector<Vec3s>& vertices,
-              const std::vector<Triangle>& triangles, BVHModel<OBBRSS>& model) {
+              const std::vector<Triangle32>& triangles,
+              BVHModel<OBBRSS>& model) {
   coal::SplitMethodType split_method(coal::SPLIT_METHOD_MEAN);
   model.bv_splitter.reset(new BVSplitter<OBBRSS>(split_method));
   model.bv_splitter.reset(new BVSplitter<OBBRSS>(split_method));
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(octree_mesh) {
                         "", "", "(", ")");
   Scalar resolution(10.);
   std::vector<Vec3s> pRob, pEnv;
-  std::vector<Triangle> tRob, tEnv;
+  std::vector<Triangle32> tRob, tEnv;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
   loadOBJFile((path / "rob.obj").string().c_str(), pRob, tRob);
   loadOBJFile((path / "env.obj").string().c_str(), pEnv, tEnv);
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(octree_height_field) {
                         "", "", "(", ")");
   Scalar resolution(10.);
   std::vector<Vec3s> pEnv;
-  std::vector<Triangle> tEnv;
+  std::vector<Triangle32> tEnv;
   boost::filesystem::path path(TEST_RESOURCES_DIR);
   loadOBJFile((path / "env.obj").string().c_str(), pEnv, tEnv);
 

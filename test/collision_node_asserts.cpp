@@ -19,7 +19,7 @@ std::vector<Vec3s> dirs{Vec3s::UnitZ(),  -Vec3s::UnitZ(), Vec3s::UnitY(),
 BOOST_AUTO_TEST_CASE(TestTriangles) {
   std::vector<Vec3s> triVertices{Vec3s(1, 0, 0), Vec3s(1, 1, 0),
                                  Vec3s(0, 1, 0)};
-  std::vector<Triangle> triangle{{0, 1, 2}};
+  std::vector<Triangle32> triangle{{0, 1, 2}};
 
   BVHModel<OBBRSS> tri1{};
   BVHModel<OBBRSS> tri2{};

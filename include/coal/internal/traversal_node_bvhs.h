@@ -190,8 +190,8 @@ class MeshCollisionTraversalNode : public BVHCollisionTraversalNode<BV> {
     int primitive_id1 = node1.primitiveId();
     int primitive_id2 = node2.primitiveId();
 
-    const Triangle& tri_id1 = tri_indices1[primitive_id1];
-    const Triangle& tri_id2 = tri_indices2[primitive_id2];
+    const Triangle32& tri_id1 = tri_indices1[primitive_id1];
+    const Triangle32& tri_id2 = tri_indices2[primitive_id2];
 
     const Vec3s& P1 = vertices1[tri_id1[0]];
     const Vec3s& P2 = vertices1[tri_id1[1]];
@@ -234,8 +234,8 @@ class MeshCollisionTraversalNode : public BVHCollisionTraversalNode<BV> {
   Vec3s* vertices1;
   Vec3s* vertices2;
 
-  Triangle* tri_indices1;
-  Triangle* tri_indices2;
+  Triangle32* tri_indices1;
+  Triangle32* tri_indices2;
 
   details::RelativeTransformation<!bool(RTIsIdentity)> RT;
 };
@@ -438,8 +438,8 @@ class MeshDistanceTraversalNode : public BVHDistanceTraversalNode<BV> {
     int primitive_id1 = node1.primitiveId();
     int primitive_id2 = node2.primitiveId();
 
-    const Triangle& tri_id1 = tri_indices1[primitive_id1];
-    const Triangle& tri_id2 = tri_indices2[primitive_id2];
+    const Triangle32& tri_id1 = tri_indices1[primitive_id1];
+    const Triangle32& tri_id2 = tri_indices2[primitive_id2];
 
     const Vec3s& t11 = vertices1[tri_id1[0]];
     const Vec3s& t12 = vertices1[tri_id1[1]];
@@ -476,8 +476,8 @@ class MeshDistanceTraversalNode : public BVHDistanceTraversalNode<BV> {
   Vec3s* vertices1;
   Vec3s* vertices2;
 
-  Triangle* tri_indices1;
-  Triangle* tri_indices2;
+  Triangle32* tri_indices1;
+  Triangle32* tri_indices2;
 
   /// @brief relative and absolute error, default value is 0.01 for both terms
   Scalar rel_err;
@@ -488,8 +488,8 @@ class MeshDistanceTraversalNode : public BVHDistanceTraversalNode<BV> {
  private:
   void preprocessOrientedNode() {
     const int init_tri_id1 = 0, init_tri_id2 = 0;
-    const Triangle& init_tri1 = tri_indices1[init_tri_id1];
-    const Triangle& init_tri2 = tri_indices2[init_tri_id2];
+    const Triangle32& init_tri1 = tri_indices1[init_tri_id1];
+    const Triangle32& init_tri2 = tri_indices2[init_tri_id2];
 
     Vec3s init_tri1_points[3];
     Vec3s init_tri2_points[3];

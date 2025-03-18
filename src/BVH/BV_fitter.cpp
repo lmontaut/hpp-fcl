@@ -647,11 +647,11 @@ AABB BVFitter<AABB>::fit(unsigned int* primitive_indices,
 
   if (type == BVH_MODEL_TRIANGLES)  /// The primitive is triangle
   {
-    Triangle t0 = tri_indices[primitive_indices[0]];
+    Triangle32 t0 = tri_indices[primitive_indices[0]];
     bv = AABB(vertices[t0[0]]);
 
     for (unsigned int i = 0; i < num_primitives; ++i) {
-      Triangle t = tri_indices[primitive_indices[i]];
+      Triangle32 t = tri_indices[primitive_indices[i]];
       bv += vertices[t[0]];
       bv += vertices[t[1]];
       bv += vertices[t[2]];

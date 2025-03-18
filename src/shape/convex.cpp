@@ -21,7 +21,9 @@ namespace coal {
 
 // Reorders `tri` such that the dot product between the normal of triangle and
 // the vector `triangle barycentre - convex_tri.center` is positive.
-void reorderTriangle(const Convex<Triangle>* convex_tri, Triangle& tri) {
+template <typename Integer>
+void reorderTriangle(const Convex<TriangleTpl<Integer>>* convex_tri,
+                     TriangleTpl<Integer>& tri) {
   Vec3s p0, p1, p2;
   p0 = (*(convex_tri->points))[tri[0]];
   p1 = (*(convex_tri->points))[tri[1]];
@@ -82,7 +84,7 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
     COAL_THROW_PRETTY("Qhull failed", std::logic_error);
   }
 
-  typedef std::size_t index_type;
+  typedef Neighbors::index_type index_type;
   typedef int size_type;
 
   // Map index in pts to index in vertices. -1 means not used
@@ -103,10 +105,10 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
   }
   assert(i_vertex == nvertex);
 
-  Convex<Triangle>* convex_tri(NULL);
+  Convex<TriangleTpl<index_type>>* convex_tri(NULL);
   ConvexBase* convex(NULL);
   if (keepTriangles)
-    convex = convex_tri = new Convex<Triangle>();
+    convex = convex_tri = new Convex<TriangleTpl<index_type>>();
   else
     convex = new ConvexBase;
   convex->initialize(vertices, static_cast<unsigned int>(nvertex));
@@ -117,12 +119,14 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
   if (keepTriangles) {
     convex_tri->num_polygons = static_cast<unsigned int>(qh.facetCount());
     convex_tri->polygons.reset(
-        new std::vector<Triangle>(convex_tri->num_polygons));
+        new std::vector<TriangleTpl<index_type>>(convex_tri->num_polygons));
     convex_tri->computeCenter();
   }
 
   unsigned int c_nneighbors = 0;
   unsigned int i_polygon = 0;
+
+  // TODO: make sure number of vertices < size of Integer
 
   // Compute the neighbors from the edges of the faces.
   for (QhullFacet facet = qh.beginFacet(); facet != qh.endFacet();
@@ -130,22 +134,22 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
     if (facet.isSimplicial()) {
       // In 3D, simplicial faces have 3 vertices. We mark them as neighbors.
       QhullVertexSet f_vertices(facet.vertices());
-      size_t n = static_cast<size_t>(f_vertices.count());
+      index_type n = static_cast<index_type>(f_vertices.count());
       assert(n == 3);
-      Triangle tri(
-          static_cast<size_t>(
+      TriangleTpl<index_type> tri(
+          static_cast<index_type>(
               pts_to_vertices[static_cast<size_t>(f_vertices[0].point().id())]),
-          static_cast<size_t>(
+          static_cast<index_type>(
               pts_to_vertices[static_cast<size_t>(f_vertices[1].point().id())]),
-          static_cast<size_t>(pts_to_vertices[static_cast<size_t>(
+          static_cast<index_type>(pts_to_vertices[static_cast<size_t>(
               f_vertices[2].point().id())]));
       if (keepTriangles) {
         reorderTriangle(convex_tri, tri);
         (*convex_tri->polygons)[i_polygon++] = tri;
       }
-      for (size_t j = 0; j < n; ++j) {
-        size_t i = (j == 0) ? n - 1 : j - 1;
-        size_t k = (j == n - 1) ? 0 : j + 1;
+      for (index_type j = 0; j < static_cast<index_type>(n); ++j) {
+        index_type i = (j == 0) ? n - 1 : j - 1;
+        index_type k = (j == n - 1) ? 0 : j + 1;
         // Update neighbors of pj;
         if (nneighbors[tri[j]].insert(tri[i]).second) c_nneighbors++;
         if (nneighbors[tri[j]].insert(tri[k]).second) c_nneighbors++;
@@ -169,11 +173,11 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
                 f_ridges[j].vertices()[1].point().id())];
         // Update neighbors of pi and pj;
         if (nneighbors[static_cast<size_t>(pj)]
-                .insert(static_cast<size_t>(pi))
+                .insert(static_cast<index_type>(pi))
                 .second)
           c_nneighbors++;
         if (nneighbors[static_cast<size_t>(pi)]
-                .insert(static_cast<size_t>(pj))
+                .insert(static_cast<index_type>(pj))
                 .second)
           c_nneighbors++;
       }
@@ -186,8 +190,8 @@ ConvexBase* ConvexBase::convexHull(const Vec3s* pts, unsigned int num_points,
   convex->buildDoubleDescriptionFromQHullResult(qh);
 
   // Fill the neighbor attribute of the returned object.
-  convex->nneighbors_.reset(new std::vector<unsigned int>(c_nneighbors));
-  unsigned int* p_nneighbors = convex->nneighbors_->data();
+  convex->nneighbors_.reset(new std::vector<index_type>(c_nneighbors));
+  index_type* p_nneighbors = convex->nneighbors_->data();
   std::vector<Neighbors>& neighbors_ = *(convex->neighbors);
   for (size_t i = 0; i < static_cast<size_t>(nvertex); ++i) {
     Neighbors& n = neighbors_[i];

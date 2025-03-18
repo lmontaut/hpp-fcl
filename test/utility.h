@@ -130,10 +130,10 @@ extern const Vec3s UnitZ;
 
 /// @brief Load an obj mesh file
 void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
-                 std::vector<Triangle>& triangles);
+                 std::vector<Triangle32>& triangles);
 
 void saveOBJFile(const char* filename, std::vector<Vec3s>& points,
-                 std::vector<Triangle>& triangles);
+                 std::vector<Triangle32>& triangles);
 
 #ifdef COAL_HAS_OCTOMAP
 coal::OcTree loadOctreeFile(const std::string& filename,
@@ -199,14 +199,14 @@ void generateEnvironmentsMesh(std::vector<CollisionObject*>& env,
 /// @brief Constructs a box with halfsides (l, w, d), centered around 0.
 /// The box is 2*l wide on the x-axis, 2*w wide on the y-axis and 2*d wide on
 /// the z-axis.
-Convex<Quadrilateral> buildBox(Scalar l, Scalar w, Scalar d);
+Convex<Quadrilateral32> buildBox(Scalar l, Scalar w, Scalar d);
 
 /// @brief We give an ellipsoid as input. The output is a 20 faces polytope
 /// which vertices belong to the original ellipsoid surface. The procedure is
 /// simple: we construct a icosahedron, see
 /// https://sinestesia.co/blog/tutorials/python-icospheres/ . We then apply an
 /// ellipsoid tranformation to each vertex of the icosahedron.
-Convex<Triangle> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid);
+Convex<Triangle32> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid);
 
 Box makeRandomBox(Scalar min_size, Scalar max_size);
 
@@ -223,7 +223,7 @@ Cone makeRandomCone(std::array<Scalar, 2> min_size,
 Cylinder makeRandomCylinder(std::array<Scalar, 2> min_size,
                             std::array<Scalar, 2> max_size);
 
-Convex<Triangle> makeRandomConvex(Scalar min_size, Scalar max_size);
+Convex<Triangle32> makeRandomConvex(Scalar min_size, Scalar max_size);
 
 Plane makeRandomPlane(Scalar min_size, Scalar max_size);
 

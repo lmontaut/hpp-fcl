@@ -80,7 +80,6 @@ namespace bp = boost::python;
 using boost::noncopyable;
 
 typedef std::vector<Vec3s> Vec3ss;
-typedef std::vector<Triangle> Triangles;
 
 struct BVHModelBaseWrapper {
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 3, Eigen::RowMajor> RowMatrixX3;
@@ -99,7 +98,7 @@ struct BVHModelBaseWrapper {
       return MapRowMatrixX3(NULL, bvh.num_vertices, 3);
   }
 
-  static Triangle tri_indices(const BVHModelBase& bvh, unsigned int i) {
+  static Triangle32 tri_indices(const BVHModelBase& bvh, unsigned int i) {
     if (i >= bvh.num_tris) throw std::out_of_range("index is out of range");
     return (*bvh.tri_indices)[i];
   }
@@ -230,6 +229,8 @@ struct ConvexBaseWrapper {
 template <typename PolygonT>
 struct ConvexWrapper {
   typedef Convex<PolygonT> Convex_t;
+  typedef typename PolygonT::index_type index_type;
+  typedef TriangleTpl<index_type> TriangleType;
 
   static PolygonT polygons(const Convex_t& convex, unsigned int i) {
     if (i >= convex.num_polygons)
@@ -237,16 +238,16 @@ struct ConvexWrapper {
     return (*convex.polygons)[i];
   }
 
-  static shared_ptr<Convex_t> constructor(const Vec3ss& _points,
-                                          const Triangles& _tris) {
+  static shared_ptr<Convex_t> constructor(
+      const Vec3ss& _points, const std::vector<TriangleType>& _tris) {
     std::shared_ptr<std::vector<Vec3s>> points(
         new std::vector<Vec3s>(_points.size()));
     std::vector<Vec3s>& points_ = *points;
     for (std::size_t i = 0; i < _points.size(); ++i) points_[i] = _points[i];
 
-    std::shared_ptr<std::vector<Triangle>> tris(
-        new std::vector<Triangle>(_tris.size()));
-    std::vector<Triangle>& tris_ = *tris;
+    std::shared_ptr<std::vector<TriangleType>> tris(
+        new std::vector<TriangleType>(_tris.size()));
+    std::vector<TriangleType>& tris_ = *tris;
     for (std::size_t i = 0; i < _tris.size(); ++i) tris_[i] = _tris[i];
     return shared_ptr<Convex_t>(new Convex_t(points,
                                              (unsigned int)_points.size(), tris,
@@ -369,17 +370,36 @@ void exposeShapes() {
            doxygen::member_func_doc(&ConvexBase::clone),
            return_value_policy<manage_new_object>());
 
-  class_<Convex<Triangle>, bases<ConvexBase>, shared_ptr<Convex<Triangle>>,
-         noncopyable>("Convex", doxygen::class_doc<Convex<Triangle>>(), no_init)
-      .def("__init__", make_constructor(&ConvexWrapper<Triangle>::constructor))
-      .def(dv::init<Convex<Triangle>>())
-      .def(dv::init<Convex<Triangle>, const Convex<Triangle>&>())
-      .DEF_RO_CLASS_ATTRIB(Convex<Triangle>, num_polygons)
-      .def("polygons", &ConvexWrapper<Triangle>::polygons)
-      .def_pickle(PickleObject<Convex<Triangle>>())
-      .def(SerializableVisitor<Convex<Triangle>>())
+  class_<Convex<Triangle32>, bases<ConvexBase>, shared_ptr<Convex<Triangle32>>,
+         noncopyable>("Convex32", doxygen::class_doc<Convex<Triangle32>>(),
+                      no_init)
+      .def("__init__",
+           make_constructor(&ConvexWrapper<Triangle32>::constructor))
+      .def(dv::init<Convex<Triangle32>>())
+      .def(dv::init<Convex<Triangle32>, const Convex<Triangle32>&>())
+      .DEF_RO_CLASS_ATTRIB(Convex<Triangle32>, num_polygons)
+      .def("polygons", &ConvexWrapper<Triangle32>::polygons)
+      .def_pickle(PickleObject<Convex<Triangle32>>())
+      .def(SerializableVisitor<Convex<Triangle32>>())
 #if EIGENPY_VERSION_AT_LEAST(3, 8, 0)
-      .def(eigenpy::IdVisitor<Convex<Triangle>>())
+      .def(eigenpy::IdVisitor<Convex<Triangle32>>())
+#endif
+      ;
+  bp::scope().attr("Convex") = bp::scope().attr("Convex32");
+
+  class_<Convex<Triangle16>, bases<ConvexBase>, shared_ptr<Convex<Triangle16>>,
+         noncopyable>("Convex16", doxygen::class_doc<Convex<Triangle16>>(),
+                      no_init)
+      .def("__init__",
+           make_constructor(&ConvexWrapper<Triangle16>::constructor))
+      .def(dv::init<Convex<Triangle16>>())
+      .def(dv::init<Convex<Triangle16>, const Convex<Triangle16>&>())
+      .DEF_RO_CLASS_ATTRIB(Convex<Triangle16>, num_polygons)
+      .def("polygons", &ConvexWrapper<Triangle16>::polygons)
+      .def_pickle(PickleObject<Convex<Triangle16>>())
+      .def(SerializableVisitor<Convex<Triangle16>>())
+#if EIGENPY_VERSION_AT_LEAST(3, 8, 0)
+      .def(eigenpy::IdVisitor<Convex<Triangle16>>())
 #endif
       ;
 
@@ -723,8 +743,8 @@ void exposeCollisionGeometries() {
       .def(dv::member_func("addTriangle", &BVHModelBase::addTriangle))
       .def(dv::member_func("addTriangles", &BVHModelBase::addTriangles))
       .def(dv::member_func<int (BVHModelBase::*)(
-               const Vec3ss&, const Triangles&)>("addSubModel",
-                                                 &BVHModelBase::addSubModel))
+               const Vec3ss&, const std::vector<Triangle32>&)>(
+          "addSubModel", &BVHModelBase::addSubModel))
       .def(dv::member_func<int (BVHModelBase::*)(const Vec3ss&)>(
           "addSubModel", &BVHModelBase::addSubModel))
       .def(dv::member_func("endModel", &BVHModelBase::endModel))

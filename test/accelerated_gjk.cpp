@@ -56,7 +56,7 @@ using coal::ShapeBase;
 using coal::SolverScalar;
 using coal::support_func_guess_t;
 using coal::Transform3s;
-using coal::Triangle;
+using coal::Triangle32;
 using coal::Vec3ps;
 using coal::Vec3s;
 using coal::details::GJK;
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(set_gjk_variant) {
 BOOST_AUTO_TEST_CASE(need_nesterov_normalize_support_direction) {
   Ellipsoid ellipsoid = Ellipsoid(1, 1, 1);
   Box box = Box(1, 1, 1);
-  Convex<Triangle> cvx;
+  Convex<Triangle32> cvx;
 
   MinkowskiDiff mink_diff1;
   mink_diff1.set<SupportOptions::NoSweptSphere>(&ellipsoid, &ellipsoid);
@@ -228,8 +228,8 @@ BOOST_AUTO_TEST_CASE(ellipsoid_box) {
 BOOST_AUTO_TEST_CASE(ellipsoid_mesh) {
   Ellipsoid ellipsoid0 = Ellipsoid(Scalar(0.5), Scalar(0.4), Scalar(0.3));
   Ellipsoid ellipsoid1 = Ellipsoid(Scalar(1.5), Scalar(1.4), Scalar(1.3));
-  Convex<Triangle> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
-  Convex<Triangle> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
+  Convex<Triangle32> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
+  Convex<Triangle32> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
 
   test_accelerated_gjk(ellipsoid0, cvx0);
   test_accelerated_gjk(ellipsoid0, cvx1);
@@ -240,8 +240,8 @@ BOOST_AUTO_TEST_CASE(ellipsoid_mesh) {
 BOOST_AUTO_TEST_CASE(capsule_mesh) {
   Ellipsoid ellipsoid0 = Ellipsoid(Scalar(0.5), Scalar(0.4), Scalar(0.3));
   Ellipsoid ellipsoid1 = Ellipsoid(Scalar(1.5), Scalar(1.4), Scalar(1.3));
-  Convex<Triangle> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
-  Convex<Triangle> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
+  Convex<Triangle32> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
+  Convex<Triangle32> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
   Capsule capsule0 = Capsule(Scalar(0.1), Scalar(0.3));
   Capsule capsule1 = Capsule(Scalar(1.1), Scalar(1.3));
 
@@ -273,8 +273,8 @@ BOOST_AUTO_TEST_CASE(box_mesh) {
   Box box1 = Box(Scalar(1.1), Scalar(1.2), Scalar(1.3));
   Ellipsoid ellipsoid0 = Ellipsoid(Scalar(0.5), Scalar(0.4), Scalar(0.3));
   Ellipsoid ellipsoid1 = Ellipsoid(Scalar(1.5), Scalar(1.4), Scalar(1.3));
-  Convex<Triangle> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
-  Convex<Triangle> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
+  Convex<Triangle32> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
+  Convex<Triangle32> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
 
   test_accelerated_gjk(box0, cvx0);
   test_accelerated_gjk(box0, cvx1);
@@ -285,8 +285,8 @@ BOOST_AUTO_TEST_CASE(box_mesh) {
 BOOST_AUTO_TEST_CASE(mesh_mesh) {
   Ellipsoid ellipsoid0 = Ellipsoid(Scalar(0.5), Scalar(0.4), Scalar(0.3));
   Ellipsoid ellipsoid1 = Ellipsoid(Scalar(1.5), Scalar(1.4), Scalar(1.3));
-  Convex<Triangle> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
-  Convex<Triangle> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
+  Convex<Triangle32> cvx0 = constructPolytopeFromEllipsoid(ellipsoid0);
+  Convex<Triangle32> cvx1 = constructPolytopeFromEllipsoid(ellipsoid1);
 
   test_accelerated_gjk(cvx0, cvx0);
   test_accelerated_gjk(cvx0, cvx1);

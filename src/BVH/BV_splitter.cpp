@@ -89,7 +89,7 @@ void computeSplitValue_bvcenter(const BV& bv, Scalar& split_value) {
 }
 
 template <typename BV>
-void computeSplitValue_mean(const BV&, Vec3s* vertices, Triangle* triangles,
+void computeSplitValue_mean(const BV&, Vec3s* vertices, Triangle32* triangles,
                             unsigned int* primitive_indices,
                             unsigned int num_primitives, BVHModelType type,
                             const Vec3s& split_vector, Scalar& split_value) {
@@ -97,7 +97,7 @@ void computeSplitValue_mean(const BV&, Vec3s* vertices, Triangle* triangles,
     Vec3s c(Vec3s::Zero());
 
     for (unsigned int i = 0; i < num_primitives; ++i) {
-      const Triangle& t = triangles[primitive_indices[i]];
+      const Triangle32& t = triangles[primitive_indices[i]];
       const Vec3s& p1 = vertices[t[0]];
       const Vec3s& p2 = vertices[t[1]];
       const Vec3s& p3 = vertices[t[2]];
@@ -117,7 +117,7 @@ void computeSplitValue_mean(const BV&, Vec3s* vertices, Triangle* triangles,
 }
 
 template <typename BV>
-void computeSplitValue_median(const BV&, Vec3s* vertices, Triangle* triangles,
+void computeSplitValue_median(const BV&, Vec3s* vertices, Triangle32* triangles,
                               unsigned int* primitive_indices,
                               unsigned int num_primitives, BVHModelType type,
                               const Vec3s& split_vector, Scalar& split_value) {
@@ -125,7 +125,7 @@ void computeSplitValue_median(const BV&, Vec3s* vertices, Triangle* triangles,
 
   if (type == BVH_MODEL_TRIANGLES) {
     for (unsigned int i = 0; i < num_primitives; ++i) {
-      const Triangle& t = triangles[primitive_indices[i]];
+      const Triangle32& t = triangles[primitive_indices[i]];
       const Vec3s& p1 = vertices[t[0]];
       const Vec3s& p2 = vertices[t[1]];
       const Vec3s& p3 = vertices[t[2]];

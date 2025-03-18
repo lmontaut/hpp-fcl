@@ -572,8 +572,8 @@ BOOST_AUTO_TEST_CASE(halfspace_cylinder) {
 
 BOOST_AUTO_TEST_CASE(convex_convex) {
   const Scalar halfside = 0.5;
-  const Convex<Quadrilateral> box1(buildBox(halfside, halfside, halfside));
-  const Convex<Quadrilateral> box2(buildBox(halfside, halfside, halfside));
+  const Convex<Quadrilateral32> box1(buildBox(halfside, halfside, halfside));
+  const Convex<Quadrilateral32> box2(buildBox(halfside, halfside, halfside));
 
   const Transform3s tf1;
   Transform3s tf2;
@@ -654,10 +654,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(0, 0.5, 0),
@@ -665,10 +665,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(1, 0.5, 0),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -705,10 +705,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(0, 0.5, 0),
@@ -716,10 +716,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(1, 0.5, 0),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -754,10 +754,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(0, 0.5, 0),
@@ -765,10 +765,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_segment) {
         Vec3s(1, 0.5, 0.5),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -820,10 +820,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(1, 0, 0),
@@ -831,10 +831,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, -1, 0),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -868,10 +868,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(1, 0, 0),
@@ -879,10 +879,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, -1, 0),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -916,10 +916,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(1, 0, 0),
@@ -927,10 +927,10 @@ BOOST_AUTO_TEST_CASE(edge_case_vertex_vertex) {
         Vec3s(0, -1, 0.5),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);
@@ -981,10 +981,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_face) {
         Vec3s(0, 1, 0),
         Vec3s(-1, -1, -1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris1(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra1(pts1, 4, tris1, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris1(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra1(pts1, 4, tris1, 4);
 
     std::shared_ptr<std::vector<Vec3s>> pts2(new std::vector<Vec3s>({
         Vec3s(-0.5, 0.5, 0),
@@ -992,10 +992,10 @@ BOOST_AUTO_TEST_CASE(edge_case_segment_face) {
         Vec3s(1, 0.5, 0.5),
         Vec3s(1, 1, 1),
     }));
-    std::shared_ptr<std::vector<Triangle>> tris2(
-        new std::vector<Triangle>({Triangle(0, 1, 2), Triangle(0, 2, 3),
-                                   Triangle(0, 3, 1), Triangle(2, 1, 3)}));
-    Convex<Triangle> tetra2(pts2, 4, tris2, 4);
+    std::shared_ptr<std::vector<Triangle32>> tris2(new std::vector<Triangle32>(
+        {Triangle32(0, 1, 2), Triangle32(0, 2, 3), Triangle32(0, 3, 1),
+         Triangle32(2, 1, 3)}));
+    Convex<Triangle32> tetra2(pts2, 4, tris2, 4);
 
     col_res.clear();
     coal::collide(&tetra1, tf1, &tetra2, tf2, col_req, col_res);

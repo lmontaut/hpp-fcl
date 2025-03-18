@@ -352,9 +352,10 @@ void getShapeSupportLog(const ConvexBase* convex, const Vec3s& dir,
   bool loose_check = true;
   while (found) {
     const ConvexBase::Neighbors& n = nn[static_cast<size_t>(hint)];
+    typedef typename ConvexBase::Neighbors::index_type index_type;
     found = false;
-    for (int in = 0; in < n.count(); ++in) {
-      const unsigned int ip = n[in];
+    for (index_type in = 0; in < n.count(); ++in) {
+      const index_type ip = n[in];
       if (visited[ip]) continue;
       visited[ip] = true;
       const Scalar dot = pts[ip].dot(dir);
@@ -863,9 +864,10 @@ void convexSupportSetRecurse(
       polygon.emplace_back(p);
     }
 
+    typedef typename ConvexBase::Neighbors::index_type index_type;
     const ConvexBase::Neighbors& point_neighbors = neighbors[vertex_idx];
-    for (int i = 0; i < point_neighbors.count(); ++i) {
-      const size_t neighbor_index = (size_t)(point_neighbors[i]);
+    for (index_type i = 0; i < point_neighbors.count(); ++i) {
+      const index_type neighbor_index = point_neighbors[i];
       convexSupportSetRecurse<_SupportOptions>(
           points, neighbors, swept_sphere_radius, neighbor_index, support_dir,
           support_value, tf, visited, polygon, tol);

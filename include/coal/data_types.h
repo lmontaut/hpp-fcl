@@ -118,16 +118,17 @@ enum GJKConvergenceCriterion { Default, DualityGap, Hybrid };
 enum GJKConvergenceCriterionType { Relative, Absolute };
 
 /// @brief Triangle with 3 indices for points
-class COAL_DLLAPI Triangle {
+template <typename Integer>
+class COAL_DLLAPI TriangleTpl {
  public:
-  typedef std::size_t index_type;
+  typedef Integer index_type;
   typedef int size_type;
 
   /// @brief Default constructor
-  Triangle() {}
+  TriangleTpl() {}
 
   /// @brief Create a triangle with given vertex indices
-  Triangle(index_type p1, index_type p2, index_type p3) { set(p1, p2, p3); }
+  TriangleTpl(index_type p1, index_type p2, index_type p3) { set(p1, p2, p3); }
 
   /// @brief Set the vertex indices of the triangle
   inline void set(index_type p1, index_type p2, index_type p3) {
@@ -143,12 +144,12 @@ class COAL_DLLAPI Triangle {
 
   static inline size_type size() { return 3; }
 
-  bool operator==(const Triangle& other) const {
+  bool operator==(const TriangleTpl& other) const {
     return vids[0] == other.vids[0] && vids[1] == other.vids[1] &&
            vids[2] == other.vids[2];
   }
 
-  bool operator!=(const Triangle& other) const { return !(*this == other); }
+  bool operator!=(const TriangleTpl& other) const { return !(*this == other); }
 
   bool isValid() const {
     return vids[0] != (std::numeric_limits<index_type>::max)() &&
@@ -163,14 +164,22 @@ class COAL_DLLAPI Triangle {
                         (std::numeric_limits<index_type>::max)()};
 };
 
+typedef TriangleTpl<std::uint16_t> Triangle16;
+//
+typedef TriangleTpl<std::uint32_t> Triangle32;
+//
+COAL_DEPRECATED_MESSAGE(Use Triangle32 instead.)
+typedef Triangle32 Triangle;
+
 /// @brief Quadrilateral with 4 indices for points
-struct COAL_DLLAPI Quadrilateral {
-  typedef std::size_t index_type;
+template <typename Integer>
+struct COAL_DLLAPI QuadrilateralTpl {
+  typedef Integer index_type;
   typedef int size_type;
 
-  Quadrilateral() {}
+  QuadrilateralTpl() {}
 
-  Quadrilateral(index_type p0, index_type p1, index_type p2, index_type p3) {
+  QuadrilateralTpl(index_type p0, index_type p1, index_type p2, index_type p3) {
     set(p0, p1, p2, p3);
   }
 
@@ -189,18 +198,25 @@ struct COAL_DLLAPI Quadrilateral {
 
   static inline size_type size() { return 4; }
 
-  bool operator==(const Quadrilateral& other) const {
+  bool operator==(const QuadrilateralTpl& other) const {
     return vids[0] == other.vids[0] && vids[1] == other.vids[1] &&
            vids[2] == other.vids[2] && vids[3] == other.vids[3];
   }
 
-  bool operator!=(const Quadrilateral& other) const {
+  bool operator!=(const QuadrilateralTpl& other) const {
     return !(*this == other);
   }
 
  private:
   index_type vids[4];
 };
+
+typedef QuadrilateralTpl<std::uint16_t> Quadrilateral16;
+//
+typedef QuadrilateralTpl<std::uint32_t> Quadrilateral32;
+//
+COAL_DEPRECATED_MESSAGE(Use Quadrilateral32 instead.)
+typedef Quadrilateral32 Quadrilateral;
 
 }  // namespace coal
 

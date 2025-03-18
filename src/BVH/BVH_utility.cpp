@@ -65,9 +65,9 @@ BVHModel<BV>* BVHExtract(const BVHModel<BV>& model, const Transform3s& pose,
   std::vector<bool> keep_tri(model.num_tris, false);
   unsigned int ntri = 0;
   const std::vector<Vec3s>& model_vertices_ = *(model.vertices);
-  const std::vector<Triangle>& model_tri_indices_ = *(model.tri_indices);
+  const std::vector<Triangle32>& model_tri_indices_ = *(model.tri_indices);
   for (unsigned int i = 0; i < model.num_tris; ++i) {
-    const Triangle& t = model_tri_indices_[i];
+    const Triangle32& t = model_tri_indices_[i];
 
     bool keep_this_tri =
         keep_vertex[t[0]] || keep_vertex[t[1]] || keep_vertex[t[2]];
@@ -120,7 +120,7 @@ BVHModel<BV>* BVHExtract(const BVHModel<BV>& model, const Transform3s& pose,
     }
   }
   assert(new_model->num_tris == 0);
-  std::vector<Triangle>& new_model_tri_indices_ = *(new_model->tri_indices);
+  std::vector<Triangle32>& new_model_tri_indices_ = *(new_model->tri_indices);
   for (unsigned int i = 0; i < keep_tri.size(); ++i) {
     if (keep_tri[i]) {
       new_model_tri_indices_[new_model->num_tris].set(
@@ -179,14 +179,14 @@ BVHModel<KDOP<24> >* BVHExtract(const BVHModel<KDOP<24> >& model,
   return details::BVHExtract(model, pose, aabb);
 }
 
-void getCovariance(Vec3s* ps, Vec3s* ps2, Triangle* ts, unsigned int* indices,
+void getCovariance(Vec3s* ps, Vec3s* ps2, Triangle32* ts, unsigned int* indices,
                    unsigned int n, Matrix3s& M) {
   Vec3s S1(Vec3s::Zero());
   Vec3s S2[3] = {Vec3s::Zero(), Vec3s::Zero(), Vec3s::Zero()};
 
   if (ts) {
     for (unsigned int i = 0; i < n; ++i) {
-      const Triangle& t = (indices) ? ts[indices[i]] : ts[i];
+      const Triangle32& t = (indices) ? ts[indices[i]] : ts[i];
 
       const Vec3s& p1 = ps[t[0]];
       const Vec3s& p2 = ps[t[1]];
@@ -260,7 +260,7 @@ void getCovariance(Vec3s* ps, Vec3s* ps2, Triangle* ts, unsigned int* indices,
 /** @brief Compute the RSS bounding volume parameters: radius, rectangle size
  * and the origin. The bounding volume axes are known.
  */
-void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle* ts,
+void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
                                         unsigned int* indices, unsigned int n,
                                         const Matrix3s& axes, Vec3s& origin,
                                         Scalar l[2], Scalar& r) {
@@ -276,10 +276,10 @@ void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle* ts,
   if (ts) {
     for (unsigned int i = 0; i < n; ++i) {
       unsigned int index = indirect_index ? indices[i] : i;
-      const Triangle& t = ts[index];
+      const Triangle32& t = ts[index];
 
-      for (Triangle::index_type j = 0; j < 3; ++j) {
-        Triangle::index_type point_id = t[j];
+      for (Triangle32::index_type j = 0; j < 3; ++j) {
+        Triangle32::index_type point_id = t[j];
         const Vec3s& p = ps[point_id];
         Vec3s v(p[0], p[1], p[2]);
         P[P_id][0] = axes.col(0).dot(v);
@@ -289,8 +289,8 @@ void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle* ts,
       }
 
       if (ps2) {
-        for (Triangle::index_type j = 0; j < 3; ++j) {
-          Triangle::index_type point_id = t[j];
+        for (Triangle32::index_type j = 0; j < 3; ++j) {
+          Triangle32::index_type point_id = t[j];
           const Vec3s& p = ps2[point_id];
           // FIXME Is this right ?????
           Vec3s v(p[0], p[1], p[2]);
@@ -525,7 +525,8 @@ static inline void getExtentAndCenter_pointcloud(Vec3s* ps, Vec3s* ps2,
 /** @brief Compute the bounding volume extent and center for a set or subset of
  * points. The bounding volume axes are known.
  */
-static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
+static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2,
+                                           Triangle32* ts,
                                            unsigned int* indices,
                                            unsigned int n, Matrix3s& axes,
                                            Vec3s& center, Vec3s& extent) {
@@ -539,10 +540,10 @@ static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
 
   for (unsigned int i = 0; i < n; ++i) {
     unsigned int index = indirect_index ? indices[i] : i;
-    const Triangle& t = ts[index];
+    const Triangle32& t = ts[index];
 
-    for (Triangle::index_type j = 0; j < 3; ++j) {
-      Triangle::index_type point_id = t[j];
+    for (Triangle32::index_type j = 0; j < 3; ++j) {
+      Triangle32::index_type point_id = t[j];
       const Vec3s& p = ps[point_id];
       Vec3s proj(axes.transpose() * p);
 
@@ -553,8 +554,8 @@ static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
     }
 
     if (ps2) {
-      for (Triangle::index_type j = 0; j < 3; ++j) {
-        Triangle::index_type point_id = t[j];
+      for (Triangle32::index_type j = 0; j < 3; ++j) {
+        Triangle32::index_type point_id = t[j];
         const Vec3s& p = ps2[point_id];
         Vec3s proj(axes.transpose() * p);
 
@@ -573,7 +574,7 @@ static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
   extent.noalias() = (max_coord - min_coord) / 2;
 }
 
-void getExtentAndCenter(Vec3s* ps, Vec3s* ps2, Triangle* ts,
+void getExtentAndCenter(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
                         unsigned int* indices, unsigned int n, Matrix3s& axes,
                         Vec3s& center, Vec3s& extent) {
   if (ts)
@@ -596,7 +597,7 @@ void circumCircleComputation(const Vec3s& a, const Vec3s& b, const Vec3s& c,
   center = (e2 * e1_len2 - e1 * e2_len2).cross(e3) * (0.5 * 1 / e3_len2) + c;
 }
 
-static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
+static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
                                           unsigned int* indices, unsigned int n,
                                           const Vec3s& query) {
   bool indirect_index = true;
@@ -605,10 +606,10 @@ static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
   Scalar maxD = 0;
   for (unsigned int i = 0; i < n; ++i) {
     unsigned int index = indirect_index ? indices[i] : i;
-    const Triangle& t = ts[index];
+    const Triangle32& t = ts[index];
 
-    for (Triangle::index_type j = 0; j < 3; ++j) {
-      Triangle::index_type point_id = t[j];
+    for (Triangle32::index_type j = 0; j < 3; ++j) {
+      Triangle32::index_type point_id = t[j];
       const Vec3s& p = ps[point_id];
 
       Scalar d = (p - query).squaredNorm();
@@ -616,8 +617,8 @@ static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle* ts,
     }
 
     if (ps2) {
-      for (Triangle::index_type j = 0; j < 3; ++j) {
-        Triangle::index_type point_id = t[j];
+      for (Triangle32::index_type j = 0; j < 3; ++j) {
+        Triangle32::index_type point_id = t[j];
         const Vec3s& p = ps2[point_id];
 
         Scalar d = (p - query).squaredNorm();
@@ -654,7 +655,7 @@ static inline Scalar maximumDistance_pointcloud(Vec3s* ps, Vec3s* ps2,
   return std::sqrt(maxD);
 }
 
-Scalar maximumDistance(Vec3s* ps, Vec3s* ps2, Triangle* ts,
+Scalar maximumDistance(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
                        unsigned int* indices, unsigned int n,
                        const Vec3s& query) {
   if (ts)
