@@ -57,8 +57,8 @@ namespace coal {
 
 namespace details {
 template <typename BV>
-Convex<Quadrilateral> buildConvexQuadrilateral(const HFNode<BV>& node,
-                                               const HeightField<BV>& model) {
+Convex<Quadrilateral32> buildConvexQuadrilateral(const HFNode<BV>& node,
+                                                 const HeightField<BV>& model) {
   const MatrixXs& heights = model.getHeights();
   const VecXs& x_grid = model.getXGrid();
   const VecXs& y_grid = model.getYGrid();
@@ -85,8 +85,8 @@ Convex<Quadrilateral> buildConvexQuadrilateral(const HFNode<BV>& node,
       Vec3s(x1, y0, cell(0, 1)),
   }));
 
-  std::shared_ptr<std::vector<Quadrilateral>> polygons(
-      new std::vector<Quadrilateral>(6));
+  std::shared_ptr<std::vector<Quadrilateral32>> polygons(
+      new std::vector<Quadrilateral32>(6));
   (*polygons)[0].set(0, 3, 2, 1);  // x+ side
   (*polygons)[1].set(0, 1, 5, 4);  // y- side
   (*polygons)[2].set(1, 2, 6, 5);  // x- side
@@ -94,10 +94,10 @@ Convex<Quadrilateral> buildConvexQuadrilateral(const HFNode<BV>& node,
   (*polygons)[4].set(3, 0, 4, 7);  // z- side
   (*polygons)[5].set(4, 5, 6, 7);  // z+ side
 
-  return Convex<Quadrilateral>(pts,  // points
-                               8,    // num points
-                               polygons,
-                               6  // number of polygons
+  return Convex<Quadrilateral32>(pts,  // points
+                                 8,    // num points
+                                 polygons,
+                                 6  // number of polygons
   );
 }
 
@@ -119,8 +119,9 @@ enum class FaceOrientationConvexPart2 {
 
 template <typename BV>
 void buildConvexTriangles(const HFNode<BV>& node, const HeightField<BV>& model,
-                          Convex<Triangle>& convex1, int& convex1_active_faces,
-                          Convex<Triangle>& convex2,
+                          Convex<Triangle32>& convex1,
+                          int& convex1_active_faces,
+                          Convex<Triangle32>& convex2,
                           int& convex2_active_faces) {
   const MatrixXs& heights = model.getHeights();
   const VecXs& x_grid = model.getXGrid();
@@ -183,8 +184,8 @@ void buildConvexTriangles(const HFNode<BV>& node, const HeightField<BV>& model,
         Vec3s(x1, y0, cell(0, 1)),  // F
     }));
 
-    std::shared_ptr<std::vector<Triangle>> triangles(
-        new std::vector<Triangle>(8));
+    std::shared_ptr<std::vector<Triangle32>> triangles(
+        new std::vector<Triangle32>(8));
     (*triangles)[0].set(0, 2, 1);  // bottom
     (*triangles)[1].set(3, 4, 5);  // top
     (*triangles)[2].set(0, 1, 3);  // West 1
@@ -211,8 +212,8 @@ void buildConvexTriangles(const HFNode<BV>& node, const HeightField<BV>& model,
         Vec3s(x1, y0, cell(0, 1)),  // F
     }));
 
-    std::shared_ptr<std::vector<Triangle>> triangles(
-        new std::vector<Triangle>(8));
+    std::shared_ptr<std::vector<Triangle32>> triangles(
+        new std::vector<Triangle32>(8));
     (*triangles)[0].set(2, 1, 0);  // bottom
     (*triangles)[1].set(3, 4, 5);  // top
     (*triangles)[2].set(0, 1, 3);  // South 1
@@ -254,7 +255,7 @@ inline Vec3s projectTetrahedra(const Vec3s& pointA, const Vec3s& pointB,
   return res;
 }
 
-inline Vec3s computeTriangleNormal(const Triangle& triangle,
+inline Vec3s computeTriangleNormal(const Triangle32& triangle,
                                    const std::vector<Vec3s>& points) {
   const Vec3s pointA = points[triangle[0]];
   const Vec3s pointB = points[triangle[1]];
@@ -267,7 +268,7 @@ inline Vec3s computeTriangleNormal(const Triangle& triangle,
 }
 
 inline Vec3s projectPointOnTriangle(const Vec3s& contact_point,
-                                    const Triangle& triangle,
+                                    const Triangle32& triangle,
                                     const std::vector<Vec3s>& points) {
   const Vec3s pointA = points[triangle[0]];
   const Vec3s pointB = points[triangle[1]];
@@ -280,7 +281,7 @@ inline Vec3s projectPointOnTriangle(const Vec3s& contact_point,
 }
 
 inline Scalar distanceContactPointToTriangle(const Vec3s& contact_point,
-                                             const Triangle& triangle,
+                                             const Triangle32& triangle,
                                              const std::vector<Vec3s>& points) {
   const Vec3s contact_point_projected =
       projectPointOnTriangle(contact_point, triangle, points);
@@ -289,21 +290,21 @@ inline Scalar distanceContactPointToTriangle(const Vec3s& contact_point,
 
 inline Scalar distanceContactPointToFace(const size_t face_id,
                                          const Vec3s& contact_point,
-                                         const Convex<Triangle>& convex,
+                                         const Convex<Triangle32>& convex,
                                          size_t& closest_face_id) {
   assert((face_id >= 0 && face_id < 8) && "face_id should be in [0;7]");
 
   const std::vector<Vec3s>& points = *(convex.points);
   if (face_id <= 1) {
-    const Triangle& triangle = (*(convex.polygons))[face_id];
+    const Triangle32& triangle = (*(convex.polygons))[face_id];
     closest_face_id = face_id;
     return distanceContactPointToTriangle(contact_point, triangle, points);
   } else {
-    const Triangle& triangle1 = (*(convex.polygons))[face_id];
+    const Triangle32& triangle1 = (*(convex.polygons))[face_id];
     const Scalar distance_to_triangle1 =
         distanceContactPointToTriangle(contact_point, triangle1, points);
 
-    const Triangle& triangle2 = (*(convex.polygons))[face_id + 1];
+    const Triangle32& triangle2 = (*(convex.polygons))[face_id + 1];
     const Scalar distance_to_triangle2 =
         distanceContactPointToTriangle(contact_point, triangle2, points);
 
@@ -340,7 +341,7 @@ bool binCorrection(const Convex<Polygone>& convex,
   if (convex_active_faces & 4) active_faces.push_back(4);
   if (convex_active_faces & 8) active_faces.push_back(6);
 
-  Triangle face_triangle;
+  Triangle32 face_triangle;
   Scalar shortest_distance_to_face = (std::numeric_limits<Scalar>::max)();
   face_normal = normal;
   for (const size_t active_face : active_faces) {
@@ -587,12 +588,12 @@ class HeightFieldShapeCollisionTraversalNode
     // Split quadrilateral primitives into two convex shapes corresponding to
     // polyhedron with triangular bases. This is essential to keep the convexity
 
-    //    typedef Convex<Quadrilateral> ConvexQuadrilateral;
-    //    const ConvexQuadrilateral convex =
+    //    typedef Convex<Quadrilateral32> ConvexQuadrilateral32;
+    //    const ConvexQuadrilateral32 convex =
     //    details::buildConvexQuadrilateral(node,*this->model1);
 
-    typedef Convex<Triangle> ConvexTriangle;
-    ConvexTriangle convex1, convex2;
+    typedef Convex<Triangle32> ConvexTriangle32;
+    ConvexTriangle32 convex1, convex2;
     int convex1_active_faces, convex2_active_faces;
     // TODO: inherit from hfield's inflation here
     details::buildConvexTriangles(node, *this->model1, convex1,
@@ -610,7 +611,7 @@ class HeightFieldShapeCollisionTraversalNode
     Vec3s c1, c2, normal, normal_face;
     bool hfield_witness_is_on_bin_side;
 
-    bool collision = details::shapeDistance<Triangle, S, Options>(
+    bool collision = details::shapeDistance<Triangle32, S, Options>(
         nsolver, this->request, convex1, convex1_active_faces, convex2,
         convex2_active_faces, this->tf1, *(this->model2), this->tf2, distance,
         c1, c2, normal, normal_face, hfield_witness_is_on_bin_side);
@@ -709,13 +710,13 @@ class HeightFieldShapeDistanceTraversalNode : public DistanceTraversalNodeBase {
 
     const BVNode<BV>& node = this->model1->getBV(b1);
 
-    typedef Convex<Quadrilateral> ConvexQuadrilateral;
-    const ConvexQuadrilateral convex =
+    typedef Convex<Quadrilateral32> ConvexQuadrilateral32;
+    const ConvexQuadrilateral32 convex =
         details::buildConvexQuadrilateral(node, *this->model1);
 
     Vec3s p1, p2, normal;
     const Scalar distance =
-        internal::ShapeShapeDistance<ConvexQuadrilateral, S>(
+        internal::ShapeShapeDistance<ConvexQuadrilateral32, S>(
             &convex, this->tf1, this->model2, this->tf2, this->nsolver,
             this->request.enable_signed_distance, p1, p2, normal);
 

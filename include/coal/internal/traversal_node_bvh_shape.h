@@ -142,7 +142,7 @@ class MeshShapeCollisionTraversalNode
 
     int primitive_id = node.primitiveId();
 
-    const Triangle& tri_id = this->tri_indices[primitive_id];
+    const Triangle32& tri_id = this->tri_indices[primitive_id];
     const TriangleP tri(this->vertices[tri_id[0]], this->vertices[tri_id[1]],
                         this->vertices[tri_id[2]]);
 
@@ -187,7 +187,7 @@ class MeshShapeCollisionTraversalNode
   }  // leafCollides
 
   Vec3s* vertices;
-  Triangle* tri_indices;
+  Triangle32* tri_indices;
 
   const GJKSolver* nsolver;
 };
@@ -304,7 +304,7 @@ class MeshShapeDistanceTraversalNode
 
     int primitive_id = node.primitiveId();
 
-    const Triangle& tri_id = tri_indices[primitive_id];
+    const Triangle32& tri_id = tri_indices[primitive_id];
     const TriangleP tri(this->vertices[tri_id[0]], this->vertices[tri_id[1]],
                         this->vertices[tri_id[2]]);
 
@@ -326,7 +326,7 @@ class MeshShapeDistanceTraversalNode
   }
 
   Vec3s* vertices;
-  Triangle* tri_indices;
+  Triangle32* tri_indices;
 
   Scalar rel_err;
   Scalar abs_err;
@@ -340,7 +340,7 @@ namespace details {
 template <typename BV, typename S>
 void meshShapeDistanceOrientedNodeleafComputeDistance(
     unsigned int b1, unsigned int /* b2 */, const BVHModel<BV>* model1,
-    const S& model2, Vec3s* vertices, Triangle* tri_indices,
+    const S& model2, Vec3s* vertices, Triangle32* tri_indices,
     const Transform3s& tf1, const Transform3s& tf2, const GJKSolver* nsolver,
     bool enable_statistics, int& num_leaf_tests, const DistanceRequest& request,
     DistanceResult& result) {
@@ -349,7 +349,7 @@ void meshShapeDistanceOrientedNodeleafComputeDistance(
   const BVNode<BV>& node = model1->getBV(b1);
   int primitive_id = node.primitiveId();
 
-  const Triangle& tri_id = tri_indices[primitive_id];
+  const Triangle32& tri_id = tri_indices[primitive_id];
   const TriangleP tri(vertices[tri_id[0]], vertices[tri_id[1]],
                       vertices[tri_id[2]]);
 
@@ -364,11 +364,11 @@ void meshShapeDistanceOrientedNodeleafComputeDistance(
 
 template <typename BV, typename S>
 static inline void distancePreprocessOrientedNode(
-    const BVHModel<BV>* model1, Vec3s* vertices, Triangle* tri_indices,
+    const BVHModel<BV>* model1, Vec3s* vertices, Triangle32* tri_indices,
     int init_tri_id, const S& model2, const Transform3s& tf1,
     const Transform3s& tf2, const GJKSolver* nsolver,
     const DistanceRequest& request, DistanceResult& result) {
-  const Triangle& tri_id = tri_indices[init_tri_id];
+  const Triangle32& tri_id = tri_indices[init_tri_id];
   const TriangleP tri(vertices[tri_id[0]], vertices[tri_id[1]],
                       vertices[tri_id[2]]);
 

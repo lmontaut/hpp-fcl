@@ -207,13 +207,13 @@ static const Scalar min_shape_size = Scalar(0.1);
 static const Scalar max_shape_size = Scalar(0.5);
 
 BOOST_AUTO_TEST_CASE(ssr_mesh_mesh) {
-  Convex<Triangle> shape1 = makeRandomConvex(min_shape_size, max_shape_size);
-  Convex<Triangle> shape2 = makeRandomConvex(min_shape_size, max_shape_size);
+  Convex<Triangle32> shape1 = makeRandomConvex(min_shape_size, max_shape_size);
+  Convex<Triangle32> shape2 = makeRandomConvex(min_shape_size, max_shape_size);
   test_gjksolver_swept_sphere_radius(shape1, shape2);
 }
 
 BOOST_AUTO_TEST_CASE(ssr_mesh_ellipsoid) {
-  Convex<Triangle> shape1 = makeRandomConvex(min_shape_size, max_shape_size);
+  Convex<Triangle32> shape1 = makeRandomConvex(min_shape_size, max_shape_size);
   Ellipsoid shape2 = makeRandomEllipsoid(min_shape_size, max_shape_size);
   test_gjksolver_swept_sphere_radius(shape1, shape2);
 }

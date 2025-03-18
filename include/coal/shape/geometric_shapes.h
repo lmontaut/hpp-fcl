@@ -679,15 +679,17 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
 #endif
 
   struct COAL_DLLAPI Neighbors {
+    typedef std::uint32_t index_type;
+
     unsigned char count_;
-    unsigned int* n_;
+    index_type* n_;
 
     unsigned char const& count() const { return count_; }
-    unsigned int& operator[](int i) {
+    index_type& operator[](index_type i) {
       assert(i < count_);
       return n_[i];
     }
-    unsigned int const& operator[](int i) const {
+    index_type const& operator[](index_type i) const {
       assert(i < count_);
       return n_[i];
     }
@@ -792,7 +794,7 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
   /// store the indices of the neighbors in a single array.
   /// The `neighbors` attribute, an array of `Neighbors`, is used to point each
   /// vertex to the right indices in the `nneighbors_` array.
-  std::shared_ptr<std::vector<unsigned int>> nneighbors_;
+  std::shared_ptr<std::vector<Neighbors::index_type>> nneighbors_;
 
  private:
   void computeCenter();

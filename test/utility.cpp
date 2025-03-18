@@ -95,7 +95,7 @@ Scalar rand_interval(Scalar rmin, Scalar rmax) {
 }
 
 void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
-                 std::vector<Triangle>& triangles) {
+                 std::vector<Triangle32>& triangles) {
   FILE* file = fopen(filename, "rb");
   if (!file) {
     std::cerr << "file not exist" << std::endl;
@@ -129,7 +129,7 @@ void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
         }
       } break;
       case 'f': {
-        Triangle tri;
+        Triangle32 tri;
         char* data[30];
         int n = 0;
         while ((data[n] = strtok(NULL, "\t \r\n")) != NULL) {
@@ -138,19 +138,19 @@ void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
 
         for (int t = 0; t < (n - 2); ++t) {
           if ((!has_texture) && (!has_normal)) {
-            tri[0] = (Triangle::index_type)(atoi(data[0]) - 1);
-            tri[1] = (Triangle::index_type)(atoi(data[1]) - 1);
-            tri[2] = (Triangle::index_type)(atoi(data[2]) - 1);
+            tri[0] = (Triangle32::index_type)(atoi(data[0]) - 1);
+            tri[1] = (Triangle32::index_type)(atoi(data[1]) - 1);
+            tri[2] = (Triangle32::index_type)(atoi(data[2]) - 1);
           } else {
             const char* v1;
-            for (Triangle::index_type i = 0; i < 3; i++) {
+            for (Triangle32::index_type i = 0; i < 3; i++) {
               // vertex ID
               if (i == 0)
                 v1 = data[0];
               else
-                v1 = data[(Triangle::index_type)t + i];
+                v1 = data[(Triangle32::index_type)t + i];
 
-              tri[i] = (Triangle::index_type)(atoi(v1) - 1);
+              tri[i] = (Triangle32::index_type)(atoi(v1) - 1);
             }
           }
           triangles.push_back(tri);
@@ -161,7 +161,7 @@ void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
 }
 
 void saveOBJFile(const char* filename, std::vector<Vec3s>& points,
-                 std::vector<Triangle>& triangles) {
+                 std::vector<Triangle32>& triangles) {
   std::ofstream os(filename);
   if (!os) {
     std::cerr << "file not exist" << std::endl;
@@ -456,14 +456,14 @@ void generateEnvironmentsMesh(std::vector<CollisionObject*>& env,
   }
 }
 
-Convex<Quadrilateral> buildBox(Scalar l, Scalar w, Scalar d) {
+Convex<Quadrilateral32> buildBox(Scalar l, Scalar w, Scalar d) {
   std::shared_ptr<std::vector<Vec3s>> pts(new std::vector<Vec3s>(
       {Vec3s(l, w, d), Vec3s(l, w, -d), Vec3s(l, -w, d), Vec3s(l, -w, -d),
        Vec3s(-l, w, d), Vec3s(-l, w, -d), Vec3s(-l, -w, d),
        Vec3s(-l, -w, -d)}));
 
-  std::shared_ptr<std::vector<Quadrilateral>> polygons(
-      new std::vector<Quadrilateral>(6));
+  std::shared_ptr<std::vector<Quadrilateral32>> polygons(
+      new std::vector<Quadrilateral32>(6));
   (*polygons)[0].set(0, 2, 3, 1);  // x+ side
   (*polygons)[1].set(2, 6, 7, 3);  // y- side
   (*polygons)[2].set(4, 5, 7, 6);  // x- side
@@ -471,10 +471,10 @@ Convex<Quadrilateral> buildBox(Scalar l, Scalar w, Scalar d) {
   (*polygons)[4].set(1, 3, 7, 5);  // z- side
   (*polygons)[5].set(0, 2, 6, 4);  // z+ side
 
-  return Convex<Quadrilateral>(pts,  // points
-                               8,    // num points
-                               polygons,
-                               6  // number of polygons
+  return Convex<Quadrilateral32>(pts,  // points
+                                 8,    // num points
+                                 polygons,
+                                 6  // number of polygons
   );
 }
 
@@ -497,7 +497,7 @@ void toEllipsoid(Vec3s& point, const Ellipsoid& ellipsoid) {
   point[2] *= ellipsoid.radii[2];
 }
 
-Convex<Triangle> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
+Convex<Triangle32> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
   Scalar PHI = (1 + std::sqrt(Scalar(5))) / 2;
 
   // vertices
@@ -524,7 +524,8 @@ Convex<Triangle> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
   }
 
   // faces
-  std::shared_ptr<std::vector<Triangle>> tris(new std::vector<Triangle>(20));
+  std::shared_ptr<std::vector<Triangle32>> tris(
+      new std::vector<Triangle32>(20));
   (*tris)[0].set(0, 11, 5);
   (*tris)[1].set(0, 5, 1);
   (*tris)[2].set(0, 1, 7);
@@ -548,10 +549,10 @@ Convex<Triangle> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
   (*tris)[17].set(6, 2, 10);
   (*tris)[18].set(8, 6, 7);
   (*tris)[19].set(9, 8, 1);
-  return Convex<Triangle>(pts,   // points
-                          12,    // num_points
-                          tris,  // triangles
-                          20     // number of triangles
+  return Convex<Triangle32>(pts,   // points
+                            12,    // num_points
+                            tris,  // triangles
+                            20     // number of triangles
   );
 }
 
@@ -589,7 +590,7 @@ Cylinder makeRandomCylinder(std::array<Scalar, 2> min_size,
                   rand_interval(min_size[1], max_size[1]));
 }
 
-Convex<Triangle> makeRandomConvex(Scalar min_size, Scalar max_size) {
+Convex<Triangle32> makeRandomConvex(Scalar min_size, Scalar max_size) {
   Ellipsoid ellipsoid = makeRandomEllipsoid(min_size, max_size);
   return constructPolytopeFromEllipsoid(ellipsoid);
 }
@@ -634,7 +635,7 @@ std::shared_ptr<ShapeBase> makeRandomGeometry(NODE_TYPE node_type) {
           {Scalar(0.1), Scalar(0.2)}, {Scalar(0.8), Scalar(1.0)}));
       break;
     case GEOM_CONVEX:
-      return std::make_shared<Convex<Triangle>>(
+      return std::make_shared<Convex<Triangle32>>(
           makeRandomConvex(Scalar(0.1), Scalar(1)));
       break;
     case GEOM_PLANE:

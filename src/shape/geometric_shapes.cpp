@@ -70,14 +70,15 @@ ConvexBase::ConvexBase(const ConvexBase& other)
   } else
     points.reset();
 
+  typedef Neighbors::index_type index_type;
   if (other.nneighbors_.get() && other.nneighbors_->size() > 0) {
     // Deep copy the list of all the neighbors of all the points
-    nneighbors_.reset(new std::vector<unsigned int>(*(other.nneighbors_)));
+    nneighbors_.reset(new std::vector<index_type>(*(other.nneighbors_)));
     if (other.neighbors.get() && other.neighbors->size() > 0) {
       // Fill each neighbors for each point in the Convex object.
       neighbors.reset(new std::vector<Neighbors>(other.neighbors->size()));
       assert(neighbors->size() == points->size());
-      unsigned int* p_nneighbors = nneighbors_->data();
+      index_type* p_nneighbors = nneighbors_->data();
 
       std::vector<Neighbors>& neighbors_ = *neighbors;
       const std::vector<Neighbors>& other_neighbors_ = *(other.neighbors);

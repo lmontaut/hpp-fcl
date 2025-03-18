@@ -25,7 +25,7 @@ void CreateSphereMesh(BVHModel<OBBRSS>& model, const Scalar& radius) {
   const float polarStep = PI / (float)(polarSteps - 1);
   const float azimuthStep = 2.0f * PI / (float)(azimuthSteps - 1);
   std::vector<Vec3s> vertices;
-  std::vector<Triangle> triangles;
+  std::vector<Triangle32> triangles;
 
   for (size_t p = 0; p < polarSteps; ++p) {
     for (size_t a = 0; a < azimuthSteps; ++a) {
