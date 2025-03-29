@@ -317,7 +317,7 @@ set(
   include/coal/narrowphase/minkowski_difference.h
   include/coal/narrowphase/support_functions.h
   include/coal/shape/convex.h
-  include/coal/shape/details/convex.hxx
+  include/coal/shape/convex.hxx
   include/coal/shape/geometric_shape_to_BVH_model.h
   include/coal/shape/geometric_shapes.h
   include/coal/shape/geometric_shapes.hxx
@@ -509,7 +509,7 @@ if(COAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL)
     include/hpp/fcl/serialization/transform.h
     include/hpp/fcl/serialization/triangle.h
     include/hpp/fcl/shape/convex.h
-    include/hpp/fcl/shape/details/convex.hxx
+    include/hpp/fcl/shape/convex.hxx
     include/hpp/fcl/shape/geometric_shapes.h
     include/hpp/fcl/shape/geometric_shapes.hxx
     include/hpp/fcl/shape/geometric_shapes_traits.h
