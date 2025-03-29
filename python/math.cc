@@ -55,18 +55,18 @@ namespace dv = doxygen::visitor;
 
 template <typename Integer>
 struct TriangleWrapper {
-  static typename TriangleTpl<Integer>::index_type getitem(
+  static typename TriangleTpl<Integer>::IndexType getitem(
       const TriangleTpl<Integer>& t, int i) {
     if (i >= 3 || i <= -3)
       PyErr_SetString(PyExc_IndexError, "Index out of range");
-    return t[static_cast<typename coal::TriangleTpl<Integer>::index_type>(i %
-                                                                          3)];
+    return t[static_cast<typename coal::TriangleTpl<Integer>::IndexType>(i %
+                                                                         3)];
   }
   static void setitem(TriangleTpl<Integer>& t, int i,
-                      typename TriangleTpl<Integer>::index_type v) {
+                      typename TriangleTpl<Integer>::IndexType v) {
     if (i >= 3 || i <= -3)
       PyErr_SetString(PyExc_IndexError, "Index out of range");
-    t[static_cast<typename coal::TriangleTpl<Integer>::index_type>(i % 3)] = v;
+    t[static_cast<typename coal::TriangleTpl<Integer>::IndexType>(i % 3)] = v;
   }
 };
 
@@ -135,12 +135,12 @@ void exposeMaths() {
 
   class_<Triangle32>("Triangle32", no_init)
       .def(dv::init<Triangle32>())
-      .def(dv::init<Triangle32, Triangle32::index_type, Triangle32::index_type,
-                    Triangle32::index_type>())
+      .def(dv::init<Triangle32, Triangle32::IndexType, Triangle32::IndexType,
+                    Triangle32::IndexType>())
       .def("__getitem__",
-           &TriangleWrapper<typename Triangle32::index_type>::getitem)
+           &TriangleWrapper<typename Triangle32::IndexType>::getitem)
       .def("__setitem__",
-           &TriangleWrapper<typename Triangle32::index_type>::setitem)
+           &TriangleWrapper<typename Triangle32::IndexType>::setitem)
       .def(dv::member_func("set", &Triangle32::set))
       .def(dv::member_func("size", &Triangle32::size))
       .staticmethod("size")
@@ -149,12 +149,12 @@ void exposeMaths() {
 
   class_<Triangle16>("Triangle16", no_init)
       .def(dv::init<Triangle16>())
-      .def(dv::init<Triangle16, Triangle16::index_type, Triangle16::index_type,
-                    Triangle16::index_type>())
+      .def(dv::init<Triangle16, Triangle16::IndexType, Triangle16::IndexType,
+                    Triangle16::IndexType>())
       .def("__getitem__",
-           &TriangleWrapper<typename Triangle16::index_type>::getitem)
+           &TriangleWrapper<typename Triangle16::IndexType>::getitem)
       .def("__setitem__",
-           &TriangleWrapper<typename Triangle16::index_type>::setitem)
+           &TriangleWrapper<typename Triangle16::IndexType>::setitem)
       .def(dv::member_func("set", &Triangle16::set))
       .def(dv::member_func("size", &Triangle16::size))
       .staticmethod("size")
