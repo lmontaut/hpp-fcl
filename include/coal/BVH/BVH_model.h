@@ -53,7 +53,8 @@ namespace coal {
 /// @addtogroup Construction_Of_BVH
 /// @{
 
-class ConvexBase;
+template <typename IndexType>
+class ConvexBaseTpl;
 
 template <typename BV>
 class BVFitter;
@@ -64,6 +65,9 @@ class BVSplitter;
 /// point cloud model (which is viewed as a degraded version of mesh)
 class COAL_DLLAPI BVHModelBase : public CollisionGeometry {
  public:
+  typedef typename Triangle32::IndexType IndexType;
+  typedef ConvexBaseTpl<IndexType> ConvexType;
+
   /// @brief Geometry point data
   std::shared_ptr<std::vector<Vec3s>> vertices;
 
@@ -83,7 +87,8 @@ class COAL_DLLAPI BVHModelBase : public CollisionGeometry {
   BVHBuildState build_state;
 
   /// @brief Convex<Triangle> representation of this object
-  shared_ptr<ConvexBase> convex;
+  // TODO: deprecated
+  shared_ptr<ConvexType> convex;
 
   /// @brief Model type described by the instance
   BVHModelType getModelType() const {

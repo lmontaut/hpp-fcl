@@ -222,17 +222,6 @@ std::vector<Vec3s> getBoundVertices(const Cylinder& cylinder,
   return result;
 }
 
-std::vector<Vec3s> getBoundVertices(const ConvexBase& convex,
-                                    const Transform3s& tf) {
-  std::vector<Vec3s> result(convex.num_points);
-  const std::vector<Vec3s>& points_ = *(convex.points);
-  for (std::size_t i = 0; i < convex.num_points; ++i) {
-    result[i] = tf.transform(points_[i]);
-  }
-
-  return result;
-}
-
 std::vector<Vec3s> getBoundVertices(const TriangleP& triangle,
                                     const Transform3s& tf) {
   std::vector<Vec3s> result(3);
@@ -364,9 +353,9 @@ void computeBV<AABB, Cylinder>(const Cylinder& s, const Transform3s& tf,
   bv.min_ = T - v_delta;
 }
 
-template <>
-void computeBV<AABB, ConvexBase>(const ConvexBase& s, const Transform3s& tf,
-                                 AABB& bv) {
+template <typename IndexType>
+void computeAABBConvex(const ConvexBaseTpl<IndexType>& s, const Transform3s& tf,
+                       AABB& bv) {
   const Matrix3s& R = tf.getRotation();
   const Vec3s& T = tf.getTranslation();
 
@@ -378,6 +367,18 @@ void computeBV<AABB, ConvexBase>(const ConvexBase& s, const Transform3s& tf,
   }
 
   bv = bv_;
+}
+
+template <>
+void computeBV<AABB, ConvexBase32>(const ConvexBase32& s, const Transform3s& tf,
+                                   AABB& bv) {
+  computeAABBConvex(s, tf, bv);
+}
+
+template <>
+void computeBV<AABB, ConvexBase16>(const ConvexBase16& s, const Transform3s& tf,
+                                   AABB& bv) {
+  computeAABBConvex(s, tf, bv);
 }
 
 template <>
@@ -524,9 +525,9 @@ void computeBV<OBB, Cylinder>(const Cylinder& s, const Transform3s& tf,
   bv.extent << s.radius, s.radius, s.halfLength;
 }
 
-template <>
-void computeBV<OBB, ConvexBase>(const ConvexBase& s, const Transform3s& tf,
-                                OBB& bv) {
+template <typename IndexType>
+void computeOBBConvex(const ConvexBaseTpl<IndexType>& s, const Transform3s& tf,
+                      OBB& bv) {
   if (s.getSweptSphereRadius() > 0) {
     COAL_THROW_PRETTY("Swept-sphere radius not yet supported.",
                       std::runtime_error);
@@ -539,6 +540,18 @@ void computeBV<OBB, ConvexBase>(const ConvexBase& s, const Transform3s& tf,
   bv.axes.applyOnTheLeft(R);
 
   bv.To = R * bv.To + T;
+}
+
+template <>
+void computeBV<OBB, ConvexBase32>(const ConvexBase32& s, const Transform3s& tf,
+                                  OBB& bv) {
+  computeOBBConvex(s, tf, bv);
+}
+
+template <>
+void computeBV<OBB, ConvexBase16>(const ConvexBase16& s, const Transform3s& tf,
+                                  OBB& bv) {
+  computeOBBConvex(s, tf, bv);
 }
 
 template <>

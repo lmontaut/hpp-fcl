@@ -66,7 +66,6 @@ set(
   narrowphase/minkowski_difference.cpp
   narrowphase/support_functions.cpp
   narrowphase/details.h
-  shape/convex.cpp
   shape/geometric_shapes.cpp
   shape/geometric_shapes_utility.cpp
   distance/box_halfspace.cpp

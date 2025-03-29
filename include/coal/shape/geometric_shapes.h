@@ -636,8 +636,18 @@ class COAL_DLLAPI Cylinder : public ShapeBase {
 
 /// @brief Base for convex polytope.
 /// @note Inherited classes are responsible for filling ConvexBase::neighbors;
-class COAL_DLLAPI ConvexBase : public ShapeBase {
+template <typename _IndexType>
+class ConvexBaseTpl : public ShapeBase {
  public:
+  // clang-format off
+  COAL_DEPRECATED_MESSAGE(Use IndexType) typedef _IndexType index_type;
+  // clang-format on
+  typedef _IndexType IndexType;
+  typedef ShapeBase Base;
+
+  template <typename OtherIndexType>
+  friend class ConvexBaseTpl;
+
   /// @brief Build a convex hull based on Qhull library
   /// and store the vertices and optionally the triangles
   /// \param points, num_points the points whose convex hull should be computed.
@@ -650,62 +660,94 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
   ///          Qhull.
   /// \note Coal must have been compiled with option \c COAL_HAS_QHULL set
   ///       to \c ON.
-  static ConvexBase* convexHull(std::shared_ptr<std::vector<Vec3s>>& points,
-                                unsigned int num_points, bool keepTriangles,
-                                const char* qhullCommand = NULL);
+  static COAL_DLLAPI ConvexBaseTpl *convexHull(
+      std::shared_ptr<std::vector<Vec3s>> &points, unsigned int num_points,
+      bool keepTriangles, const char *qhullCommand = NULL);
 
   // TODO(louis): put this method in private sometime in the future.
-  COAL_DEPRECATED static ConvexBase* convexHull(
-      const Vec3s* points, unsigned int num_points, bool keepTriangles,
-      const char* qhullCommand = NULL);
+  COAL_DEPRECATED static COAL_DLLAPI ConvexBaseTpl *convexHull(
+      const Vec3s *points, unsigned int num_points, bool keepTriangles,
+      const char *qhullCommand = NULL);
 
-  virtual ~ConvexBase();
+  virtual ~ConvexBaseTpl() {}
+
+  /// @brief Cast ConvexBaseTpl to ShapeBase.
+  /// This method should never be marked as virtual
+  Base &base() { return static_cast<Base &>(*this); }
+
+  /// @brief Const cast ConvexBaseTpl to ShapeBase.
+  /// This method should never be marked as virtual
+  const Base &base() const { return static_cast<const Base &>(*this); }
+
+  /// @brief Copy constructor.
+  /// The copy constructor only shallow copies the data (it copies the shared
+  /// pointers but does not deep clones the data).
+  ConvexBaseTpl(const ConvexBaseTpl &other) { *this = other; }
+
+  /// @brief Copy assignment operator.
+  /// The copy assignment operator shallow copies the data, just as the copy
+  /// constructor.
+  ConvexBaseTpl &operator=(const ConvexBaseTpl &other);
 
   /// @brief Clone (deep copy).
-  /// This method is consistent with BVHModel `clone` method.
-  /// The copy constructor is called, which duplicates the data.
-  virtual ConvexBase* clone() const { return new ConvexBase(*this); }
+  COAL_DEPRECATED_MESSAGE(Use deepcopy instead.)
+  virtual ConvexBaseTpl *clone() const { return this->deepcopy(); }
+
+  /// @brief Deep copy of the ConvexBaseTpl.
+  /// This method deep copies every field of the class.
+  virtual ConvexBaseTpl *deepcopy() const {
+    ConvexBaseTpl *copy = new ConvexBaseTpl();
+    deepcopy(this, copy);
+    return copy;
+  }
+
+  /// @brief Cast this ConvexBase vertex indices to OtherIndexType.
+  /// This effectively deep copies this ConvexBaseTpl into a new one.
+  template <typename OtherIndexType>
+  ConvexBaseTpl<OtherIndexType> cast() const {
+    ConvexBaseTpl<OtherIndexType> res;
+    deepcopy(this, &res);
+    return res;
+  }
 
   /// @brief Compute AABB
   void computeLocalAABB();
 
   /// @brief Get node type: a convex polytope
-  NODE_TYPE getNodeType() const { return GEOM_CONVEX; }
+  NODE_TYPE getNodeType() const;
 
 #ifdef COAL_HAS_QHULL
   /// @brief Builds the double description of the convex polytope, i.e. the set
   /// of hyperplanes which intersection form the polytope.
-  void buildDoubleDescription();
+  void COAL_DLLAPI buildDoubleDescription();
 #endif
 
-  struct COAL_DLLAPI Neighbors {
-    typedef std::uint32_t index_type;
+  struct Neighbors {
+    unsigned char count;
+    IndexType begin_id;
 
-    unsigned char count_;
-    index_type* n_;
-
-    unsigned char const& count() const { return count_; }
-    index_type& operator[](index_type i) {
-      assert(i < count_);
-      return n_[i];
-    }
-    index_type const& operator[](index_type i) const {
-      assert(i < count_);
-      return n_[i];
-    }
-
-    bool operator==(const Neighbors& other) const {
-      if (count_ != other.count_) return false;
-
-      for (int i = 0; i < count_; ++i) {
-        if (n_[i] != other.n_[i]) return false;
-      }
+    bool operator==(const Neighbors &other) const {
+      if (count != other.count) return false;
+      if (begin_id != other.begin_id) return false;
 
       return true;
     }
 
-    bool operator!=(const Neighbors& other) const { return !(*this == other); }
+    bool operator!=(const Neighbors &other) const { return !(*this == other); }
   };
+
+  /// @brief Get the index of the j-th neighbor of the i-th vertex.
+  IndexType neighbor(IndexType i, IndexType j) const {
+    assert(i < IndexType(num_points));
+    const std::vector<Neighbors> &nns = *neighbors;
+    IndexType begin_id = nns[i].begin_id;
+#ifndef NDEBUG
+    unsigned char count = nns[i].count;
+    assert(j < count);
+#endif
+    const std::vector<IndexType> &nns_vec = *nneighbors_;
+    return nns_vec[begin_id + j];
+  }
 
   /// @brief Above this threshold, the convex polytope is considered large.
   /// This influcences the way the support function is computed.
@@ -755,7 +797,7 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
  protected:
   /// @brief Construct an uninitialized convex object
   /// Initialization is done with ConvexBase::initialize.
-  ConvexBase()
+  ConvexBaseTpl()
       : ShapeBase(),
         num_points(0),
         num_normals_and_offsets(0),
@@ -778,31 +820,35 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
   void set(std::shared_ptr<std::vector<Vec3s>> points_,
            unsigned int num_points_);
 
-  /// @brief Copy constructor
-  /// Only the list of neighbors is copied.
-  ConvexBase(const ConvexBase& other);
-
 #ifdef COAL_HAS_QHULL
-  void buildDoubleDescriptionFromQHullResult(const orgQhull::Qhull& qh);
+  void COAL_DLLAPI
+  buildDoubleDescriptionFromQHullResult(const orgQhull::Qhull &qh);
 #endif
 
   /// @brief Build the support points warm starts.
-  void buildSupportWarmStart();
+  void COAL_DLLAPI buildSupportWarmStart();
 
   /// @brief Array of indices of the neighbors of each vertex.
   /// Since we don't know a priori the number of neighbors of each vertex, we
   /// store the indices of the neighbors in a single array.
   /// The `neighbors` attribute, an array of `Neighbors`, is used to point each
   /// vertex to the right indices in the `nneighbors_` array.
-  std::shared_ptr<std::vector<Neighbors::index_type>> nneighbors_;
+  std::shared_ptr<std::vector<IndexType>> nneighbors_;
 
- private:
+ protected:
+  /// @brief Deep copy of a ConvexBaseTpl.
+  /// This method deep copies every field of the class.
+  template <typename OtherIndexType>
+  static void deepcopy(const ConvexBaseTpl<IndexType> *source,
+                       ConvexBaseTpl<OtherIndexType> *copy);
+
   void computeCenter();
 
-  virtual bool isEqual(const CollisionGeometry& _other) const {
-    const ConvexBase* other_ptr = dynamic_cast<const ConvexBase*>(&_other);
+  virtual bool isEqual(const CollisionGeometry &_other) const {
+    const ConvexBaseTpl *other_ptr =
+        dynamic_cast<const ConvexBaseTpl *>(&_other);
     if (other_ptr == nullptr) return false;
-    const ConvexBase& other = *other_ptr;
+    const ConvexBaseTpl &other = *other_ptr;
 
     if (num_points != other.num_points) return false;
 
@@ -810,8 +856,8 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
         (points.get() && !(other.points.get())))
       return false;
     if (points.get() && other.points.get()) {
-      const std::vector<Vec3s>& points_ = *points;
-      const std::vector<Vec3s>& other_points_ = *(other.points);
+      const std::vector<Vec3s> &points_ = *points;
+      const std::vector<Vec3s> &other_points_ = *(other.points);
       for (unsigned int i = 0; i < num_points; ++i) {
         if (points_[i] != (other_points_)[i]) return false;
       }
@@ -821,8 +867,8 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
         (neighbors.get() && !(other.neighbors.get())))
       return false;
     if (neighbors.get() && other.neighbors.get()) {
-      const std::vector<Neighbors>& neighbors_ = *neighbors;
-      const std::vector<Neighbors>& other_neighbors_ = *(other.neighbors);
+      const std::vector<Neighbors> &neighbors_ = *neighbors;
+      const std::vector<Neighbors> &other_neighbors_ = *(other.neighbors);
       for (unsigned int i = 0; i < num_points; ++i) {
         if (neighbors_[i] != other_neighbors_[i]) return false;
       }
@@ -832,8 +878,8 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
         (normals.get() && !(other.normals.get())))
       return false;
     if (normals.get() && other.normals.get()) {
-      const std::vector<Vec3s>& normals_ = *normals;
-      const std::vector<Vec3s>& other_normals_ = *(other.normals);
+      const std::vector<Vec3s> &normals_ = *normals;
+      const std::vector<Vec3s> &other_normals_ = *(other.normals);
       for (unsigned int i = 0; i < num_normals_and_offsets; ++i) {
         if (normals_[i] != other_normals_[i]) return false;
       }
@@ -843,8 +889,8 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
         (offsets.get() && !(other.offsets.get())))
       return false;
     if (offsets.get() && other.offsets.get()) {
-      const std::vector<Scalar>& offsets_ = *offsets;
-      const std::vector<Scalar>& other_offsets_ = *(other.offsets);
+      const std::vector<Scalar> &offsets_ = *offsets;
+      const std::vector<Scalar> &other_offsets_ = *(other.offsets);
       for (unsigned int i = 0; i < num_normals_and_offsets; ++i) {
         if (offsets_[i] != other_offsets_[i]) return false;
       }
@@ -873,6 +919,10 @@ class COAL_DLLAPI ConvexBase : public ShapeBase {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
+
+typedef ConvexBaseTpl<Triangle16::IndexType> ConvexBase16;
+typedef ConvexBaseTpl<Triangle32::IndexType> ConvexBase32;
+typedef ConvexBase32 ConvexBase;
 
 template <typename PolygonT>
 class Convex;
@@ -1050,5 +1100,7 @@ class COAL_DLLAPI Plane : public ShapeBase {
 };
 
 }  // namespace coal
+
+#include "coal/shape/geometric_shapes.hxx"
 
 #endif
