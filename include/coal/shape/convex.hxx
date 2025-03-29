@@ -41,6 +41,8 @@
 #include <vector>
 #include <iostream>
 
+#include "coal/shape/convex.h"
+
 namespace coal {
 
 template <typename PolygonT>
@@ -48,30 +50,59 @@ Convex<PolygonT>::Convex(std::shared_ptr<std::vector<Vec3s>> points_,
                          unsigned int num_points_,
                          std::shared_ptr<std::vector<PolygonT>> polygons_,
                          unsigned int num_polygons_)
-    : ConvexBase(), polygons(polygons_), num_polygons(num_polygons_) {
+    : Base(), polygons(polygons_), num_polygons(num_polygons_) {
   this->initialize(points_, num_points_);
   this->fillNeighbors();
   this->buildSupportWarmStart();
 }
 
 template <typename PolygonT>
-Convex<PolygonT>::Convex(const Convex<PolygonT>& other)
-    : ConvexBase(other), num_polygons(other.num_polygons) {
-  if (other.polygons.get()) {
-    polygons.reset(new std::vector<PolygonT>(*(other.polygons)));
-  } else
-    polygons.reset();
+Convex<PolygonT>& Convex<PolygonT>::operator=(const Convex& other) {
+  if (this != &other) {
+    // Copy the base
+    this->base() = other.base();
+
+    // Shallow copy the polygons
+    this->num_polygons = other.num_polygons;
+    this->polygons = other.polygons;
+  }
+
+  return *this;
 }
 
 template <typename PolygonT>
-Convex<PolygonT>::~Convex() {}
+template <typename OtherPolygonT>
+void Convex<PolygonT>::deepcopy(const Convex<PolygonT>* source,
+                                Convex<OtherPolygonT>* copy) {
+  if (source == nullptr || copy == nullptr) {
+    return;
+  }
+
+  // Deep copy the base
+  Base::deepcopy(source, copy);
+
+  // Deep copy the polygons
+  typedef typename OtherPolygonT::IndexType OtherIndexType;
+  copy->num_polygons = source->num_polygons;
+  if (source->polygons != nullptr) {
+    const std::vector<PolygonT>& source_polygons = *(source->polygons);
+    copy->polygons.reset(
+        new std::vector<OtherPolygonT>(source_polygons.size()));
+    std::vector<OtherPolygonT>& copy_polygons = *(copy->polygons);
+    for (std::size_t i = 0; i < source_polygons.size(); ++i) {
+      copy_polygons[i] = source_polygons[i].template cast<OtherIndexType>();
+    }
+  } else {
+    copy->polygons.reset();
+  }
+}
 
 template <typename PolygonT>
 void Convex<PolygonT>::set(std::shared_ptr<std::vector<Vec3s>> points_,
                            unsigned int num_points_,
                            std::shared_ptr<std::vector<PolygonT>> polygons_,
                            unsigned int num_polygons_) {
-  ConvexBase::set(points_, num_points_);
+  Base::set(points_, num_points_);
 
   this->num_polygons = num_polygons_;
   this->polygons = polygons_;
@@ -81,27 +112,22 @@ void Convex<PolygonT>::set(std::shared_ptr<std::vector<Vec3s>> points_,
 }
 
 template <typename PolygonT>
-Convex<PolygonT>* Convex<PolygonT>::clone() const {
-  return new Convex(*this);
-}
-
-template <typename PolygonT>
 Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
   typedef typename PolygonT::size_type size_type;
-  typedef typename PolygonT::index_type index_type;
+  typedef typename PolygonT::IndexType IndexType;
 
   Matrix3s C = Matrix3s::Zero();
 
   Matrix3s C_canonical;
-  C_canonical << Scalar(1 / 60),  //
-      Scalar(1 / 120),            //
-      Scalar(1 / 120),            //
-      Scalar(1 / 120),            //
-      Scalar(1 / 60),             //
-      Scalar(1 / 120),            //
-      Scalar(1 / 120),            //
-      Scalar(1 / 120),            //
-      Scalar(1 / 60);
+  C_canonical << Scalar(1 / 60.0),  //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 60.0),             //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 120.0),            //
+      Scalar(1 / 60.0);
 
   if (!(points.get())) {
     std::cerr
@@ -123,16 +149,16 @@ Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
     // compute the center of the polygon
     Vec3s plane_center(0, 0, 0);
     for (size_type j = 0; j < polygon.size(); ++j)
-      plane_center += points_[polygon[(index_type)j]];
+      plane_center += points_[polygon[(IndexType)j]];
     plane_center /= Scalar(polygon.size());
 
     // compute the volume of tetrahedron making by neighboring two points, the
     // plane center and the reference point (zero) of the convex shape
     const Vec3s& v3 = plane_center;
     for (size_type j = 0; j < polygon.size(); ++j) {
-      index_type e_first = polygon[static_cast<index_type>(j)];
-      index_type e_second =
-          polygon[static_cast<index_type>((j + 1) % polygon.size())];
+      IndexType e_first = polygon[static_cast<IndexType>(j)];
+      IndexType e_second =
+          polygon[static_cast<IndexType>((j + 1) % polygon.size())];
       const Vec3s& v1 = points_[e_first];
       const Vec3s& v2 = points_[e_second];
       Matrix3s A;
@@ -148,7 +174,7 @@ Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
 template <typename PolygonT>
 Vec3s Convex<PolygonT>::computeCOM() const {
   typedef typename PolygonT::size_type size_type;
-  typedef typename PolygonT::index_type index_type;
+  typedef typename PolygonT::IndexType IndexType;
 
   Vec3s com(0, 0, 0);
   Scalar vol = 0;
@@ -169,16 +195,16 @@ Vec3s Convex<PolygonT>::computeCOM() const {
     // compute the center of the polygon
     Vec3s plane_center(0, 0, 0);
     for (size_type j = 0; j < polygon.size(); ++j)
-      plane_center += points_[polygon[(index_type)j]];
+      plane_center += points_[polygon[(IndexType)j]];
     plane_center /= Scalar(polygon.size());
 
     // compute the volume of tetrahedron making by neighboring two points, the
     // plane center and the reference point (zero) of the convex shape
     const Vec3s& v3 = plane_center;
     for (size_type j = 0; j < polygon.size(); ++j) {
-      index_type e_first = polygon[static_cast<index_type>(j)];
-      index_type e_second =
-          polygon[static_cast<index_type>((j + 1) % polygon.size())];
+      IndexType e_first = polygon[static_cast<IndexType>(j)];
+      IndexType e_second =
+          polygon[static_cast<IndexType>((j + 1) % polygon.size())];
       const Vec3s& v1 = points_[e_first];
       const Vec3s& v2 = points_[e_second];
       Scalar d_six_vol = (v1.cross(v2)).dot(v3);
@@ -193,7 +219,7 @@ Vec3s Convex<PolygonT>::computeCOM() const {
 template <typename PolygonT>
 Scalar Convex<PolygonT>::computeVolume() const {
   typedef typename PolygonT::size_type size_type;
-  typedef typename PolygonT::index_type index_type;
+  typedef typename PolygonT::IndexType IndexType;
 
   Scalar vol = 0;
   if (!(points.get())) {
@@ -214,16 +240,16 @@ Scalar Convex<PolygonT>::computeVolume() const {
     // compute the center of the polygon
     Vec3s plane_center(0, 0, 0);
     for (size_type j = 0; j < polygon.size(); ++j)
-      plane_center += points_[polygon[(index_type)j]];
+      plane_center += points_[polygon[(IndexType)j]];
     plane_center /= Scalar(polygon.size());
 
     // compute the volume of tetrahedron making by neighboring two points, the
     // plane center and the reference point (zero point) of the convex shape
     const Vec3s& v3 = plane_center;
     for (size_type j = 0; j < polygon.size(); ++j) {
-      index_type e_first = polygon[static_cast<index_type>(j)];
-      index_type e_second =
-          polygon[static_cast<index_type>((j + 1) % polygon.size())];
+      IndexType e_first = polygon[static_cast<IndexType>(j)];
+      IndexType e_second =
+          polygon[static_cast<IndexType>((j + 1) % polygon.size())];
       const Vec3s& v1 = points_[e_first];
       const Vec3s& v2 = points_[e_second];
       Scalar d_six_vol = (v1.cross(v2)).dot(v3);
@@ -239,8 +265,9 @@ void Convex<PolygonT>::fillNeighbors() {
   neighbors.reset(new std::vector<Neighbors>(num_points));
 
   typedef typename PolygonT::size_type size_type;
-  typedef typename PolygonT::index_type index_type;
-  std::vector<std::set<index_type>> nneighbors(num_points);
+  typedef typename PolygonT::IndexType IndexType;
+
+  std::vector<std::set<IndexType>> nneighbors(num_points);
   unsigned int c_nneighbors = 0;
 
   if (!(polygons.get())) {
@@ -255,8 +282,8 @@ void Convex<PolygonT>::fillNeighbors() {
     for (size_type j = 0; j < polygon.size(); ++j) {
       size_type i = (j == 0) ? n - 1 : j - 1;
       size_type k = (j == n - 1) ? 0 : j + 1;
-      index_type pi = polygon[(index_type)i], pj = polygon[(index_type)j],
-                 pk = polygon[(index_type)k];
+      IndexType pi = polygon[(IndexType)i], pj = polygon[(IndexType)j],
+                pk = polygon[(IndexType)k];
       // Update neighbors of pj;
       if (nneighbors[pj].count(pi) == 0) {
         c_nneighbors++;
@@ -269,20 +296,24 @@ void Convex<PolygonT>::fillNeighbors() {
     }
   }
 
-  nneighbors_.reset(new std::vector<Neighbors::index_type>(c_nneighbors));
+  nneighbors_.reset(new std::vector<IndexType>(c_nneighbors));
 
-  Neighbors::index_type* p_nneighbors = nneighbors_->data();
   std::vector<Neighbors>& neighbors_ = *neighbors;
+  std::vector<IndexType>& nneighbors__ = *(nneighbors_);
+  IndexType begin_id = 0;
   for (unsigned int i = 0; i < num_points; ++i) {
     Neighbors& n = neighbors_[i];
     if (nneighbors[i].size() >= (std::numeric_limits<unsigned char>::max)())
       COAL_THROW_PRETTY("Too many neighbors.", std::logic_error);
-    n.count_ = (unsigned char)nneighbors[i].size();
-    n.n_ = p_nneighbors;
-    p_nneighbors =
-        std::copy(nneighbors[i].begin(), nneighbors[i].end(), p_nneighbors);
+    n.count = (unsigned char)nneighbors[i].size();
+    n.begin_id = begin_id;
+    IndexType j = 0;
+    for (IndexType idx : nneighbors[i]) {
+      nneighbors__[n.begin_id + j] = idx;
+      j++;
+    }
+    begin_id += n.count;
   }
-  assert(p_nneighbors == nneighbors_->data() + c_nneighbors);
 }
 
 }  // namespace coal

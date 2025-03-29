@@ -17,14 +17,15 @@ namespace boost {
 namespace serialization {
 
 namespace internal {
-struct ConvexBaseAccessor : coal::ConvexBase {
-  typedef coal::ConvexBase Base;
+template <typename IndexType>
+struct ConvexBaseAccessor : coal::ConvexBaseTpl<IndexType> {
+  typedef coal::ConvexBaseTpl<IndexType> Base;
 };
 
 }  // namespace internal
 
-template <class Archive>
-void serialize(Archive& ar, coal::ConvexBase& convex_base,
+template <class Archive, typename IndexType>
+void serialize(Archive& ar, coal::ConvexBaseTpl<IndexType>& convex_base,
                const unsigned int /*version*/) {
   using namespace coal;
 
@@ -127,9 +128,10 @@ void serialize(Archive& ar, coal::Convex<PolygonT>& convex_,
                const unsigned int /*version*/) {
   using namespace coal;
   typedef internal::ConvexAccessor<PolygonT> Accessor;
+  typedef ConvexBaseTpl<typename PolygonT::IndexType> Base;
 
   Accessor& convex = reinterpret_cast<Accessor&>(convex_);
-  ar& make_nvp("base", boost::serialization::base_object<ConvexBase>(convex_));
+  ar& make_nvp("base", boost::serialization::base_object<Base>(convex_));
 
   const unsigned int num_polygons_previous = convex.num_polygons;
   ar& make_nvp("num_polygons", convex.num_polygons);
