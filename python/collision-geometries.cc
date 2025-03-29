@@ -171,66 +171,70 @@ void exposeHeightField(const std::string& bvname) {
       ;
 }
 
+template <typename IndexType>
 struct ConvexBaseWrapper {
+  typedef ConvexBaseTpl<IndexType> ConvexBaseType;
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 3, Eigen::RowMajor> RowMatrixX3;
   typedef Eigen::Map<RowMatrixX3> MapRowMatrixX3;
   typedef Eigen::Ref<RowMatrixX3> RefRowMatrixX3;
   typedef Eigen::Map<VecXs> MapVecXs;
   typedef Eigen::Ref<VecXs> RefVecXs;
 
-  static Vec3s& point(const ConvexBase& convex, unsigned int i) {
+  static Vec3s& point(const ConvexBaseType& convex, unsigned int i) {
     if (i >= convex.num_points)
       throw std::out_of_range("index is out of range");
     return (*(convex.points))[i];
   }
 
-  static RefRowMatrixX3 points(const ConvexBase& convex) {
+  static RefRowMatrixX3 points(const ConvexBaseType& convex) {
     return MapRowMatrixX3((*(convex.points))[0].data(), convex.num_points, 3);
   }
 
-  static Vec3s& normal(const ConvexBase& convex, unsigned int i) {
+  static Vec3s& normal(const ConvexBaseType& convex, unsigned int i) {
     if (i >= convex.num_normals_and_offsets)
       throw std::out_of_range("index is out of range");
     return (*(convex.normals))[i];
   }
 
-  static RefRowMatrixX3 normals(const ConvexBase& convex) {
+  static RefRowMatrixX3 normals(const ConvexBaseType& convex) {
     return MapRowMatrixX3((*(convex.normals))[0].data(),
                           convex.num_normals_and_offsets, 3);
   }
 
-  static Scalar offset(const ConvexBase& convex, unsigned int i) {
+  static Scalar offset(const ConvexBaseType& convex, unsigned int i) {
     if (i >= convex.num_normals_and_offsets)
       throw std::out_of_range("index is out of range");
     return (*(convex.offsets))[i];
   }
 
-  static RefVecXs offsets(const ConvexBase& convex) {
+  static RefVecXs offsets(const ConvexBaseType& convex) {
     return MapVecXs(convex.offsets->data(), convex.num_normals_and_offsets, 1);
   }
 
-  static list neighbors(const ConvexBase& convex, unsigned int i) {
+  static list neighbors(const ConvexBaseType& convex, unsigned int i) {
     if (i >= convex.num_points)
       throw std::out_of_range("index is out of range");
     list n;
-    const std::vector<ConvexBase::Neighbors>& neighbors_ = *(convex.neighbors);
-    for (unsigned char j = 0; j < neighbors_[i].count(); ++j)
-      n.append(neighbors_[i][j]);
+    const std::vector<typename ConvexBaseType::Neighbors>& neighbors_ =
+        *(convex.neighbors);
+    for (unsigned char j = 0; j < neighbors_[i].count; ++j) {
+      n.append(convex.neighbor(IndexType(i), j));
+    }
     return n;
   }
 
-  static ConvexBase* convexHull(const Vec3ss& points, bool keepTri,
-                                const char* qhullCommand) {
-    return ConvexBase::convexHull(points.data(), (unsigned int)points.size(),
-                                  keepTri, qhullCommand);
+  static ConvexBaseType* convexHull(const Vec3ss& points, bool keepTri,
+                                    const char* qhullCommand) {
+    return ConvexBaseType::convexHull(
+        points.data(), (unsigned int)points.size(), keepTri, qhullCommand);
   }
 };
 
 template <typename PolygonT>
 struct ConvexWrapper {
   typedef Convex<PolygonT> Convex_t;
-  typedef typename PolygonT::index_type index_type;
-  typedef TriangleTpl<index_type> TriangleType;
+  typedef typename PolygonT::IndexType IndexType;
+  typedef TriangleTpl<IndexType> TriangleType;
 
   static PolygonT polygons(const Convex_t& convex, unsigned int i) {
     if (i >= convex.num_polygons)
@@ -274,6 +278,69 @@ void exposeComputeMemoryFootprint() {
   defComputeMemoryFootprint<BVHModel<OBB>>();
   defComputeMemoryFootprint<BVHModel<RSS>>();
   defComputeMemoryFootprint<BVHModel<OBBRSS>>();
+}
+
+template <typename IndexType>
+void exposeConvexBase(const std::string& classname) {
+  typedef ConvexBaseTpl<IndexType> ConvexBaseType;
+  typedef ConvexBaseWrapper<IndexType> ConvexBaseTypeWrapper;
+
+  class_<ConvexBaseType, bases<ShapeBase>, shared_ptr<ConvexBaseType>,
+         noncopyable>(classname.c_str(), doxygen::class_doc<ConvexBaseType>(),
+                      no_init)
+      .DEF_RO_CLASS_ATTRIB(ConvexBaseType, center)
+      .DEF_RO_CLASS_ATTRIB(ConvexBaseType, num_points)
+      .DEF_RO_CLASS_ATTRIB(ConvexBaseType, num_normals_and_offsets)
+      .def("point", &ConvexBaseTypeWrapper::point, bp::args("self", "index"),
+           "Retrieve the point given by its index.",
+           bp::return_internal_reference<>())
+      .def("points", &ConvexBaseTypeWrapper::point, bp::args("self", "index"),
+           "Retrieve the point given by its index.",
+           ::coal::python::deprecated_member<bp::return_internal_reference<>>())
+      .def("points", &ConvexBaseTypeWrapper::points, bp::args("self"),
+           "Retrieve all the points.",
+           bp::with_custodian_and_ward_postcall<0, 1>())
+      .def("normal", &ConvexBaseTypeWrapper::normal, bp::args("self", "index"),
+           "Retrieve the normal given by its index.",
+           bp::return_internal_reference<>())
+      .def("normals", &ConvexBaseTypeWrapper::normals, bp::args("self"),
+           "Retrieve all the normals.",
+           bp::with_custodian_and_ward_postcall<0, 1>())
+      .def("offset", &ConvexBaseTypeWrapper::offset, bp::args("self", "index"),
+           "Retrieve the offset given by its index.")
+      .def("offsets", &ConvexBaseTypeWrapper::offsets, bp::args("self"),
+           "Retrieve all the offsets.",
+           bp::with_custodian_and_ward_postcall<0, 1>())
+      .def("neighbors", &ConvexBaseTypeWrapper::neighbors)
+      .def("convexHull", &ConvexBaseTypeWrapper::convexHull,
+           return_value_policy<manage_new_object>())
+      .staticmethod("convexHull")
+      .def("clone", &ConvexBaseType::clone,
+           doxygen::member_func_doc(&ConvexBaseType::clone),
+           return_value_policy<manage_new_object>());
+}
+
+template <typename PolygonT>
+void exposeConvex(const std::string& classname) {
+  typedef Convex<PolygonT> ConvexType;
+  typedef ConvexBaseTpl<typename PolygonT::IndexType> ConvexBaseType;
+  typedef ConvexWrapper<PolygonT> ConvexWrapperType;
+
+  class_<ConvexType, bases<ConvexBaseType>, shared_ptr<ConvexType>,
+         noncopyable>(classname.c_str(), doxygen::class_doc<ConvexType>(),
+                      no_init)
+      .def("__init__",
+           make_constructor(&ConvexWrapper<Triangle32>::constructor))
+      .def(dv::init<ConvexType>())
+      .def(dv::init<ConvexType, const ConvexType&>())
+      .DEF_RO_CLASS_ATTRIB(ConvexType, num_polygons)
+      .def("polygons", &ConvexWrapperType::polygons)
+      .def_pickle(PickleObject<ConvexType>())
+      .def(SerializableVisitor<ConvexType>())
+#if EIGENPY_VERSION_AT_LEAST(3, 8, 0)
+      .def(eigenpy::IdVisitor<ConvexType>())
+#endif
+      ;
 }
 
 void exposeShapes() {
@@ -333,75 +400,11 @@ void exposeShapes() {
 #endif
       ;
 
-  class_<ConvexBase, bases<ShapeBase>, shared_ptr<ConvexBase>, noncopyable>(
-      "ConvexBase", doxygen::class_doc<ConvexBase>(), no_init)
-      .DEF_RO_CLASS_ATTRIB(ConvexBase, center)
-      .DEF_RO_CLASS_ATTRIB(ConvexBase, num_points)
-      .DEF_RO_CLASS_ATTRIB(ConvexBase, num_normals_and_offsets)
-      .def("point", &ConvexBaseWrapper::point, bp::args("self", "index"),
-           "Retrieve the point given by its index.",
-           bp::return_internal_reference<>())
-      .def("points", &ConvexBaseWrapper::point, bp::args("self", "index"),
-           "Retrieve the point given by its index.",
-           ::coal::python::deprecated_member<bp::return_internal_reference<>>())
-      .def("points", &ConvexBaseWrapper::points, bp::args("self"),
-           "Retrieve all the points.",
-           bp::with_custodian_and_ward_postcall<0, 1>())
-      //    .add_property ("points",
-      //                   bp::make_function(&ConvexBaseWrapper::points,bp::with_custodian_and_ward_postcall<0,1>()),
-      //                   "Points of the convex.")
-      .def("normal", &ConvexBaseWrapper::normal, bp::args("self", "index"),
-           "Retrieve the normal given by its index.",
-           bp::return_internal_reference<>())
-      .def("normals", &ConvexBaseWrapper::normals, bp::args("self"),
-           "Retrieve all the normals.",
-           bp::with_custodian_and_ward_postcall<0, 1>())
-      .def("offset", &ConvexBaseWrapper::offset, bp::args("self", "index"),
-           "Retrieve the offset given by its index.")
-      .def("offsets", &ConvexBaseWrapper::offsets, bp::args("self"),
-           "Retrieve all the offsets.",
-           bp::with_custodian_and_ward_postcall<0, 1>())
-      .def("neighbors", &ConvexBaseWrapper::neighbors)
-      .def("convexHull", &ConvexBaseWrapper::convexHull,
-           // doxygen::member_func_doc(&ConvexBase::convexHull),
-           return_value_policy<manage_new_object>())
-      .staticmethod("convexHull")
-      .def("clone", &ConvexBase::clone,
-           doxygen::member_func_doc(&ConvexBase::clone),
-           return_value_policy<manage_new_object>());
-
-  class_<Convex<Triangle32>, bases<ConvexBase>, shared_ptr<Convex<Triangle32>>,
-         noncopyable>("Convex32", doxygen::class_doc<Convex<Triangle32>>(),
-                      no_init)
-      .def("__init__",
-           make_constructor(&ConvexWrapper<Triangle32>::constructor))
-      .def(dv::init<Convex<Triangle32>>())
-      .def(dv::init<Convex<Triangle32>, const Convex<Triangle32>&>())
-      .DEF_RO_CLASS_ATTRIB(Convex<Triangle32>, num_polygons)
-      .def("polygons", &ConvexWrapper<Triangle32>::polygons)
-      .def_pickle(PickleObject<Convex<Triangle32>>())
-      .def(SerializableVisitor<Convex<Triangle32>>())
-#if EIGENPY_VERSION_AT_LEAST(3, 8, 0)
-      .def(eigenpy::IdVisitor<Convex<Triangle32>>())
-#endif
-      ;
+  exposeConvexBase<Triangle16::IndexType>("ConvexBase16");
+  exposeConvexBase<Triangle32::IndexType>("ConvexBase32");
+  exposeConvex<Triangle16>("Convex16");
+  exposeConvex<Triangle32>("Convex32");
   bp::scope().attr("Convex") = bp::scope().attr("Convex32");
-
-  class_<Convex<Triangle16>, bases<ConvexBase>, shared_ptr<Convex<Triangle16>>,
-         noncopyable>("Convex16", doxygen::class_doc<Convex<Triangle16>>(),
-                      no_init)
-      .def("__init__",
-           make_constructor(&ConvexWrapper<Triangle16>::constructor))
-      .def(dv::init<Convex<Triangle16>>())
-      .def(dv::init<Convex<Triangle16>, const Convex<Triangle16>&>())
-      .DEF_RO_CLASS_ATTRIB(Convex<Triangle16>, num_polygons)
-      .def("polygons", &ConvexWrapper<Triangle16>::polygons)
-      .def_pickle(PickleObject<Convex<Triangle16>>())
-      .def(SerializableVisitor<Convex<Triangle16>>())
-#if EIGENPY_VERSION_AT_LEAST(3, 8, 0)
-      .def(eigenpy::IdVisitor<Convex<Triangle16>>())
-#endif
-      ;
 
   class_<Cylinder, bases<ShapeBase>, shared_ptr<Cylinder>>(
       "Cylinder", doxygen::class_doc<Cylinder>(), no_init)
