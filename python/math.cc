@@ -70,6 +70,25 @@ struct TriangleWrapper {
   }
 };
 
+template <typename IndexType>
+void exposeTriangle(const std::string& classname) {
+  typedef TriangleTpl<IndexType> TriangleType;
+
+  class_<TriangleType>(classname.c_str(), no_init)
+      .def(dv::init<TriangleType>())
+      .def(dv::init<TriangleType, typename TriangleType::IndexType,
+                    typename TriangleType::IndexType,
+                    typename TriangleType::IndexType>())
+      .def("__getitem__",
+           &TriangleWrapper<typename TriangleType::IndexType>::getitem)
+      .def("__setitem__",
+           &TriangleWrapper<typename TriangleType::IndexType>::setitem)
+      .def(dv::member_func("set", &TriangleType::set))
+      .def(dv::member_func("size", &TriangleType::size))
+      .staticmethod("size")
+      .def(self == self);
+}
+
 void exposeMaths() {
   eigenpy::enableEigenPy();
 
@@ -145,20 +164,9 @@ void exposeMaths() {
       .def(dv::member_func("size", &Triangle32::size))
       .staticmethod("size")
       .def(self == self);
+  exposeTriangle<Triangle32::IndexType>("Triangle32");
   bp::scope().attr("Triangle") = bp::scope().attr("Triangle32");
-
-  class_<Triangle16>("Triangle16", no_init)
-      .def(dv::init<Triangle16>())
-      .def(dv::init<Triangle16, Triangle16::IndexType, Triangle16::IndexType,
-                    Triangle16::IndexType>())
-      .def("__getitem__",
-           &TriangleWrapper<typename Triangle16::IndexType>::getitem)
-      .def("__setitem__",
-           &TriangleWrapper<typename Triangle16::IndexType>::setitem)
-      .def(dv::member_func("set", &Triangle16::set))
-      .def(dv::member_func("size", &Triangle16::size))
-      .staticmethod("size")
-      .def(self == self);
+  exposeTriangle<Triangle16::IndexType>("Triangle16");
 
   if (!eigenpy::register_symbolic_link_to_registered_type<
           std::vector<Vec3s> >()) {
