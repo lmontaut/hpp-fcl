@@ -1478,14 +1478,18 @@ void EPA::getWitnessPointsAndNormal(const MinkowskiDiff& shape, Vec3ps& w0,
 
 }  // namespace details
 
-void ConvexBase::buildSupportWarmStart() {
-  if (this->points->size() < ConvexBase::num_vertices_large_convex_threshold) {
+template <typename IndexType>
+void ConvexBaseTpl<IndexType>::buildSupportWarmStart() {
+  typedef ConvexBaseTpl<IndexType> ConvexBaseType;
+  if (this->points->size() <
+      ConvexBaseType::num_vertices_large_convex_threshold) {
     return;
   }
 
-  this->support_warm_starts.points.reserve(ConvexBase::num_support_warm_starts);
+  this->support_warm_starts.points.reserve(
+      ConvexBaseType::num_support_warm_starts);
   this->support_warm_starts.indices.reserve(
-      ConvexBase::num_support_warm_starts);
+      ConvexBaseType::num_support_warm_starts);
 
   Vec3s axiis(0, 0, 0);
   details::ShapeSupportData support_data;
@@ -1494,8 +1498,8 @@ void ConvexBase::buildSupportWarmStart() {
     axiis(i) = 1;
     {
       Vec3s support;
-      coal::details::getShapeSupport<false>(this, axiis, support, support_hint,
-                                            support_data);
+      coal::details::getShapeSupport<false, IndexType>(
+          this, axiis, support, support_hint, support_data);
       this->support_warm_starts.points.emplace_back(support);
       this->support_warm_starts.indices.emplace_back(support_hint);
     }
@@ -1503,8 +1507,8 @@ void ConvexBase::buildSupportWarmStart() {
     axiis(i) = -1;
     {
       Vec3s support;
-      coal::details::getShapeSupport<false>(this, axiis, support, support_hint,
-                                            support_data);
+      coal::details::getShapeSupport<false, IndexType>(
+          this, axiis, support, support_hint, support_data);
       this->support_warm_starts.points.emplace_back(support);
       this->support_warm_starts.indices.emplace_back(support_hint);
     }
@@ -1520,28 +1524,33 @@ void ConvexBase::buildSupportWarmStart() {
   for (size_t ei_index = 0; ei_index < 4; ++ei_index) {
     {
       Vec3s support;
-      coal::details::getShapeSupport<false>(this, eis[ei_index], support,
-                                            support_hint, support_data);
+      coal::details::getShapeSupport<false, IndexType>(
+          this, eis[ei_index], support, support_hint, support_data);
       this->support_warm_starts.points.emplace_back(support);
       this->support_warm_starts.indices.emplace_back(support_hint);
     }
 
     {
       Vec3s support;
-      coal::details::getShapeSupport<false>(this, -eis[ei_index], support,
-                                            support_hint, support_data);
+      coal::details::getShapeSupport<false, IndexType>(
+          this, -eis[ei_index], support, support_hint, support_data);
       this->support_warm_starts.points.emplace_back(support);
       this->support_warm_starts.indices.emplace_back(support_hint);
     }
   }
 
   if (this->support_warm_starts.points.size() !=
-          ConvexBase::num_support_warm_starts ||
+          ConvexBaseType::num_support_warm_starts ||
       this->support_warm_starts.indices.size() !=
-          ConvexBase::num_support_warm_starts) {
+          ConvexBaseType::num_support_warm_starts) {
     COAL_THROW_PRETTY("Wrong number of support warm starts.",
                       std::runtime_error);
   }
 }
+
+template void COAL_DLLAPI
+ConvexBaseTpl<Triangle16::IndexType>::buildSupportWarmStart();
+template void COAL_DLLAPI
+ConvexBaseTpl<Triangle32::IndexType>::buildSupportWarmStart();
 
 }  // namespace coal
