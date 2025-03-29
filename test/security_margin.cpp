@@ -499,7 +499,7 @@ BOOST_AUTO_TEST_CASE(sphere_box) {
   BVHModel<OBBRSS> box_bvh_model = BVHModel<OBBRSS>();
   generateBVHModel(box_bvh_model, *box_ptr, Transform3s());
   box_bvh_model.buildConvexRepresentation(false);
-  ConvexBase& box_convex = *box_bvh_model.convex.get();
+  ConvexBase32& box_convex = *box_bvh_model.convex.get();
   CollisionGeometryPtr_t s2(new coal::Sphere(0.5));
 
   const Transform3s tf1;

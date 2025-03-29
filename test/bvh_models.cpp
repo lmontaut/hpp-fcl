@@ -381,6 +381,6 @@ BOOST_AUTO_TEST_CASE(test_convex) {
   box_bvh_model.buildConvexRepresentation(false);
 
   box_bvh_model.convex->computeLocalAABB();
-  std::shared_ptr<ConvexBase> convex_copy(box_bvh_model.convex->clone());
+  std::shared_ptr<ConvexBase32> convex_copy(box_bvh_model.convex->clone());
   BOOST_CHECK(*convex_copy.get() == *box_bvh_model.convex.get());
 }

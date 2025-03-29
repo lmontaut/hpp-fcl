@@ -138,19 +138,19 @@ void loadOBJFile(const char* filename, std::vector<Vec3s>& points,
 
         for (int t = 0; t < (n - 2); ++t) {
           if ((!has_texture) && (!has_normal)) {
-            tri[0] = (Triangle32::index_type)(atoi(data[0]) - 1);
-            tri[1] = (Triangle32::index_type)(atoi(data[1]) - 1);
-            tri[2] = (Triangle32::index_type)(atoi(data[2]) - 1);
+            tri[0] = (Triangle32::IndexType)(atoi(data[0]) - 1);
+            tri[1] = (Triangle32::IndexType)(atoi(data[1]) - 1);
+            tri[2] = (Triangle32::IndexType)(atoi(data[2]) - 1);
           } else {
             const char* v1;
-            for (Triangle32::index_type i = 0; i < 3; i++) {
+            for (Triangle32::IndexType i = 0; i < 3; i++) {
               // vertex ID
               if (i == 0)
                 v1 = data[0];
               else
-                v1 = data[(Triangle32::index_type)t + i];
+                v1 = data[(Triangle32::IndexType)t + i];
 
-              tri[i] = (Triangle32::index_type)(atoi(v1) - 1);
+              tri[i] = (Triangle32::IndexType)(atoi(v1) - 1);
             }
           }
           triangles.push_back(tri);
