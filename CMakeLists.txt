@@ -320,6 +320,7 @@ set(
   include/coal/shape/details/convex.hxx
   include/coal/shape/geometric_shape_to_BVH_model.h
   include/coal/shape/geometric_shapes.h
+  include/coal/shape/geometric_shapes.hxx
   include/coal/shape/geometric_shapes_traits.h
   include/coal/shape/geometric_shapes_utility.h
   include/coal/distance_func_matrix.h
@@ -510,6 +511,7 @@ if(COAL_BACKWARD_COMPATIBILITY_WITH_HPP_FCL)
     include/hpp/fcl/shape/convex.h
     include/hpp/fcl/shape/details/convex.hxx
     include/hpp/fcl/shape/geometric_shapes.h
+    include/hpp/fcl/shape/geometric_shapes.hxx
     include/hpp/fcl/shape/geometric_shapes_traits.h
     include/hpp/fcl/shape/geometric_shapes_utility.h
     include/hpp/fcl/shape/geometric_shape_to_BVH_model.h
