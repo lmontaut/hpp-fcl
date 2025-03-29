@@ -278,8 +278,8 @@ void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
       unsigned int index = indirect_index ? indices[i] : i;
       const Triangle32& t = ts[index];
 
-      for (Triangle32::index_type j = 0; j < 3; ++j) {
-        Triangle32::index_type point_id = t[j];
+      for (Triangle32::IndexType j = 0; j < 3; ++j) {
+        Triangle32::IndexType point_id = t[j];
         const Vec3s& p = ps[point_id];
         Vec3s v(p[0], p[1], p[2]);
         P[P_id][0] = axes.col(0).dot(v);
@@ -289,8 +289,8 @@ void getRadiusAndOriginAndRectangleSize(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
       }
 
       if (ps2) {
-        for (Triangle32::index_type j = 0; j < 3; ++j) {
-          Triangle32::index_type point_id = t[j];
+        for (Triangle32::IndexType j = 0; j < 3; ++j) {
+          Triangle32::IndexType point_id = t[j];
           const Vec3s& p = ps2[point_id];
           // FIXME Is this right ?????
           Vec3s v(p[0], p[1], p[2]);
@@ -542,8 +542,8 @@ static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2,
     unsigned int index = indirect_index ? indices[i] : i;
     const Triangle32& t = ts[index];
 
-    for (Triangle32::index_type j = 0; j < 3; ++j) {
-      Triangle32::index_type point_id = t[j];
+    for (Triangle32::IndexType j = 0; j < 3; ++j) {
+      Triangle32::IndexType point_id = t[j];
       const Vec3s& p = ps[point_id];
       Vec3s proj(axes.transpose() * p);
 
@@ -554,8 +554,8 @@ static inline void getExtentAndCenter_mesh(Vec3s* ps, Vec3s* ps2,
     }
 
     if (ps2) {
-      for (Triangle32::index_type j = 0; j < 3; ++j) {
-        Triangle32::index_type point_id = t[j];
+      for (Triangle32::IndexType j = 0; j < 3; ++j) {
+        Triangle32::IndexType point_id = t[j];
         const Vec3s& p = ps2[point_id];
         Vec3s proj(axes.transpose() * p);
 
@@ -608,8 +608,8 @@ static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
     unsigned int index = indirect_index ? indices[i] : i;
     const Triangle32& t = ts[index];
 
-    for (Triangle32::index_type j = 0; j < 3; ++j) {
-      Triangle32::index_type point_id = t[j];
+    for (Triangle32::IndexType j = 0; j < 3; ++j) {
+      Triangle32::IndexType point_id = t[j];
       const Vec3s& p = ps[point_id];
 
       Scalar d = (p - query).squaredNorm();
@@ -617,8 +617,8 @@ static inline Scalar maximumDistance_mesh(Vec3s* ps, Vec3s* ps2, Triangle32* ts,
     }
 
     if (ps2) {
-      for (Triangle32::index_type j = 0; j < 3; ++j) {
-        Triangle32::index_type point_id = t[j];
+      for (Triangle32::IndexType j = 0; j < 3; ++j) {
+        Triangle32::IndexType point_id = t[j];
         const Vec3s& p = ps2[point_id];
 
         Scalar d = (p - query).squaredNorm();
