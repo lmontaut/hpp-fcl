@@ -64,7 +64,6 @@ set(
   broadphase/detail/morton.cpp
   narrowphase/gjk.cpp
   narrowphase/minkowski_difference.cpp
-  narrowphase/support_functions.cpp
   narrowphase/details.h
   shape/geometric_shapes.cpp
   shape/geometric_shapes_utility.cpp
