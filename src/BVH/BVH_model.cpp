@@ -153,8 +153,8 @@ void BVHModelBase::buildConvexRepresentation(bool share_memory) {
 
 bool BVHModelBase::buildConvexHull(bool keepTriangle,
                                    const char* qhullCommand) {
-  convex.reset(ConvexBase::convexHull(vertices, num_vertices, keepTriangle,
-                                      qhullCommand));
+  convex.reset(BVHModelBase::ConvexType::convexHull(
+      vertices, num_vertices, keepTriangle, qhullCommand));
   return num_vertices == convex->num_points;
 }
 
@@ -296,9 +296,9 @@ int BVHModelBase::addTriangles(const Matrixx3i& triangles) {
   for (Eigen::DenseIndex i = 0; i < triangles.rows(); ++i) {
     const Matrixx3i::ConstRowXpr triangle = triangles.row(i);
     tri_indices_[num_tris++].set(
-        static_cast<Triangle32::index_type>(triangle[0]),
-        static_cast<Triangle32::index_type>(triangle[1]),
-        static_cast<Triangle32::index_type>(triangle[2]));
+        static_cast<Triangle32::IndexType>(triangle[0]),
+        static_cast<Triangle32::IndexType>(triangle[1]),
+        static_cast<Triangle32::IndexType>(triangle[2]));
   }
 
   return BVH_OK;
@@ -390,9 +390,9 @@ int BVHModelBase::addTriangle(const Vec3s& p1, const Vec3s& p2,
     num_tris_allocated *= 2;
   }
 
-  (*tri_indices)[num_tris].set(Triangle32::index_type(offset),
-                               Triangle32::index_type((offset + 1)),
-                               Triangle32::index_type((offset + 2)));
+  (*tri_indices)[num_tris].set(Triangle32::IndexType(offset),
+                               Triangle32::IndexType((offset + 1)),
+                               Triangle32::IndexType((offset + 2)));
   num_tris++;
 
   return BVH_OK;
@@ -496,9 +496,9 @@ int BVHModelBase::addSubModel(const std::vector<Vec3s>& ps,
   std::vector<Triangle32>& tri_indices_ = *tri_indices;
   for (size_t i = 0; i < (size_t)num_tris_to_add; ++i) {
     const Triangle32& t = ts[i];
-    tri_indices_[num_tris].set(t[0] + Triangle32::index_type(offset),
-                               t[1] + Triangle32::index_type(offset),
-                               t[2] + Triangle32::index_type(offset));
+    tri_indices_[num_tris].set(t[0] + Triangle32::IndexType(offset),
+                               t[1] + Triangle32::IndexType(offset),
+                               t[2] + Triangle32::IndexType(offset));
     num_tris++;
   }
 
@@ -1005,7 +1005,7 @@ int BVHModel<BV>::recursiveRefitTree_bottomup(int bv_id) {
 
       if (prev_vertices.get()) {
         Vec3s v[6];
-        for (Triangle32::index_type i = 0; i < 3; ++i) {
+        for (Triangle32::IndexType i = 0; i < 3; ++i) {
           v[i] = (*prev_vertices)[triangle[i]];
           v[i + 3] = (*vertices)[triangle[i]];
         }
@@ -1018,7 +1018,7 @@ int BVHModel<BV>::recursiveRefitTree_bottomup(int bv_id) {
         // bvnode->num_primitives);
         Vec3s v[3];
         for (int i = 0; i < 3; ++i) {
-          v[i] = (*vertices)[triangle[(Triangle32::index_type)i]];
+          v[i] = (*vertices)[triangle[(Triangle32::IndexType)i]];
         }
 
         fit(v, 3, bv);
