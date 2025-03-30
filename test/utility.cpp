@@ -456,7 +456,7 @@ void generateEnvironmentsMesh(std::vector<CollisionObject*>& env,
   }
 }
 
-Convex<Quadrilateral32> buildBox(Scalar l, Scalar w, Scalar d) {
+ConvexTpl<Quadrilateral32> buildBox(Scalar l, Scalar w, Scalar d) {
   std::shared_ptr<std::vector<Vec3s>> pts(new std::vector<Vec3s>(
       {Vec3s(l, w, d), Vec3s(l, w, -d), Vec3s(l, -w, d), Vec3s(l, -w, -d),
        Vec3s(-l, w, d), Vec3s(-l, w, -d), Vec3s(-l, -w, d),
@@ -471,10 +471,10 @@ Convex<Quadrilateral32> buildBox(Scalar l, Scalar w, Scalar d) {
   (*polygons)[4].set(1, 3, 7, 5);  // z- side
   (*polygons)[5].set(0, 2, 6, 4);  // z+ side
 
-  return Convex<Quadrilateral32>(pts,  // points
-                                 8,    // num points
-                                 polygons,
-                                 6  // number of polygons
+  return ConvexTpl<Quadrilateral32>(pts,  // points
+                                    8,    // num points
+                                    polygons,
+                                    6  // number of polygons
   );
 }
 
@@ -497,7 +497,8 @@ void toEllipsoid(Vec3s& point, const Ellipsoid& ellipsoid) {
   point[2] *= ellipsoid.radii[2];
 }
 
-Convex<Triangle32> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
+ConvexTpl<Triangle32> constructPolytopeFromEllipsoid(
+    const Ellipsoid& ellipsoid) {
   Scalar PHI = (1 + std::sqrt(Scalar(5))) / 2;
 
   // vertices
@@ -549,10 +550,10 @@ Convex<Triangle32> constructPolytopeFromEllipsoid(const Ellipsoid& ellipsoid) {
   (*tris)[17].set(6, 2, 10);
   (*tris)[18].set(8, 6, 7);
   (*tris)[19].set(9, 8, 1);
-  return Convex<Triangle32>(pts,   // points
-                            12,    // num_points
-                            tris,  // triangles
-                            20     // number of triangles
+  return ConvexTpl<Triangle32>(pts,   // points
+                               12,    // num_points
+                               tris,  // triangles
+                               20     // number of triangles
   );
 }
 
@@ -590,7 +591,7 @@ Cylinder makeRandomCylinder(std::array<Scalar, 2> min_size,
                   rand_interval(min_size[1], max_size[1]));
 }
 
-Convex<Triangle32> makeRandomConvex(Scalar min_size, Scalar max_size) {
+ConvexTpl<Triangle32> makeRandomConvex(Scalar min_size, Scalar max_size) {
   Ellipsoid ellipsoid = makeRandomEllipsoid(min_size, max_size);
   return constructPolytopeFromEllipsoid(ellipsoid);
 }
@@ -635,7 +636,7 @@ std::shared_ptr<ShapeBase> makeRandomGeometry(NODE_TYPE node_type) {
           {Scalar(0.1), Scalar(0.2)}, {Scalar(0.8), Scalar(1.0)}));
       break;
     case GEOM_CONVEX:
-      return std::make_shared<Convex<Triangle32>>(
+      return std::make_shared<ConvexTpl<Triangle32>>(
           makeRandomConvex(Scalar(0.1), Scalar(1)));
       break;
     case GEOM_PLANE:

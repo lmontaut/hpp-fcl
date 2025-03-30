@@ -57,8 +57,8 @@ namespace coal {
 
 namespace details {
 template <typename BV>
-Convex<Quadrilateral32> buildConvexQuadrilateral(const HFNode<BV>& node,
-                                                 const HeightField<BV>& model) {
+ConvexTpl<Quadrilateral32> buildConvexQuadrilateral(
+    const HFNode<BV>& node, const HeightField<BV>& model) {
   const MatrixXs& heights = model.getHeights();
   const VecXs& x_grid = model.getXGrid();
   const VecXs& y_grid = model.getYGrid();
@@ -94,10 +94,10 @@ Convex<Quadrilateral32> buildConvexQuadrilateral(const HFNode<BV>& node,
   (*polygons)[4].set(3, 0, 4, 7);  // z- side
   (*polygons)[5].set(4, 5, 6, 7);  // z+ side
 
-  return Convex<Quadrilateral32>(pts,  // points
-                                 8,    // num points
-                                 polygons,
-                                 6  // number of polygons
+  return ConvexTpl<Quadrilateral32>(pts,  // points
+                                    8,    // num points
+                                    polygons,
+                                    6  // number of polygons
   );
 }
 
@@ -119,9 +119,9 @@ enum class FaceOrientationConvexPart2 {
 
 template <typename BV>
 void buildConvexTriangles(const HFNode<BV>& node, const HeightField<BV>& model,
-                          Convex<Triangle32>& convex1,
+                          ConvexTpl<Triangle32>& convex1,
                           int& convex1_active_faces,
-                          Convex<Triangle32>& convex2,
+                          ConvexTpl<Triangle32>& convex2,
                           int& convex2_active_faces) {
   const MatrixXs& heights = model.getHeights();
   const VecXs& x_grid = model.getXGrid();
@@ -290,7 +290,7 @@ inline Scalar distanceContactPointToTriangle(const Vec3s& contact_point,
 
 inline Scalar distanceContactPointToFace(const size_t face_id,
                                          const Vec3s& contact_point,
-                                         const Convex<Triangle32>& convex,
+                                         const ConvexTpl<Triangle32>& convex,
                                          size_t& closest_face_id) {
   assert((face_id >= 0 && face_id < 8) && "face_id should be in [0;7]");
 
@@ -319,7 +319,7 @@ inline Scalar distanceContactPointToFace(const size_t face_id,
 }
 
 template <typename Polygone, typename Shape>
-bool binCorrection(const Convex<Polygone>& convex,
+bool binCorrection(const ConvexTpl<Polygone>& convex,
                    const int convex_active_faces, const Shape& shape,
                    const Transform3s& shape_pose, Scalar& distance,
                    Vec3s& contact_1, Vec3s& contact_2, Vec3s& normal,
@@ -400,9 +400,9 @@ bool binCorrection(const Convex<Polygone>& convex,
 
 template <typename Polygone, typename Shape, int Options>
 bool shapeDistance(const GJKSolver* nsolver, const CollisionRequest& request,
-                   const Convex<Polygone>& convex1,
+                   const ConvexTpl<Polygone>& convex1,
                    const int convex1_active_faces,
-                   const Convex<Polygone>& convex2,
+                   const ConvexTpl<Polygone>& convex2,
                    const int convex2_active_faces, const Transform3s& tf1,
                    const Shape& shape, const Transform3s& tf2, Scalar& distance,
                    Vec3s& c1, Vec3s& c2, Vec3s& normal, Vec3s& normal_top,
@@ -421,11 +421,11 @@ bool shapeDistance(const GJKSolver* nsolver, const CollisionRequest& request,
   Scalar distance1, distance2;
 
   if (RTIsIdentity) {
-    distance1 = internal::ShapeShapeDistance<Convex<Polygone>, Shape>(
+    distance1 = internal::ShapeShapeDistance<ConvexTpl<Polygone>, Shape>(
         &convex1, Id, &shape, tf2, nsolver, compute_penetration, contact1_1,
         contact1_2, normal1);
   } else {
-    distance1 = internal::ShapeShapeDistance<Convex<Polygone>, Shape>(
+    distance1 = internal::ShapeShapeDistance<ConvexTpl<Polygone>, Shape>(
         &convex1, tf1, &shape, tf2, nsolver, compute_penetration, contact1_1,
         contact1_2, normal1);
   }
@@ -437,11 +437,11 @@ bool shapeDistance(const GJKSolver* nsolver, const CollisionRequest& request,
                     contact1_1, contact1_2, normal1, normal1_top, collision1);
 
   if (RTIsIdentity) {
-    distance2 = internal::ShapeShapeDistance<Convex<Polygone>, Shape>(
+    distance2 = internal::ShapeShapeDistance<ConvexTpl<Polygone>, Shape>(
         &convex2, Id, &shape, tf2, nsolver, compute_penetration, contact2_1,
         contact2_2, normal2);
   } else {
-    distance2 = internal::ShapeShapeDistance<Convex<Polygone>, Shape>(
+    distance2 = internal::ShapeShapeDistance<ConvexTpl<Polygone>, Shape>(
         &convex2, tf1, &shape, tf2, nsolver, compute_penetration, contact2_1,
         contact2_2, normal2);
   }
@@ -578,7 +578,7 @@ class HeightFieldShapeCollisionTraversalNode
     return disjoint;
   }
 
-  /// @brief Intersection testing between leaves (one Convex and one shape)
+  /// @brief Intersection testing between leaves (one ConvexTpl and one shape)
   void leafCollides(unsigned int b1, unsigned int /*b2*/,
                     Scalar& sqrDistLowerBound) const {
     count++;
@@ -588,11 +588,11 @@ class HeightFieldShapeCollisionTraversalNode
     // Split quadrilateral primitives into two convex shapes corresponding to
     // polyhedron with triangular bases. This is essential to keep the convexity
 
-    //    typedef Convex<Quadrilateral32> ConvexQuadrilateral32;
+    //    typedef ConvexTpl<Quadrilateral32> ConvexQuadrilateral32;
     //    const ConvexQuadrilateral32 convex =
     //    details::buildConvexQuadrilateral(node,*this->model1);
 
-    typedef Convex<Triangle32> ConvexTriangle32;
+    typedef ConvexTpl<Triangle32> ConvexTriangle32;
     ConvexTriangle32 convex1, convex2;
     int convex1_active_faces, convex2_active_faces;
     // TODO: inherit from hfield's inflation here
@@ -710,7 +710,7 @@ class HeightFieldShapeDistanceTraversalNode : public DistanceTraversalNodeBase {
 
     const BVNode<BV>& node = this->model1->getBV(b1);
 
-    typedef Convex<Quadrilateral32> ConvexQuadrilateral32;
+    typedef ConvexTpl<Quadrilateral32> ConvexQuadrilateral32;
     const ConvexQuadrilateral32 convex =
         details::buildConvexQuadrilateral(node, *this->model1);
 

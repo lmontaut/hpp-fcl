@@ -564,7 +564,7 @@ BOOST_AUTO_TEST_CASE(test_hfield_bin_face_normal_orientation) {
   BOOST_CHECK((node.contact_active_faces & FaceOrientation::WEST) ==
               int(FaceOrientation::WEST));
 
-  Convex<Triangle32> convex1, convex2;
+  ConvexTpl<Triangle32> convex1, convex2;
   int convex1_active_faces, convex2_active_faces;
   details::buildConvexTriangles(node, hfield, convex1, convex1_active_faces,
                                 convex2, convex2_active_faces);

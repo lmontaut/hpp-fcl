@@ -47,7 +47,7 @@ using namespace coal;
 
 BOOST_AUTO_TEST_CASE(convex) {
   Scalar l = 1, w = 1, d = 1;
-  Convex<Quadrilateral32> box(buildBox(l, w, d));
+  ConvexTpl<Quadrilateral32> box(buildBox(l, w, d));
 
   // Check neighbors
   for (size_t i = 0; i < 8; ++i) {
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(compare_convex_box) {
   Scalar extents[6] = {0, 0, 0, 10, 10, 10};
   Scalar l = 1, w = 1, d = 1, eps = Scalar(1e-4);
   Box box(l * 2, w * 2, d * 2);
-  Convex<Quadrilateral32> convex_box(buildBox(l, w, d));
+  ConvexTpl<Quadrilateral32> convex_box(buildBox(l, w, d));
 
   Transform3s tf1;
   Transform3s tf2;
@@ -231,8 +231,8 @@ BOOST_AUTO_TEST_CASE(convex_hull_box_like) {
   delete convexHull;
 
   convexHull = ConvexBase32::convexHull(points, 9, true, NULL);
-  Convex<Triangle32>* convex_tri =
-      dynamic_cast<Convex<Triangle32>*>(convexHull);
+  ConvexTpl<Triangle32>* convex_tri =
+      dynamic_cast<ConvexTpl<Triangle32>*>(convexHull);
   BOOST_CHECK(convex_tri != NULL);
 
   BOOST_REQUIRE_EQUAL(8, convexHull->num_points);
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(convex_hull_box_like) {
 }
 
 BOOST_AUTO_TEST_CASE(convex_copy_constructor) {
-  Convex<Triangle32>* convexHullTriCopy;
+  ConvexTpl<Triangle32>* convexHullTriCopy;
   {
     std::shared_ptr<std::vector<Vec3s>> points(new std::vector<Vec3s>({
         Vec3s(1, 1, 1),
@@ -262,13 +262,13 @@ BOOST_AUTO_TEST_CASE(convex_copy_constructor) {
         Vec3s(0, 0, 0),
     }));
 
-    Convex<Triangle32>* convexHullTri = dynamic_cast<Convex<Triangle32>*>(
+    ConvexTpl<Triangle32>* convexHullTri = dynamic_cast<ConvexTpl<Triangle32>*>(
         ConvexBase32::convexHull(points, 9, true, NULL));
-    convexHullTriCopy = new Convex<Triangle32>(*convexHullTri);
+    convexHullTriCopy = new ConvexTpl<Triangle32>(*convexHullTri);
     BOOST_CHECK(*convexHullTri == *convexHullTriCopy);
   }
-  Convex<Triangle32>* convexHullTriCopyOfCopy =
-      new Convex<Triangle32>(*convexHullTriCopy);
+  ConvexTpl<Triangle32>* convexHullTriCopyOfCopy =
+      new ConvexTpl<Triangle32>(*convexHullTriCopy);
   BOOST_CHECK(*convexHullTriCopyOfCopy == *convexHullTriCopy);
 }
 
@@ -285,9 +285,9 @@ BOOST_AUTO_TEST_CASE(convex_clone) {
       Vec3s(0, 0, 0),
   }));
 
-  Convex<Triangle32>* convexHullTri = dynamic_cast<Convex<Triangle32>*>(
+  ConvexTpl<Triangle32>* convexHullTri = dynamic_cast<ConvexTpl<Triangle32>*>(
       ConvexBase32::convexHull(points, 9, true, NULL));
-  Convex<Triangle32>* convexHullTriCopy;
+  ConvexTpl<Triangle32>* convexHullTriCopy;
   convexHullTriCopy = convexHullTri->clone();
   BOOST_CHECK(*convexHullTri == *convexHullTriCopy);
 }

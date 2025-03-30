@@ -132,10 +132,10 @@ ConvexBaseTpl<IndexType>* ConvexBaseTpl<IndexType>::convexHull(
   }
   assert(i_vertex == nvertex);
 
-  Convex<TriangleTpl<IndexType>>* convex_tri(NULL);
+  ConvexTpl<TriangleTpl<IndexType>>* convex_tri(NULL);
   ConvexBaseTpl<IndexType>* convex(NULL);
   if (keepTriangles)
-    convex = convex_tri = new Convex<TriangleTpl<IndexType>>();
+    convex = convex_tri = new ConvexTpl<TriangleTpl<IndexType>>();
   else
     convex = new ConvexBaseTpl<IndexType>;
   convex->initialize(vertices, static_cast<unsigned int>(nvertex));

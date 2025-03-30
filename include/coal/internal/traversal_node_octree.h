@@ -606,7 +606,7 @@ class COAL_DLLAPI OcTreeSolver {
         box.computeLocalAABB();
       }
 
-      typedef Convex<Triangle32> ConvexTriangle;
+      typedef ConvexTpl<Triangle32> ConvexTriangle;
       ConvexTriangle convex1, convex2;
       int convex1_active_faces, convex2_active_faces;
       details::buildConvexTriangles(bvn2, *tree2, convex1, convex1_active_faces,
@@ -726,7 +726,7 @@ class COAL_DLLAPI OcTreeSolver {
         box.computeLocalAABB();
       }
 
-      typedef Convex<Triangle32> ConvexTriangle;
+      typedef ConvexTpl<Triangle32> ConvexTriangle;
       ConvexTriangle convex1, convex2;
       int convex1_active_faces, convex2_active_faces;
       details::buildConvexTriangles(bvn1, *tree1, convex1, convex1_active_faces,

@@ -46,10 +46,10 @@
 namespace coal {
 
 template <typename PolygonT>
-Convex<PolygonT>::Convex(std::shared_ptr<std::vector<Vec3s>> points_,
-                         unsigned int num_points_,
-                         std::shared_ptr<std::vector<PolygonT>> polygons_,
-                         unsigned int num_polygons_)
+ConvexTpl<PolygonT>::ConvexTpl(std::shared_ptr<std::vector<Vec3s>> points_,
+                               unsigned int num_points_,
+                               std::shared_ptr<std::vector<PolygonT>> polygons_,
+                               unsigned int num_polygons_)
     : Base(), polygons(polygons_), num_polygons(num_polygons_) {
   this->initialize(points_, num_points_);
   this->fillNeighbors();
@@ -57,7 +57,7 @@ Convex<PolygonT>::Convex(std::shared_ptr<std::vector<Vec3s>> points_,
 }
 
 template <typename PolygonT>
-Convex<PolygonT>& Convex<PolygonT>::operator=(const Convex& other) {
+ConvexTpl<PolygonT>& ConvexTpl<PolygonT>::operator=(const ConvexTpl& other) {
   if (this != &other) {
     // Copy the base
     this->base() = other.base();
@@ -72,8 +72,8 @@ Convex<PolygonT>& Convex<PolygonT>::operator=(const Convex& other) {
 
 template <typename PolygonT>
 template <typename OtherPolygonT>
-void Convex<PolygonT>::deepcopy(const Convex<PolygonT>* source,
-                                Convex<OtherPolygonT>* copy) {
+void ConvexTpl<PolygonT>::deepcopy(const ConvexTpl<PolygonT>* source,
+                                   ConvexTpl<OtherPolygonT>* copy) {
   if (source == nullptr || copy == nullptr) {
     return;
   }
@@ -98,10 +98,10 @@ void Convex<PolygonT>::deepcopy(const Convex<PolygonT>* source,
 }
 
 template <typename PolygonT>
-void Convex<PolygonT>::set(std::shared_ptr<std::vector<Vec3s>> points_,
-                           unsigned int num_points_,
-                           std::shared_ptr<std::vector<PolygonT>> polygons_,
-                           unsigned int num_polygons_) {
+void ConvexTpl<PolygonT>::set(std::shared_ptr<std::vector<Vec3s>> points_,
+                              unsigned int num_points_,
+                              std::shared_ptr<std::vector<PolygonT>> polygons_,
+                              unsigned int num_polygons_) {
   Base::set(points_, num_points_);
 
   this->num_polygons = num_polygons_;
@@ -112,7 +112,7 @@ void Convex<PolygonT>::set(std::shared_ptr<std::vector<Vec3s>> points_,
 }
 
 template <typename PolygonT>
-Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
+Matrix3s ConvexTpl<PolygonT>::computeMomentofInertia() const {
   typedef typename PolygonT::size_type size_type;
   typedef typename PolygonT::IndexType IndexType;
 
@@ -130,16 +130,16 @@ Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
       Scalar(1 / 60.0);
 
   if (!(points.get())) {
-    std::cerr
-        << "Error in `Convex::computeMomentofInertia`! Convex has no vertices."
-        << std::endl;
+    std::cerr << "Error in `ConvexTpl::computeMomentofInertia`! ConvexTpl has "
+                 "no vertices."
+              << std::endl;
     return C;
   }
   const std::vector<Vec3s>& points_ = *points;
   if (!(polygons.get())) {
-    std::cerr
-        << "Error in `Convex::computeMomentofInertia`! Convex has no polygons."
-        << std::endl;
+    std::cerr << "Error in `ConvexTpl::computeMomentofInertia`! ConvexTpl has "
+                 "no polygons."
+              << std::endl;
     return C;
   }
   const std::vector<PolygonT>& polygons_ = *polygons;
@@ -172,20 +172,20 @@ Matrix3s Convex<PolygonT>::computeMomentofInertia() const {
 }
 
 template <typename PolygonT>
-Vec3s Convex<PolygonT>::computeCOM() const {
+Vec3s ConvexTpl<PolygonT>::computeCOM() const {
   typedef typename PolygonT::size_type size_type;
   typedef typename PolygonT::IndexType IndexType;
 
   Vec3s com(0, 0, 0);
   Scalar vol = 0;
   if (!(points.get())) {
-    std::cerr << "Error in `Convex::computeCOM`! Convex has no vertices."
+    std::cerr << "Error in `ConvexTpl::computeCOM`! ConvexTpl has no vertices."
               << std::endl;
     return com;
   }
   const std::vector<Vec3s>& points_ = *points;
   if (!(polygons.get())) {
-    std::cerr << "Error in `Convex::computeCOM`! Convex has no polygons."
+    std::cerr << "Error in `ConvexTpl::computeCOM`! ConvexTpl has no polygons."
               << std::endl;
     return com;
   }
@@ -217,20 +217,22 @@ Vec3s Convex<PolygonT>::computeCOM() const {
 }
 
 template <typename PolygonT>
-Scalar Convex<PolygonT>::computeVolume() const {
+Scalar ConvexTpl<PolygonT>::computeVolume() const {
   typedef typename PolygonT::size_type size_type;
   typedef typename PolygonT::IndexType IndexType;
 
   Scalar vol = 0;
   if (!(points.get())) {
-    std::cerr << "Error in `Convex::computeVolume`! Convex has no vertices."
-              << std::endl;
+    std::cerr
+        << "Error in `ConvexTpl::computeVolume`! ConvexTpl has no vertices."
+        << std::endl;
     return vol;
   }
   const std::vector<Vec3s>& points_ = *points;
   if (!(polygons.get())) {
-    std::cerr << "Error in `Convex::computeVolume`! Convex has no polygons."
-              << std::endl;
+    std::cerr
+        << "Error in `ConvexTpl::computeVolume`! ConvexTpl has no polygons."
+        << std::endl;
     return vol;
   }
   const std::vector<PolygonT>& polygons_ = *polygons;
@@ -261,7 +263,7 @@ Scalar Convex<PolygonT>::computeVolume() const {
 }
 
 template <typename PolygonT>
-void Convex<PolygonT>::fillNeighbors() {
+void ConvexTpl<PolygonT>::fillNeighbors() {
   neighbors.reset(new std::vector<Neighbors>(num_points));
 
   typedef typename PolygonT::size_type size_type;
@@ -271,8 +273,9 @@ void Convex<PolygonT>::fillNeighbors() {
   unsigned int c_nneighbors = 0;
 
   if (!(polygons.get())) {
-    std::cerr << "Error in `Convex::fillNeighbors`! Convex has no polygons."
-              << std::endl;
+    std::cerr
+        << "Error in `ConvexTpl::fillNeighbors`! ConvexTpl has no polygons."
+        << std::endl;
   }
   const std::vector<PolygonT>& polygons_ = *polygons;
   for (unsigned int l = 0; l < num_polygons; ++l) {

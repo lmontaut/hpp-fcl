@@ -381,12 +381,12 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
 
   m1.buildConvexHull(true);
 
-  Convex<Triangle32>& convex =
-      static_cast<Convex<Triangle32>&>(*m1.convex.get());
+  ConvexTpl<Triangle32>& convex =
+      static_cast<ConvexTpl<Triangle32>&>(*m1.convex.get());
 
   // Test Convex
   {
-    Convex<Triangle32> convex_copy;
+    ConvexTpl<Triangle32> convex_copy;
     test_serialization(convex, convex_copy);
   }
 
@@ -398,22 +398,22 @@ BOOST_AUTO_TEST_CASE(test_Convex) {
     // const boost::filesystem::path txt_filename = tmp_dir / "file.txt";
     // const boost::filesystem::path bin_filename = tmp_dir / "file.bin";
     const boost::filesystem::path xml_filename = tmp_dir / "file.xml";
-    Convex<Triangle32> convex_copy;
+    ConvexTpl<Triangle32> convex_copy;
 
     std::shared_ptr<CollisionGeometry> ptr =
-        std::make_shared<Convex<Triangle32>>(convex);
+        std::make_shared<ConvexTpl<Triangle32>>(convex);
     BOOST_CHECK(ptr.get());
     const std::string filename = xml_filename.string();
     const std::string tag_name = "CollisionGeometry";
     coal::serialization::saveToXML(ptr, filename, tag_name);
     BOOST_CHECK(
-        check(*reinterpret_cast<Convex<Triangle32>*>(ptr.get()), convex));
+        check(*reinterpret_cast<ConvexTpl<Triangle32>*>(ptr.get()), convex));
 
     std::shared_ptr<CollisionGeometry> other_ptr = nullptr;
     BOOST_CHECK(!other_ptr.get());
     coal::serialization::loadFromXML(other_ptr, filename, tag_name);
-    BOOST_CHECK(
-        check(convex, *reinterpret_cast<Convex<Triangle32>*>(other_ptr.get())));
+    BOOST_CHECK(check(
+        convex, *reinterpret_cast<ConvexTpl<Triangle32>*>(other_ptr.get())));
   }
 }
 #endif
@@ -520,7 +520,7 @@ BOOST_AUTO_TEST_CASE(test_shapes) {
     for (size_t i = 0; i < num_points; i++) {
       points->emplace_back(Vec3s::Random());
     }
-    using Convex = Convex<Triangle32>;
+    using Convex = ConvexTpl<Triangle32>;
     std::unique_ptr<Convex> convex =
         std::unique_ptr<Convex>(static_cast<Convex*>(ConvexBase::convexHull(
             points, static_cast<unsigned int>(points->size()), true)));

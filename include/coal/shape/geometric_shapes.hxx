@@ -208,7 +208,7 @@ void ConvexBaseTpl<IndexType>::computeLocalAABB() {
 // Reorders `tri` such that the dot product between the normal of triangle and
 // the vector `triangle barycentre - convex_tri.center` is positive.
 template <typename IndexType>
-void reorderTriangle(const Convex<TriangleTpl<IndexType>>* convex_tri,
+void reorderTriangle(const ConvexTpl<TriangleTpl<IndexType>>* convex_tri,
                      TriangleTpl<IndexType>& tri) {
   Vec3s p0, p1, p2;
   p0 = (*(convex_tri->points))[tri[0]];
