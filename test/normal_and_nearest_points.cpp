@@ -287,13 +287,13 @@ BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_sphere_box) {
 
 BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_mesh) {
   for (size_t i = 0; i < 10; ++i) {
-    Convex<Triangle32> o1_ = constructPolytopeFromEllipsoid(
+    ConvexTpl<Triangle32> o1_ = constructPolytopeFromEllipsoid(
         Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
-    shared_ptr<Convex<Triangle32>> o1(new Convex<Triangle32>(
+    shared_ptr<ConvexTpl<Triangle32>> o1(new ConvexTpl<Triangle32>(
         o1_.points, o1_.num_points, o1_.polygons, o1_.num_polygons));
-    Convex<Triangle32> o2_ = constructPolytopeFromEllipsoid(
+    ConvexTpl<Triangle32> o2_ = constructPolytopeFromEllipsoid(
         Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
-    shared_ptr<Convex<Triangle32>> o2(new Convex<Triangle32>(
+    shared_ptr<ConvexTpl<Triangle32>> o2(new ConvexTpl<Triangle32>(
         o2_.points, o2_.num_points, o2_.polygons, o2_.num_polygons));
 
     size_t gjk_max_iterations = GJK_DEFAULT_MAX_ITERATIONS;
@@ -307,9 +307,9 @@ BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_mesh) {
 }
 
 BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_box) {
-  Convex<Triangle32> o1_ = constructPolytopeFromEllipsoid(
+  ConvexTpl<Triangle32> o1_ = constructPolytopeFromEllipsoid(
       Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
-  shared_ptr<Convex<Triangle32>> o1(new Convex<Triangle32>(
+  shared_ptr<ConvexTpl<Triangle32>> o1(new ConvexTpl<Triangle32>(
       o1_.points, o1_.num_points, o1_.polygons, o1_.num_polygons));
   shared_ptr<Box> o2(new Box(generateRandomVector<3>(Scalar(0.05), 1)));
 
@@ -319,9 +319,9 @@ BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_box) {
 
 BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_ellipsoid) {
   for (size_t i = 0; i < 10; ++i) {
-    Convex<Triangle32> o1_ = constructPolytopeFromEllipsoid(
+    ConvexTpl<Triangle32> o1_ = constructPolytopeFromEllipsoid(
         Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
-    shared_ptr<Convex<Triangle32>> o1(new Convex<Triangle32>(
+    shared_ptr<ConvexTpl<Triangle32>> o1(new ConvexTpl<Triangle32>(
         o1_.points, o1_.num_points, o1_.polygons, o1_.num_polygons));
     shared_ptr<Ellipsoid> o2(
         new Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
@@ -440,9 +440,9 @@ BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_sphere_plane) {
 
 BOOST_AUTO_TEST_CASE(test_normal_and_nearest_points_mesh_halfspace) {
   for (size_t i = 0; i < 10; ++i) {
-    Convex<Triangle32> o1_ = constructPolytopeFromEllipsoid(
+    ConvexTpl<Triangle32> o1_ = constructPolytopeFromEllipsoid(
         Ellipsoid(generateRandomVector<3>(Scalar(0.05), 1)));
-    shared_ptr<Convex<Triangle32>> o1(new Convex<Triangle32>(
+    shared_ptr<ConvexTpl<Triangle32>> o1(new ConvexTpl<Triangle32>(
         o1_.points, o1_.num_points, o1_.polygons, o1_.num_polygons));
     const Scalar half(0.5);
     Scalar offset = generateRandomNumber(-half, half);

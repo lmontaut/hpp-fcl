@@ -232,7 +232,7 @@ struct ConvexBaseWrapper {
 
 template <typename PolygonT>
 struct ConvexWrapper {
-  typedef Convex<PolygonT> Convex_t;
+  typedef ConvexTpl<PolygonT> Convex_t;
   typedef typename PolygonT::IndexType IndexType;
   typedef TriangleTpl<IndexType> TriangleType;
 
@@ -322,7 +322,7 @@ void exposeConvexBase(const std::string& classname) {
 
 template <typename PolygonT>
 void exposeConvex(const std::string& classname) {
-  typedef Convex<PolygonT> ConvexType;
+  typedef ConvexTpl<PolygonT> ConvexType;
   typedef ConvexBaseTpl<typename PolygonT::IndexType> ConvexBaseType;
   typedef ConvexWrapper<PolygonT> ConvexWrapperType;
 

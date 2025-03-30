@@ -660,43 +660,43 @@ class ConvexBaseTpl : public ShapeBase {
   ///          Qhull.
   /// \note Coal must have been compiled with option \c COAL_HAS_QHULL set
   ///       to \c ON.
-  static COAL_DLLAPI ConvexBaseTpl *convexHull(
-      std::shared_ptr<std::vector<Vec3s>> &points, unsigned int num_points,
-      bool keepTriangles, const char *qhullCommand = NULL);
+  static COAL_DLLAPI ConvexBaseTpl* convexHull(
+      std::shared_ptr<std::vector<Vec3s>>& points, unsigned int num_points,
+      bool keepTriangles, const char* qhullCommand = NULL);
 
   // TODO(louis): put this method in private sometime in the future.
-  COAL_DEPRECATED static COAL_DLLAPI ConvexBaseTpl *convexHull(
-      const Vec3s *points, unsigned int num_points, bool keepTriangles,
-      const char *qhullCommand = NULL);
+  COAL_DEPRECATED static COAL_DLLAPI ConvexBaseTpl* convexHull(
+      const Vec3s* points, unsigned int num_points, bool keepTriangles,
+      const char* qhullCommand = NULL);
 
   virtual ~ConvexBaseTpl() {}
 
   /// @brief Cast ConvexBaseTpl to ShapeBase.
   /// This method should never be marked as virtual
-  Base &base() { return static_cast<Base &>(*this); }
+  Base& base() { return static_cast<Base&>(*this); }
 
   /// @brief Const cast ConvexBaseTpl to ShapeBase.
   /// This method should never be marked as virtual
-  const Base &base() const { return static_cast<const Base &>(*this); }
+  const Base& base() const { return static_cast<const Base&>(*this); }
 
   /// @brief Copy constructor.
   /// The copy constructor only shallow copies the data (it copies the shared
   /// pointers but does not deep clones the data).
-  ConvexBaseTpl(const ConvexBaseTpl &other) { *this = other; }
+  ConvexBaseTpl(const ConvexBaseTpl& other) { *this = other; }
 
   /// @brief Copy assignment operator.
   /// The copy assignment operator shallow copies the data, just as the copy
   /// constructor.
-  ConvexBaseTpl &operator=(const ConvexBaseTpl &other);
+  ConvexBaseTpl& operator=(const ConvexBaseTpl& other);
 
   /// @brief Clone (deep copy).
   COAL_DEPRECATED_MESSAGE(Use deepcopy instead.)
-  virtual ConvexBaseTpl *clone() const { return this->deepcopy(); }
+  virtual ConvexBaseTpl* clone() const { return this->deepcopy(); }
 
   /// @brief Deep copy of the ConvexBaseTpl.
   /// This method deep copies every field of the class.
-  virtual ConvexBaseTpl *deepcopy() const {
-    ConvexBaseTpl *copy = new ConvexBaseTpl();
+  virtual ConvexBaseTpl* deepcopy() const {
+    ConvexBaseTpl* copy = new ConvexBaseTpl();
     deepcopy(this, copy);
     return copy;
   }
@@ -726,26 +726,26 @@ class ConvexBaseTpl : public ShapeBase {
     unsigned char count;
     IndexType begin_id;
 
-    bool operator==(const Neighbors &other) const {
+    bool operator==(const Neighbors& other) const {
       if (count != other.count) return false;
       if (begin_id != other.begin_id) return false;
 
       return true;
     }
 
-    bool operator!=(const Neighbors &other) const { return !(*this == other); }
+    bool operator!=(const Neighbors& other) const { return !(*this == other); }
   };
 
   /// @brief Get the index of the j-th neighbor of the i-th vertex.
   IndexType neighbor(IndexType i, IndexType j) const {
     assert(i < IndexType(num_points));
-    const std::vector<Neighbors> &nns = *neighbors;
+    const std::vector<Neighbors>& nns = *neighbors;
     IndexType begin_id = nns[i].begin_id;
 #ifndef NDEBUG
     unsigned char count = nns[i].count;
     assert(j < count);
 #endif
-    const std::vector<IndexType> &nns_vec = *nneighbors_;
+    const std::vector<IndexType>& nns_vec = *nneighbors_;
     return nns_vec[begin_id + j];
   }
 
@@ -822,7 +822,7 @@ class ConvexBaseTpl : public ShapeBase {
 
 #ifdef COAL_HAS_QHULL
   void COAL_DLLAPI
-  buildDoubleDescriptionFromQHullResult(const orgQhull::Qhull &qh);
+  buildDoubleDescriptionFromQHullResult(const orgQhull::Qhull& qh);
 #endif
 
   /// @brief Build the support points warm starts.
@@ -839,16 +839,16 @@ class ConvexBaseTpl : public ShapeBase {
   /// @brief Deep copy of a ConvexBaseTpl.
   /// This method deep copies every field of the class.
   template <typename OtherIndexType>
-  static void deepcopy(const ConvexBaseTpl<IndexType> *source,
-                       ConvexBaseTpl<OtherIndexType> *copy);
+  static void deepcopy(const ConvexBaseTpl<IndexType>* source,
+                       ConvexBaseTpl<OtherIndexType>* copy);
 
   void computeCenter();
 
-  virtual bool isEqual(const CollisionGeometry &_other) const {
-    const ConvexBaseTpl *other_ptr =
-        dynamic_cast<const ConvexBaseTpl *>(&_other);
+  virtual bool isEqual(const CollisionGeometry& _other) const {
+    const ConvexBaseTpl* other_ptr =
+        dynamic_cast<const ConvexBaseTpl*>(&_other);
     if (other_ptr == nullptr) return false;
-    const ConvexBaseTpl &other = *other_ptr;
+    const ConvexBaseTpl& other = *other_ptr;
 
     if (num_points != other.num_points) return false;
 
@@ -856,8 +856,8 @@ class ConvexBaseTpl : public ShapeBase {
         (points.get() && !(other.points.get())))
       return false;
     if (points.get() && other.points.get()) {
-      const std::vector<Vec3s> &points_ = *points;
-      const std::vector<Vec3s> &other_points_ = *(other.points);
+      const std::vector<Vec3s>& points_ = *points;
+      const std::vector<Vec3s>& other_points_ = *(other.points);
       for (unsigned int i = 0; i < num_points; ++i) {
         if (points_[i] != (other_points_)[i]) return false;
       }
@@ -867,8 +867,8 @@ class ConvexBaseTpl : public ShapeBase {
         (neighbors.get() && !(other.neighbors.get())))
       return false;
     if (neighbors.get() && other.neighbors.get()) {
-      const std::vector<Neighbors> &neighbors_ = *neighbors;
-      const std::vector<Neighbors> &other_neighbors_ = *(other.neighbors);
+      const std::vector<Neighbors>& neighbors_ = *neighbors;
+      const std::vector<Neighbors>& other_neighbors_ = *(other.neighbors);
       for (unsigned int i = 0; i < num_points; ++i) {
         if (neighbors_[i] != other_neighbors_[i]) return false;
       }
@@ -878,8 +878,8 @@ class ConvexBaseTpl : public ShapeBase {
         (normals.get() && !(other.normals.get())))
       return false;
     if (normals.get() && other.normals.get()) {
-      const std::vector<Vec3s> &normals_ = *normals;
-      const std::vector<Vec3s> &other_normals_ = *(other.normals);
+      const std::vector<Vec3s>& normals_ = *normals;
+      const std::vector<Vec3s>& other_normals_ = *(other.normals);
       for (unsigned int i = 0; i < num_normals_and_offsets; ++i) {
         if (normals_[i] != other_normals_[i]) return false;
       }
@@ -889,8 +889,8 @@ class ConvexBaseTpl : public ShapeBase {
         (offsets.get() && !(other.offsets.get())))
       return false;
     if (offsets.get() && other.offsets.get()) {
-      const std::vector<Scalar> &offsets_ = *offsets;
-      const std::vector<Scalar> &other_offsets_ = *(other.offsets);
+      const std::vector<Scalar>& offsets_ = *offsets;
+      const std::vector<Scalar>& other_offsets_ = *(other.offsets);
       for (unsigned int i = 0; i < num_normals_and_offsets; ++i) {
         if (offsets_[i] != other_offsets_[i]) return false;
       }
@@ -925,7 +925,7 @@ typedef ConvexBaseTpl<Triangle32::IndexType> ConvexBase32;
 typedef ConvexBase32 ConvexBase;
 
 template <typename PolygonT>
-class Convex;
+class ConvexTpl;
 
 /// @brief Half Space: this is equivalent to the Plane in ODE.
 /// A Half space has a priviledged direction: the direction of the normal.
