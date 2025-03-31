@@ -299,12 +299,12 @@ void getShapeSupportLog(const ConvexBaseTpl<IndexType>* convex,
       support_data.last_dir.dot(dir_normalized) < use_warm_start_threshold) {
     // Change hint if last dir is too far from current dir.
     Scalar maxdot = convex->support_warm_starts.points[0].dot(dir);
-    hint = convex->support_warm_starts.indices[0];
+    hint = int(convex->support_warm_starts.indices[0]);
     for (size_t i = 1; i < convex->support_warm_starts.points.size(); ++i) {
       Scalar dot = convex->support_warm_starts.points[i].dot(dir);
       if (dot > maxdot) {
         maxdot = dot;
-        hint = convex->support_warm_starts.indices[i];
+        hint = int(convex->support_warm_starts.indices[i]);
       }
     }
   }

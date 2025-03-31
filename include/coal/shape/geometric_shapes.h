@@ -785,7 +785,7 @@ class ConvexBaseTpl : public ShapeBase {
     /// @brief Indices of the support points warm starts.
     /// These are the indices of the real convex, not the indices of points in
     /// the warm start polytope.
-    std::vector<int> indices;
+    std::vector<IndexType> indices;
   };
 
   /// @brief Number of support warm starts.
