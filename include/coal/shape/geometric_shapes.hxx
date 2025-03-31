@@ -141,8 +141,8 @@ void ConvexBaseTpl<IndexType>::deepcopy(const ConvexBaseTpl<IndexType>* source,
   copy->num_normals_and_offsets = source->num_normals_and_offsets;
 
   copy->center = source->center;
-  copy->support_warm_starts.points = source->support_warm_starts.points;
-  copy->support_warm_starts.indices = source->support_warm_starts.indices;
+  copy->support_warm_starts =
+      source->support_warm_starts.template cast<OtherIndexType>();
 
   // Convert neighbors to new type
   if (source->points->size() >=

@@ -786,6 +786,21 @@ class ConvexBaseTpl : public ShapeBase {
     /// These are the indices of the real convex, not the indices of points in
     /// the warm start polytope.
     std::vector<IndexType> indices;
+
+    /// @brief Cast to a different index type.
+    template <typename OtherIndexType>
+    typename ConvexBaseTpl<OtherIndexType>::SupportWarmStartPolytope cast()
+        const {
+      typedef typename ConvexBaseTpl<OtherIndexType>::SupportWarmStartPolytope
+          ResType;
+      ResType res;
+      res.points = this->points;
+      res.indices.clear();
+      for (size_t i = 0; i < this->indices.size(); ++i) {
+        res.indices.push_back(OtherIndexType(this->indices[i]));
+      }
+      return res;
+    }
   };
 
   /// @brief Number of support warm starts.
