@@ -84,6 +84,46 @@ BOOST_AUTO_TEST_CASE(convex) {
   BOOST_CHECK_EQUAL(box.neighbor(7, 0), 3);
   BOOST_CHECK_EQUAL(box.neighbor(7, 1), 5);
   BOOST_CHECK_EQUAL(box.neighbor(7, 2), 6);
+
+  // Cast to int16 and check that the box is the same
+  ConvexTpl<Quadrilateral16> box16 = box.cast<Quadrilateral16>();
+  BOOST_CHECK_EQUAL(box16.neighbor(0, 0), 1);
+  BOOST_CHECK_EQUAL(box16.neighbor(0, 1), 2);
+  BOOST_CHECK_EQUAL(box16.neighbor(0, 2), 4);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(1, 0), 0);
+  BOOST_CHECK_EQUAL(box16.neighbor(1, 1), 3);
+  BOOST_CHECK_EQUAL(box16.neighbor(1, 2), 5);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(2, 0), 0);
+  BOOST_CHECK_EQUAL(box16.neighbor(2, 1), 3);
+  BOOST_CHECK_EQUAL(box16.neighbor(2, 2), 6);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(3, 0), 1);
+  BOOST_CHECK_EQUAL(box16.neighbor(3, 1), 2);
+  BOOST_CHECK_EQUAL(box16.neighbor(3, 2), 7);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(4, 0), 0);
+  BOOST_CHECK_EQUAL(box16.neighbor(4, 1), 5);
+  BOOST_CHECK_EQUAL(box16.neighbor(4, 2), 6);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(5, 0), 1);
+  BOOST_CHECK_EQUAL(box16.neighbor(5, 1), 4);
+  BOOST_CHECK_EQUAL(box16.neighbor(5, 2), 7);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(6, 0), 2);
+  BOOST_CHECK_EQUAL(box16.neighbor(6, 1), 4);
+  BOOST_CHECK_EQUAL(box16.neighbor(6, 2), 7);
+
+  BOOST_CHECK_EQUAL(box16.neighbor(7, 0), 3);
+  BOOST_CHECK_EQUAL(box16.neighbor(7, 1), 5);
+  BOOST_CHECK_EQUAL(box16.neighbor(7, 2), 6);
+
+  const std::vector<Vec3s>& box_points = *(box.points);
+  const std::vector<Vec3s>& box16_points = *(box16.points);
+  for (size_t i = 0; i < box.points->size(); ++i) {
+    EIGEN_VECTOR_IS_APPROX(box_points[i], box16_points[i], 1e-12);
+  }
 }
 
 template <typename Sa, typename Sb>
