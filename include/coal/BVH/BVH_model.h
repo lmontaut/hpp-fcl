@@ -53,7 +53,7 @@ namespace coal {
 /// @addtogroup Construction_Of_BVH
 /// @{
 
-template <typename IndexType>
+template <typename _IndexType>
 class ConvexBaseTpl;
 
 template <typename BV>

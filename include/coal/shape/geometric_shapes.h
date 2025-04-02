@@ -635,6 +635,7 @@ class COAL_DLLAPI Cylinder : public ShapeBase {
 };
 
 /// @brief Base for convex polytope.
+/// @tparam _IndexType type of vertices indexes.
 /// @note Inherited classes are responsible for filling ConvexBase::neighbors;
 template <typename _IndexType>
 class ConvexBaseTpl : public ShapeBase {
@@ -773,21 +774,21 @@ class ConvexBaseTpl : public ShapeBase {
   /// is guaranteed in the internal of the polytope (as it is convex)
   Vec3s center;
 
-  /// @brief The support warm start polytope contains certain points of `this`
-  /// which are support points in specific directions of space.
-  /// This struct is used to warm start the support function computation for
-  /// large meshes (`num_points` > 32).
+  // The support warm start polytope contains certain points of `this`
+  // which are support points in specific directions of space.
+  // This struct is used to warm start the support function computation for
+  // large meshes (`num_points` > 32).
   struct SupportWarmStartPolytope {
-    /// @brief Array of support points to warm start the support function
-    /// computation.
+    // Array of support points to warm start the support function
+    // computation.
     std::vector<Vec3s> points;
 
-    /// @brief Indices of the support points warm starts.
-    /// These are the indices of the real convex, not the indices of points in
-    /// the warm start polytope.
+    // Indices of the support points warm starts.
+    // These are the indices of the real convex, not the indices of points in
+    // the warm start polytope.
     std::vector<IndexType> indices;
 
-    /// @brief Cast to a different index type.
+    // Cast to a different index type.
     template <typename OtherIndexType>
     typename ConvexBaseTpl<OtherIndexType>::SupportWarmStartPolytope cast()
         const {
