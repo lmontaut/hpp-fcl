@@ -353,6 +353,9 @@ class COAL_DLLAPI CollisionObject {
 
   /// @brief pointer to user defined data specific to this object
   void* user_data;
+
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 }  // namespace coal

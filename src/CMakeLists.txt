@@ -72,6 +72,7 @@ set(
   distance/box_halfspace.cpp
   distance/box_plane.cpp
   distance/box_sphere.cpp
+  distance/capsule_box.cpp
   distance/capsule_capsule.cpp
   distance/capsule_halfspace.cpp
   distance/capsule_plane.cpp
