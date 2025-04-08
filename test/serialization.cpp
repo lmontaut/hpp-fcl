@@ -522,7 +522,7 @@ BOOST_AUTO_TEST_CASE(test_shapes) {
     }
     using Convex = ConvexTpl<Triangle32>;
     std::unique_ptr<Convex> convex =
-        std::unique_ptr<Convex>(static_cast<Convex*>(ConvexBase::convexHull(
+        std::unique_ptr<Convex>(static_cast<Convex*>(ConvexBase32::convexHull(
             points, static_cast<unsigned int>(points->size()), true)));
     convex->setSweptSphereRadius(1.);
     convex->computeLocalAABB();

@@ -155,9 +155,6 @@ class ConvexTpl : public ConvexBaseTpl<typename PolygonT::IndexType> {
   using Base::nneighbors_;
 };
 
-template <typename PolygonT>
-using Convex = ConvexTpl<PolygonT>;
-
 typedef ConvexTpl<Triangle16> Convex16;
 typedef ConvexTpl<Triangle32> Convex32;
 
