@@ -152,18 +152,6 @@ void exposeMaths() {
       .def_pickle(PickleObject<Transform3s>())
       .def(SerializableVisitor<Transform3s>());
 
-  class_<Triangle32>("Triangle32", no_init)
-      .def(dv::init<Triangle32>())
-      .def(dv::init<Triangle32, Triangle32::IndexType, Triangle32::IndexType,
-                    Triangle32::IndexType>())
-      .def("__getitem__",
-           &TriangleWrapper<typename Triangle32::IndexType>::getitem)
-      .def("__setitem__",
-           &TriangleWrapper<typename Triangle32::IndexType>::setitem)
-      .def(dv::member_func("set", &Triangle32::set))
-      .def(dv::member_func("size", &Triangle32::size))
-      .staticmethod("size")
-      .def(self == self);
   exposeTriangle<Triangle32::IndexType>("Triangle32");
   bp::scope().attr("Triangle") = bp::scope().attr("Triangle32");
   exposeTriangle<Triangle16::IndexType>("Triangle16");
