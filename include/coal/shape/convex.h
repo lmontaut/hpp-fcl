@@ -98,8 +98,8 @@ class ConvexTpl : public ConvexBaseTpl<typename PolygonT::IndexType> {
   COAL_DEPRECATED_MESSAGE(Use deepcopy instead.)
   ConvexTpl<PolygonT> *clone() const override { return this->deepcopy(); };
 
-  /// @brief Deep copy of a Convex.
-  /// This method deep copies every field of the class.
+  // Deep copy of a Convex.
+  // This method deep copies every field of the class.
   ConvexTpl *deepcopy() const override {
     ConvexTpl *copy = new ConvexTpl();
     deepcopy(this, copy);
@@ -146,8 +146,8 @@ class ConvexTpl : public ConvexBaseTpl<typename PolygonT::IndexType> {
  protected:
   void fillNeighbors();
 
-  /// @brief Deep copy of a Convex.
-  /// This method deep copies every field of the class.
+  // Deep copy of a Convex.
+  // This method deep copies every field of the class.
   template <typename OtherPolygonT>
   static void deepcopy(const ConvexTpl<PolygonT> *source,
                        ConvexTpl<OtherPolygonT> *copy);
